@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Rádio</title>
+    
+    <!-- Tailwind CSS Framework -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Favicon (Emoji) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📻</text></svg>">
+
+    <!-- PWA & Mobile App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+
+    <!-- Schema.org for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Online Rádio",
+      "description": "Rádiový přehrávač pro poslech různých českých a mezinárodních rozhlasových stanic živě v prohlížeči, s možností vyhledávání a výběru podle žánru.",
+      "applicationCategory": "EntertainmentApplication",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CZK"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "WapDrak",
+        "url": "https://github.com/wapdrak"
+      }
+    }
+    </script>
+    
+    <style>
+        /* --- Základní styly --- */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .border-groove { 
+            border-style: groove; 
+        }
+        
+        /* --- Vlastní posuvník pro seznam stanic --- */
+        .station-list::-webkit-scrollbar { width: 8px; }
+        .station-list::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        .station-list::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .station-list::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* --- Blikající animace pro záhlaví --- */
+        @keyframes blink {
+            0%, 100% { color: white; }
+            25% { color: lightgreen; }
+            50% { color: lightblue; }
+            75% { color: limegreen; }
+        }
+        .blink-radio {
+            animation: blink 10s infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
+
+    <!-- Alpine.js Component -->
+    <div class="flex flex-col min-h-screen" x-data="radioPlayer" x-init="init()">
+        
+        <!-- Navigační lišta -->
+        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm sm:text-base h-12">
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
+                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="radio.html" class="text-white font-bold transition-colors" title="Přejít na online rádio">Rádio</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Záhlaví -->
+        <header class="w-full p-4 text-center">
+            <h1 class="text-2xl sm:text-4xl font-bold text-white blink-radio">♬ Online Rádio 📻</h1>
+        </header>
+
+        <!-- Hlavní obsah -->
+        <main class="w-full max-w-4xl mx-auto flex-grow p-1 sm:p-2">
+            <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
+                
+                <!-- Vyhledávací pole -->
+                <div class="mb-6">
+                    <input type="text" x-model.debounce.300ms="searchQuery" placeholder="Hledat stanici..."
+                           class="w-full max-w-md mx-auto bg-gray-800 border-2 border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" aria-label="Vyhledat rádiovou stanici">
+                </div>
+
+                <!-- Podmíněné zobrazení: Výsledky hledání -->
+                <template x-if="searchQuery.trim() !== ''">
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Výsledky hledání</h3>
+                        <div class="station-list max-h-96 overflow-y-auto p-2 bg-gray-800 rounded-lg border border-gray-700">
+                             <template x-if="filteredStations.length === 0">
+                                <p class="text-gray-400 p-4">Nebyly nalezeny žádné odpovídající stanice.</p>
+                            </template>
+                            <template x-for="station in filteredStations" :key="station.url">
+                                <button @click="playStation(station)" 
+                                        :class="{'bg-blue-600 text-white': currentStation && currentStation.url === station.url, 'hover:bg-gray-700': !currentStation || currentStation.url !== station.url}"
+                                        class="w-full text-left p-3 rounded-md transition-colors flex items-center justify-between">
+                                    <div class="flex-grow">
+                                        <span x-text="station.name"></span>
+                                        <div class="text-xs text-gray-400">
+                                            <span x-text="station.genre"></span>
+                                            <span x-show="station.language" x-text="' | ' + station.language"></span>
+                                            <span x-show="station.format" x-text="' | ' + station.format"></span>
+                                            <span x-show="station.bitrate" x-text="' | ' + station.bitrate"></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center flex-shrink-0 pl-2">
+                                        <a :href="station.url" target="_blank" @click.stop class="text-gray-400 hover:text-white mx-2 text-lg" title="Otevřít stream v novém okně" aria-label="Otevřít stream v novém okně">
+                                            <i class="fas fa-broadcast-tower"></i>
+                                        </a>
+                                        <i x-show="currentStation && currentStation.url === station.url && isPlaying" class="fas fa-volume-up text-green-400"></i>
+                                        <i x-show="currentStation && currentStation.url === station.url && !isPlaying" class="fas fa-pause text-yellow-400"></i>
+                                    </div>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Podmíněné zobrazení: Výběr žánru -->
+                <template x-if="searchQuery.trim() === ''">
+                    <div>
+                        <!-- Žánry -->
+                        <div class="mb-6">
+                            <h2 class="text-xl font-bold mb-4">Vyberte žánr</h2>
+                            <div class="flex flex-wrap justify-center gap-2">
+                                <template x-for="genre in genres" :key="genre.name">
+                                    <button @click="selectGenre(genre)" 
+                                            :class="{'bg-indigo-700 ring-2 ring-white': selectedGenre && selectedGenre.name === genre.name, 'bg-gray-700 hover:bg-gray-600': !selectedGenre || selectedGenre.name !== genre.name}"
+                                            class="text-white font-semibold py-2 px-4 rounded-lg transition-all text-sm">
+                                        <span x-text="genre.name"></span>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Seznam stanic -->
+                        <template x-if="selectedGenre">
+                            <div class="mt-8" x-ref="stationListContainer">
+                                <h3 class="text-lg font-bold mb-4" x-text="`Stanice v žánru: ${selectedGenre.name}`"></h3>
+                                <div class="station-list max-h-80 overflow-y-auto p-2 bg-gray-800 rounded-lg border border-gray-700">
+                                    <template x-for="station in selectedGenre.stations" :key="station.name">
+                                        <button @click="playStation(station)" 
+                                                :class="{'bg-blue-600 text-white': currentStation && currentStation.url === station.url, 'hover:bg-gray-700': !currentStation || currentStation.url !== station.url}"
+                                                class="w-full text-left p-3 rounded-md transition-colors flex items-center justify-between">
+                                            <div class="flex-grow">
+                                                <span x-text="station.name"></span>
+                                                <div class="text-xs text-gray-400">
+                                                    <span x-show="station.language" x-text="station.language"></span>
+                                                    <span x-show="station.format" x-text="' | ' + station.format"></span>
+                                                    <span x-show="station.bitrate" x-text="' | ' + station.bitrate"></span>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center flex-shrink-0 pl-2">
+                                                <a :href="station.url" target="_blank" @click.stop class="text-gray-400 hover:text-white mx-2 text-lg" title="Otevřít stream v novém okně" aria-label="Otevřít stream v novém okně">
+                                                    <i class="fas fa-broadcast-tower"></i>
+                                                </a>
+                                                <i x-show="currentStation && currentStation.url === station.url && isPlaying" class="fas fa-volume-up text-green-400"></i>
+                                                <i x-show="currentStation && currentStation.url === station.url && !isPlaying" class="fas fa-pause text-yellow-400"></i>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+            </div>
+        </main>
+
+        <!-- Ovládání přehrávače (Přilepená patička) -->
+        <div class="sticky bottom-0 z-40 bg-gray-800 border-t-2 border-gray-700 p-3 shadow-lg" x-show="currentStation" x-cloak>
+            <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+                <!-- Levá část: Tlačítko a textové info -->
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <button @click="togglePlayPause()" class="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white rounded-full text-2xl" :aria-label="isPlaying ? 'Pozastavit přehrávání' : 'Spustit přehrávání'" :title="isPlaying ? 'Pozastavit' : 'Přehrát'">
+                        <i :class="isPlaying ? 'fas fa-pause' : 'fas fa-play'"></i>
+                    </button>
+                    <!-- Kontejner na text -->
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-white whitespace-normal" x-text="currentStation ? currentStation.name : 'Vyberte stanici'"></p>
+                        
+                        <!-- Zobrazit detaily stanice při přehrávání nebo pauze -->
+                        <template x-if="currentStation">
+                            <div x-show="(playerStatus === 'playing' || playerStatus === 'paused')" class="text-xs text-gray-400 leading-tight">
+                                <div>
+                                    <span x-show="currentStation.genre" x-text="currentStation.genre"></span>
+                                    <span x-show="currentStation.language" x-text="' | ' + currentStation.language"></span>
+                                </div>
+                                <div>
+                                    <span x-show="currentStation.format" x-text="currentStation.format"></span>
+                                    <span x-show="currentStation.bitrate" x-text="' | ' + currentStation.bitrate"></span>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Zobrazit stavový text pro načítání, chybu atd. -->
+                        <p x-show="playerStatus !== 'playing' && playerStatus !== 'paused'" class="text-xs" :class="{'text-red-400': playerStatus === 'error', 'text-gray-400': playerStatus !== 'error'}" x-text="getStatusText()"></p>
+                    </div>
+                </div>
+                <!-- Pravá část: Hlasitost a tlačítko zavřít -->
+                <div class="flex items-center gap-1 sm:gap-2">
+                    <template x-if="currentStation">
+                        <a :href="currentStation.url" target="_blank" @click.stop class="text-gray-400 hover:text-white text-xl w-8 h-8 flex items-center justify-center" title="Otevřít stream v novém okně" aria-label="Otevřít stream v novém okně">
+                            <i class="fas fa-broadcast-tower"></i>
+                        </a>
+                    </template>
+                    <button @click="toggleMute()" class="text-gray-400 hover:text-white text-xl w-8 h-8" :aria-label="isMuted || volume == 0 ? 'Zapnout zvuk' : 'Vypnout zvuk'" :title="isMuted || volume == 0 ? 'Zapnout zvuk' : 'Vypnout zvuk'">
+                        <i class="fas" :class="{'fa-volume-up': volume > 0.5 && !isMuted, 'fa-volume-down': volume > 0 && volume <= 0.5 && !isMuted, 'fa-volume-mute': isMuted || volume == 0}"></i>
+                    </button>
+                    <input type="range" min="0" max="1" step="0.01" x-model="volume" class="w-16 sm:w-24 hidden sm:block" aria-label="Ovládání hlasitosti" title="Ovládání hlasitosti">
+                    <button @click="closePlayer()" class="text-gray-400 hover:text-white text-2xl px-2" title="Zavřít přehrávač" aria-label="Zavřít přehrávač">&times;</button>
+                </div>
+                <audio x-ref="audioPlayer" 
+                       @play="handlePlay" 
+                       @pause="isPlaying = false; if(playerStatus !== 'error') playerStatus = 'paused'" 
+                       @ended="isPlaying = false; playerStatus = 'idle'"
+                       @error="handleError"
+                       class="hidden"
+                       crossorigin="anonymous"></audio>
+            </div>
+        </div>
+
+        <!-- Patička -->
+        <footer class="w-full p-2 text-center text-gray-400 mt-4">
+            <div class="flex justify-center items-center mb-2">
+                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                </button>
+            </div>
+            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        </footer>
+
+        <!-- Modální okno pro sdílení -->
+        <div x-show="isShareModalOpen" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             style="display: none;">
+            <div @click.away="isShareModalOpen = false" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-90"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-90"
+                 class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít" aria-label="Zavřít modální okno">&times;</button>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <template x-for="platform in sharePlatforms" :key="platform.name">
+                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                            <span class="text-xs" x-text="platform.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('radioPlayer', () => ({
+                genres: [],
+                selectedGenre: null,
+                currentStation: null,
+                isPlaying: false,
+                playerStatus: 'idle', // idle, loading, playing, paused, error
+                loadingTimeout: null,
+                volume: 1,
+                isMuted: false,
+                previousVolume: 1,
+                searchQuery: '',
+                isShareModalOpen: false,
+                isNativeShareSupported: false,
+                installPromptEvent: null,
+                sharePlatforms: [
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
+                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
+                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
+                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
+                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
+                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
+                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
+                    { name: 'pinterest', title: 'Sdílet na Pinterestu', icon: 'fab fa-pinterest', color: 'text-red-600', label: 'Pinterest' },
+                    { name: 'reddit', title: 'Sdílet na Redditu', icon: 'fab fa-reddit-alien', color: 'text-orange-500', label: 'Reddit' },
+                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                ],
+
+                init() {
+                    this.genres = this.getStationsData();
+                    if (navigator.share) {
+                        this.isNativeShareSupported = true;
+                    }
+                    const savedVolume = localStorage.getItem('radioPlayerVolume');
+                    if (savedVolume !== null) {
+                        this.volume = parseFloat(savedVolume);
+                    }
+                    this.$refs.audioPlayer.volume = this.volume;
+
+                    this.$watch('volume', value => {
+                        const newVolume = parseFloat(value);
+                        this.$refs.audioPlayer.volume = newVolume;
+                        this.isMuted = newVolume === 0;
+                        localStorage.setItem('radioPlayerVolume', newVolume);
+                    });
+                    
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.installPromptEvent = e;
+                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
+                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                        }
+                    });
+                },
+                
+                async installPWA() {
+                    if (!this.installPromptEvent) return;
+                    this.installPromptEvent.prompt();
+                    const { outcome } = await this.installPromptEvent.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    this.installPromptEvent = null;
+                    this.isShareModalOpen = false;
+                    this.sharePlatforms = this.sharePlatforms.filter(p => p.name !== 'install');
+                },
+                async share(platform) {
+                    if (platform === 'install') {
+                        this.installPWA();
+                        return;
+                    }
+                    if (platform === 'system') {
+                        try {
+                            await navigator.share({ title: document.title, url: window.location.href });
+                        } catch (err) {
+                            console.warn('Native share failed:', err.name);
+                        }
+                        return;
+                    }
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
+                    switch (platform) {
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Podívej se na tuto stránku:%0A%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'pinterest': shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`; break;
+                        case 'reddit': shareUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'print': window.print(); return;
+                        case 'copy': this.copyToClipboard(); return;
+                    }
+                    window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,toolbar=yes,resizable=yes');
+                },
+
+                copyToClipboard() {
+                    const textToCopy = window.location.href;
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    const copyButton = this.sharePlatforms.find(p => p.name === 'copy');
+                    const originalLabel = copyButton.label;
+                    copyButton.label = 'Zkopírováno!';
+                    setTimeout(() => { copyButton.label = originalLabel; }, 2000);
+                },
+
+                get allStations() {
+                    return this.genres.flatMap(genre => genre.stations);
+                },
+
+                get filteredStations() {
+                    if (!this.searchQuery.trim()) {
+                        return [];
+                    }
+                    const query = this.searchQuery.toLowerCase().trim();
+                    return this.allStations.filter(station =>
+                        station.name.toLowerCase().includes(query)
+                    );
+                },
+
+                selectGenre(genre) {
+                    this.selectedGenre = genre;
+                    this.$nextTick(() => {
+                        this.$refs.stationListContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    });
+                },
+
+                playStation(station) {
+                    clearTimeout(this.loadingTimeout);
+                    this.playerStatus = 'loading';
+
+                    if (this.currentStation && this.currentStation.url === station.url) {
+                        this.togglePlayPause();
+                    } else {
+                        this.currentStation = station;
+                        this.$refs.audioPlayer.src = station.url;
+                        const playPromise = this.$refs.audioPlayer.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                if (error.name !== 'AbortError') {
+                                    console.warn('Chyba při přehrávání stanice (může být nedostupná):', error.message);
+                                    this.handleError();
+                                }
+                            });
+                        }
+                    }
+                    
+                    this.loadingTimeout = setTimeout(() => {
+                        if (this.playerStatus === 'loading') {
+                            this.handleError();
+                        }
+                    }, 15000); // 15 sekund
+                },
+
+                togglePlayPause() {
+                    if (this.isPlaying) {
+                        this.$refs.audioPlayer.pause();
+                    } else {
+                        const playPromise = this.$refs.audioPlayer.play();
+                        if (playPromise !== undefined) {
+                             playPromise.catch(error => {
+                                if (error.name !== 'AbortError') {
+                                    console.warn('Chyba při obnovení přehrávání:', error.message);
+                                    this.handleError();
+                                }
+                            });
+                        }
+                    }
+                },
+
+                handlePlay() {
+                    this.isPlaying = true;
+                    this.playerStatus = 'playing';
+                    clearTimeout(this.loadingTimeout);
+                },
+
+                handleError() {
+                    this.playerStatus = 'error';
+                    this.isPlaying = false;
+                    clearTimeout(this.loadingTimeout);
+                },
+
+                closePlayer() {
+                    this.$refs.audioPlayer.pause();
+                    this.$refs.audioPlayer.src = '';
+                    this.currentStation = null;
+                    this.isPlaying = false;
+                    this.playerStatus = 'idle';
+                },
+
+                toggleMute() {
+                    if (this.isMuted || this.volume == 0) {
+                        this.volume = this.previousVolume > 0 ? this.previousVolume : 1;
+                    } else {
+                        this.previousVolume = this.volume;
+                        this.volume = 0;
+                    }
+                },
+
+                getStatusText() {
+                    switch (this.playerStatus) {
+                        case 'loading': return 'Načítání...';
+                        case 'playing': return 'Právě hraje...';
+                        case 'paused': return 'Pozastaveno';
+                        case 'error': return 'Stanice není dostupná';
+                        default: return 'Vyberte stanici';
+                    }
+                },
+
+                getStationsData() {
+                    const stations = [
+                        // České stanice
+                        { name: 'Radiožurnál', url: 'https://icecast8.play.cz/cro1-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Vltava', url: 'https://icecast5.play.cz/cro3-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Český Impuls', url: 'https://icecast6.play.cz/cesky-impuls.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '' },
+                        { name: 'Evropa 2', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
+                        { name: 'Frekvence 1', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
+                        { name: 'Radio Beat', url: 'https://icecast2.play.cz/radiobeat128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Čas Rock Radio', url: 'https://icecast7.play.cz/casrock128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'ClubRadio.cz', url: 'https://icecast2.play.cz/Clubradio.mp3', genre: 'Dance / Elektronická', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+
+                        // Izraelské stanice
+                        { name: 'Galgalatz', url: 'https://glzwizzlv.bynetcdn.com/glglz_mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Kan 88', url: 'https://29053.live.streamtheworld.com/KAN_88.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Radio Tel Aviv', url: 'https://cdn88.mediacast.co.il/102fm-tlv/102fm_mp3/icecast.audio', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'Audio', bitrate: '128kbps' },
+                        { name: 'Kan Gimmel', url: 'https://27913.live.streamtheworld.com/KAN_GIMMEL.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Kan Kol Hamusica', url: 'https://27863.live.streamtheworld.com/KAN_KOL_HAMUSICA.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Reshet Bet', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/KAN_BET.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Radio Makan', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/RADIO_MAKAN.mp3', genre: 'Izraelské stanice', language: 'Arabština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Galei Tzahal', url: 'https://glzicylv01.bynetcdn.com/glz_mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Eco 99 FM (AAC)', url: 'https://eco01.livecdn.biz/ecolive/99fm_aac/icecast.audio', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'AAC', bitrate: '' },
+                        { name: 'Radio Haifa', url: 'https://cp11.livecdn.biz/radiohaifa', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'Stream', bitrate: '' },
+                        
+                        // Pop
+                        { name: 'Capital FM UK', url: 'https://media-ssl.musicradio.com/CapitalUK', genre: 'Pop', language: 'Angličtina', format: 'AAC', bitrate: '128kbps' },
+                        { name: '538 Netherlands', url: 'https://22533.live.streamtheworld.com/RADIO538.mp3', genre: 'Pop', language: 'Nizozemština', format: 'MP3', bitrate: '128kbps' },
+                        
+                        // Rock
+                        { name: 'Radio Paradise', url: 'https://stream.radioparadise.com/mp3-192', genre: 'Rock', language: 'Angličtina', format: 'MP3', bitrate: '192kbps' },
+                        { name: 'Rádio Rock (RU)', url: 'https://nashe1.hostingradio.ru/rock-128.mp3', genre: 'Rock', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'ROCK ANTENNE', url: 'https://mp3channels.webradio.antenne.de/rockantenne', genre: 'Rock', language: 'Němčina', format: 'MP3', bitrate: '' },
+                        
+                        // Indie / Alternativa
+                        { name: 'KEXP 90.3 FM', url: 'https://kexp-mp3-128.streamguys1.com/kexp128.mp3', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Radio X UK', url: 'https://media-ssl.musicradio.com/RadioXUK', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'AAC', bitrate: '128kbps' },
+                        { name: 'FluxFM', url: 'https://streams.fluxfm.de/fluxfm-live/mp3-320/audio/', genre: 'Indie / Alternativa', language: 'Němčina', format: 'MP3', bitrate: '320kbps' },
+                        { name: 'Indie88 (CA)', url: 'https://streams.indie88.com/indie88', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'MP3', bitrate: '' },
+
+                        // Dark / Gothic
+                        { name: 'SomaFM: Doomed', url: 'https://ice1.somafm.com/doomed-128-mp3', genre: 'Dark / Gothic', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
+
+                        // Chillout / Ambient
+                        { name: 'SomaFM: Groove Salad', url: 'https://ice1.somafm.com/groovesalad-128-mp3', genre: 'Chillout / Ambient', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'SomaFM: Drone Zone', url: 'https://ice1.somafm.com/dronezone-128-mp3', genre: 'Chillout / Ambient', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'NPO Soul & Jazz (NL)', url: 'https://icecast.omroep.nl/radio6-bb-mp3', genre: 'Chillout / Ambient', language: 'Nizozemština', format: 'MP3', bitrate: '' },
+                        { name: 'ANTENNE BAYERN Chillout', url: 'https://mp3channels.webradio.de/chillout', genre: 'Chillout / Ambient', language: 'Němčina', format: 'MP3', bitrate: '' },
+
+                        // Jazz
+                        { name: 'Radio Swiss Jazz', url: 'https://stream.srg-ssr.ch/m/rsj/mp3_128', genre: 'Jazz', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'TSF Jazz (FR)', url: 'https://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3', genre: 'Jazz', language: 'Francouzština', format: 'MP3', bitrate: '128kbps' },
+                        
+                        // Klasická
+                        { name: 'WQXR Classical NY', url: 'https://stream.wqxr.org/wqxr', genre: 'Klasická', language: 'Angličtina', format: 'AAC', bitrate: '' },
+
+                        // World Music
+                        { name: 'RFI Monde (FR)', url: 'https://rfimonde64k.ice.infomaniak.ch/rfimonde-64.mp3', genre: 'World Music', language: 'Francouzština', format: 'MP3', bitrate: '64kbps' },
+
+                        // Oldies
+                        { name: 'ANTENNE BAYERN Oldies', url: 'https://mp3channels.webradio.antenne.de/oldies-but-goldies', genre: 'Oldies', language: 'Němčina', format: 'MP3', bitrate: '128kbps' },
+
+                        // Country Folk
+                        { name: '181.FM - Highway 181', url: 'https://listen.181fm.com/181-highway_128k.mp3', genre: 'Country Folk', language: 'Angličtina', format: 'MP3', bitrate: '128kbps' },
+
+                        // Hip Hop
+                        { name: 'HOT 108 JAMZ', url: 'https://jbmedia-edge1.cdnstream.com/hot108', genre: 'Hip Hop', language: 'Angličtina', format: 'MP3', bitrate: '' },
+                        { name: 'Hot 97 (USA)', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/WQHTFMAAC.aac', genre: 'Hip Hop', language: 'Angličtina', format: 'AAC', bitrate: '' },
+                        
+                        // Punk
+                        { name: 'Rádio Nashe Punks', url: 'https://nashe1.hostingradio.ru/nashepunks.mp3', genre: 'Punk', language: 'Ruština', format: 'MP3', bitrate: '' },
+
+                        // Ruské rádio
+                        { name: 'Rádio Ultra', url: 'https://nashe1.hostingradio.ru/ultra-192.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '192kbps' },
+                        { name: 'Rádio Nashe', url: 'https://nashe1.hostingradio.ru/nashe-128.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Nashe 2.0', url: 'https://nashe1.hostingradio.ru:18000/nashe20-128.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
+                        
+                        // Různé
+                        { name: 'ANTENNE BAYERN', url: 'https://mp3channels.webradio.antenne.de/antenne', genre: 'Různé', language: 'Němčina', format: 'MP3', bitrate: '' },
+                        { name: '95.5 Charivari', url: 'https://rs5.stream24.net/stream', genre: 'Různé', language: 'Němčina', format: 'Stream', bitrate: '' },
+                        { name: 'Offradio', url: 'https://s3.yesstreaming.net:7062/stream', genre: 'Různé', language: 'Řečtina', format: 'Stream', bitrate: '' },
+                        { name: 'Radio Arabella', url: 'https://rs6.stream24.net/stream', genre: 'Různé', language: 'Němčina', format: 'Stream', bitrate: '' },
+                    ];
+
+                    const genresMap = new Map();
+                    stations.forEach(station => {
+                        if (!genresMap.has(station.genre)) {
+                            genresMap.set(station.genre, { name: station.genre, stations: [] });
+                        }
+                        genresMap.get(station.genre).stations.push(station);
+                    });
+
+                    const sortedGenres = Array.from(genresMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'cs'));
+
+                    return sortedGenres;
+                }
+            }));
+        });
+    </script>
+    
+    <script>
+        // Registrace Service Workeru pro PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              console.log('ServiceWorker: Registrace úspěšná, rozsah: ', registration.scope);
+            }, err => {
+              console.log('ServiceWorker: Registrace selhala: ', err);
+            });
+          });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulačky</title>
+    
+    <!-- Tailwind CSS Framework -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpg" href="img/gimologo2.jpg">
+
+    <!-- PWA & Mobile App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+
+    <!-- Schema.org for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Kalkulačky",
+      "description": "Sbírka užitečných kalkulaček: jednoduchá kalkulačka s historií, kalkulačka DPH s aktuální sazbou a procentní kalkulačka.",
+      "applicationCategory": "Utilities",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "CZK"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "WapDrak",
+        "url": "https://github.com/wapdrak"
+      }
+    }
+    </script>
+    
+    <style>
+        /* --- Základní styly --- */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .border-groove { 
+            border-style: groove; 
+        }
+        
+        /* Skrytí šipek u číselného vstupu */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Vlastní posuvník pro historii */
+        .history-panel::-webkit-scrollbar { width: 8px; }
+        .history-panel::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+        .history-panel::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .history-panel::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
+
+    <div class="flex flex-col min-h-screen" x-data="unifiedCalculator" x-init="init()">
+        
+        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm sm:text-base h-12">
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
+                    <li><a href="calc.html" class="text-white font-bold transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <header class="w-full p-4 text-center">
+            <h1 class="text-2xl sm:text-4xl font-bold text-white" x-text="activeTitle"></h1>
+        </header>
+
+        <main class="w-full max-w-4xl mx-auto flex-grow p-1 sm:p-2">
+            
+            <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
+                
+                <div class="flex justify-center flex-wrap gap-2 sm:gap-4 mb-6">
+                    <button @click="setActiveTab('simple')" :class="{'bg-blue-700 ring-2 ring-white': activeTab === 'simple', 'bg-blue-500 hover:bg-blue-600': activeTab !== 'simple'}" class="text-white font-bold py-1.5 px-3 text-sm sm:text-base rounded-lg transition-all" title="Zobrazit jednoduchou kalkulačku">Jednoduchá kalkulačka</button>
+                    <button @click="setActiveTab('vat')" :class="{'bg-green-700 ring-2 ring-white': activeTab === 'vat', 'bg-green-500 hover:bg-green-600': activeTab !== 'vat'}" class="text-white font-bold py-1.5 px-3 text-sm sm:text-base rounded-lg transition-all" title="Zobrazit kalkulačku DPH">Kalkulačka DPH</button>
+                    <button @click="setActiveTab('percentage')" :class="{'bg-yellow-700 ring-2 ring-white': activeTab === 'percentage', 'bg-yellow-500 hover:bg-yellow-600': activeTab !== 'percentage'}" class="text-white font-bold py-1.5 px-3 text-sm sm:text-base rounded-lg transition-all" title="Zobrazit procentní kalkulačku">Procentní kalkulačka</button>
+                </div>
+                
+                <div x-show="activeTab === 'simple'" class="max-w-md mx-auto" dir="ltr">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                            <div class="bg-gray-900 text-white text-right rounded-lg p-4 mb-4 h-24 flex flex-col justify-between border border-gray-600" aria-label="Displej kalkulačky">
+                                <div class="text-gray-400 text-sm truncate" x-text="simple.subDisplay || ' '" aria-label="Pomocný displej s celým výpočtem"></div>
+                                <div class="text-3xl font-bold truncate" x-text="simple.display || '0'" aria-label="Hlavní displej se zadaným číslem nebo výsledkem"></div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button @click="simpleInput('C')" class="col-span-2 bg-red-600 hover:bg-red-700 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Vymazat vše (Clear)">C</button>
+                                <button @click="simpleInput('/')" class="bg-gray-700 hover:bg-gray-600 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Dělení">/</button>
+                                <button @click="simpleInput('*')" class="bg-gray-700 hover:bg-gray-600 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Násobení">*</button>
+                                <button @click="simpleInput('7')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">7</button>
+                                <button @click="simpleInput('8')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">8</button>
+                                <button @click="simpleInput('9')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">9</button>
+                                <button @click="simpleInput('-')" class="bg-gray-700 hover:bg-gray-600 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Odčítání">-</button>
+                                <button @click="simpleInput('4')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">4</button>
+                                <button @click="simpleInput('5')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">5</button>
+                                <button @click="simpleInput('6')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">6</button>
+                                <button @click="simpleInput('+')" class="bg-gray-700 hover:bg-gray-600 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Sčítání">+</button>
+                                <button @click="simpleInput('1')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">1</button>
+                                <button @click="simpleInput('2')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">2</button>
+                                <button @click="simpleInput('3')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">3</button>
+                                <button @click="simpleInput('=')" class="row-span-2 bg-blue-600 hover:bg-blue-700 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Rovná se">=</button>
+                                <button @click="simpleInput('0')" class="col-span-2 bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors">0</button>
+                                <button @click="simpleInput('.')" class="bg-gray-600 hover:bg-gray-500 text-white text-2xl font-bold py-3 rounded-lg transition-colors" title="Desetinná čárka">.</button>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-xl border border-gray-700">
+                            <h3 class="text-lg font-bold mb-2 text-left text-gray-400 border-b border-gray-600 pb-2">Historie</h3>
+                            <div class="history-panel h-80 overflow-y-auto text-left pr-2" aria-label="Historie posledních výpočtů">
+                                <template x-if="simple.history.length === 0"><div class="text-gray-500 italic pt-4">Žádná historie výpočtů</div></template>
+                                <template x-for="(item, index) in simple.history" :key="index">
+                                    <div class="py-2 border-b border-gray-700 text-gray-300">
+                                        <div class="text-xs text-gray-500" x-text="item.split('=')[0]"></div>
+                                        <div class="font-semibold" x-text="'= ' + item.split('=')[1]"></div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="activeTab === 'vat'">
+                    <form @submit.prevent class="space-y-6 text-lg max-w-md mx-auto">
+                        <div class="mb-4 text-sm text-gray-400">
+                            Sazba DPH:
+                            <span x-show="vat.status === 'loading'"><i class="fas fa-spinner fa-spin"></i> Načítání...</span>
+                            <span x-show="vat.status === 'success'" x-text="(vat.RATE * 100).toFixed(0) + '% (aktuální)'"></span>
+                            <span x-show="vat.status === 'error'">Chyba při načítání, použita výchozí hodnota <span x-text="(vat.RATE * 100).toFixed(0) + '%'"></span></span>
+                        </div>
+                        <div>
+                            <label for="novat" class="block mb-2">Cena bez DPH:</label>
+                            <input id="novat" type="number" x-model="vat.priceWithout" @input.debounce.300ms="calculateWithVat" placeholder="Zadejte částku" class="w-full p-2 text-center bg-gray-800 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-green-500" title="Zadejte cenu bez DPH pro výpočet ceny s DPH">
+                        </div>
+                        <div>
+                            <label for="vat" class="block mb-2">Cena s DPH:</label>
+                            <input id="vat" type="number" x-model="vat.priceWith" @input.debounce.300ms="calculateWithoutVat" placeholder="Zadejte částku" class="w-full p-2 text-center bg-gray-800 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-green-500" title="Zadejte cenu s DPH pro výpočet ceny bez DPH">
+                        </div>
+                        <div>
+                            <button @click="resetVat" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors" title="Resetovat pole kalkulačky DPH"><i class="fas fa-sync-alt mr-2"></i> Resetovat</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div x-show="activeTab === 'percentage'">
+                     <form @submit.prevent class="space-y-8 text-lg max-w-md mx-auto">
+                        <div class="space-y-4 p-4 border border-gray-700 bg-gray-800 rounded-lg">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                                <input type="number" x-model.number="perc.calc1.percent" @input="calculateValue" placeholder="Procenta" class="p-2 text-center bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-yellow-500" title="Zadejte procentuální část">
+                                <span class="text-gray-400">% z</span>
+                                <input type="number" x-model.number="perc.calc1.total" @input="calculateValue" placeholder="Částka" class="p-2 text-center bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-yellow-500" title="Zadejte celkovou částku">
+                            </div>
+                            <div class="flex items-center justify-center gap-4">
+                                <span class="text-2xl">=</span>
+                                <input type="text" x-model="perc.calc1.result" placeholder="Výsledek" readonly class="w-full p-2 text-center bg-gray-900 border-2 border-gray-600 rounded-lg" title="Výsledná hodnota" aria-label="Výsledná hodnota">
+                            </div>
+                        </div>
+                        <div class="space-y-4 p-4 border border-gray-700 bg-gray-800 rounded-lg">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+                                <input type="number" x-model.number="perc.calc2.part" @input="calculatePercent" placeholder="Část" class="p-2 text-center bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-yellow-500" title="Zadejte část z celku">
+                                <span class="text-gray-400">z</span>
+                                <input type="number" x-model.number="perc.calc2.total" @input="calculatePercent" placeholder="Celková částka" class="p-2 text-center bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:border-yellow-500" title="Zadejte celkovou částku">
+                            </div>
+                             <div class="flex items-center justify-center gap-4">
+                                <span class="text-2xl">=</span>
+                                <input type="text" x-model="perc.calc2.result" placeholder="Výsledek v procentech" readonly class="w-full p-2 text-center bg-gray-900 border-2 border-gray-600 rounded-lg" title="Výsledek v procentech" aria-label="Výsledek v procentech">
+                            </div>
+                        </div>
+                        <div>
+                            <button @click="resetPercentage" type="button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-colors" title="Resetovat pole procentní kalkulačky"><i class="fas fa-sync-alt mr-2"></i> Resetovat</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="w-full p-2 text-center text-gray-400 mt-4">
+            <div class="flex justify-center items-center mb-2">
+                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                </button>
+            </div>
+            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        </footer>
+
+        <div x-show="isShareModalOpen" 
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             style="display: none;">
+            <div @click.away="isShareModalOpen = false" 
+                 class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít" aria-label="Zavřít modální okno">&times;</button>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <template x-for="platform in sharePlatforms" :key="platform.name">
+                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                            <span class="text-xs" x-text="platform.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('unifiedCalculator', () => ({
+                activeTab: 'simple',
+                titles: { simple: 'Jednoduchá kalkulačka', vat: 'Kč Kalkulačka DPH', percentage: 'Procentní kalkulačka' },
+                activeTitle: 'Jednoduchá kalkulačka',
+                simple: { display: '', subDisplay: '', expression: '', history: [] },
+                vat: { priceWithout: null, priceWith: null, RATE: 0.21, status: 'idle' },
+                perc: { calc1: { percent: null, total: null, result: '' }, calc2: { part: null, total: null, result: '' } },
+                isShareModalOpen: false,
+                isNativeShareSupported: false,
+                installPromptEvent: null,
+                sharePlatforms: [
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
+                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
+                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
+                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
+                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
+                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
+                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
+                    { name: 'pinterest', title: 'Sdílet na Pinterestu', icon: 'fab fa-pinterest', color: 'text-red-600', label: 'Pinterest' },
+                    { name: 'reddit', title: 'Sdílet na Redditu', icon: 'fab fa-reddit-alien', color: 'text-orange-500', label: 'Reddit' },
+                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                ],
+                init() {
+                    console.log('Sjednocené kalkulačky inicializovány.');
+                    this.setActiveTab('simple');
+                    this.fetchVatRate();
+                    if (navigator.share) { this.isNativeShareSupported = true; }
+                    
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.installPromptEvent = e;
+                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
+                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                        }
+                    });
+                },
+                async fetchVatRate() {
+                    this.vat.status = 'loading';
+                    const apiUrl = 'https://raw.githubusercontent.com/valeriansaliou/vat-rates/master/vat-rates.json';
+                    try {
+                        const response = await fetch(apiUrl);
+                        if (!response.ok) throw new Error('Network response was not ok');
+                        const data = await response.json();
+                        const czechRate = data.rates.find(r => r.country_code === 'CZ');
+                        if (czechRate && czechRate.standard_rate) {
+                            this.vat.RATE = czechRate.standard_rate / 100;
+                            this.vat.status = 'success';
+                        } else { throw new Error('VAT rate for Czech Republic not found'); }
+                    } catch (error) {
+                        console.warn('Načítání sazby DPH selhalo. Používá se výchozí hodnota.', error.message);
+                        this.vat.status = 'error';
+                        this.vat.RATE = 0.21;
+                    }
+                },
+                setActiveTab(tab) {
+                    this.activeTab = tab;
+                    this.activeTitle = this.titles[tab];
+                },
+                simpleInput(char) {
+                    const operands = ['+', '-', '/', '*'];
+                    if (char === 'C') { this.simple.display = ''; this.simple.subDisplay = ''; this.simple.expression = ''; return; }
+                    if (char === '=') {
+                        if (this.simple.expression === '') return;
+                        try {
+                            let expr = this.simple.expression.replace(/([*\/+-])+/g, '$1').replace(/(\.){2,}/g, '.');
+                            if (operands.includes(expr.slice(-1))) { expr = expr.slice(0, -1); }
+                            if (/[^0-9+\-*/.() ]/.test(expr)) { throw new Error("Invalid characters"); }
+                            const result = new Function('return ' + expr)();
+                            if (!isFinite(result)) throw new Error("Invalid operation");
+                            this.simple.history.unshift(`${expr} = ${result}`);
+                            if (this.simple.history.length > 10) this.simple.history.pop();
+                            this.simple.display = result;
+                            this.simple.subDisplay = `${expr} = ${result}`;
+                            this.simple.expression = String(result);
+                        } catch (e) { this.simple.display = 'Chyba'; this.simple.expression = ''; this.simple.subDisplay = ''; }
+                        return;
+                    }
+                    if (this.simple.subDisplay.includes('=')) {
+                        this.simple.subDisplay = '';
+                        if (!operands.includes(char)) { this.simple.expression = ''; }
+                    }
+                    if (operands.includes(this.simple.expression.slice(-1)) && operands.includes(char)) {
+                        this.simple.expression = this.simple.expression.slice(0, -1);
+                    }
+                    this.simple.expression += char;
+                    this.simple.subDisplay = this.simple.expression;
+                    
+                    const parts = this.simple.expression.split(/([+\-*/])/);
+                    this.simple.display = parts[parts.length - 1];
+                },
+                calculateWithVat() {
+                    const price = parseFloat(this.vat.priceWithout);
+                    if (!isNaN(price)) { this.vat.priceWith = (price * (1 + this.vat.RATE)).toFixed(2); }
+                    else { this.vat.priceWith = null; }
+                },
+                calculateWithoutVat() {
+                    const price = parseFloat(this.vat.priceWith);
+                    if (!isNaN(price)) { this.vat.priceWithout = (price / (1 + this.vat.RATE)).toFixed(2); }
+                    else { this.vat.priceWithout = null; }
+                },
+                resetVat() { this.vat.priceWithout = null; this.vat.priceWith = null; },
+                calculateValue() {
+                    const { percent, total } = this.perc.calc1;
+                    if (percent !== null && total !== null && !isNaN(percent) && !isNaN(total)) {
+                        this.perc.calc1.result = parseFloat(((percent / 100) * total).toFixed(4));
+                    } else { this.perc.calc1.result = ''; }
+                },
+                calculatePercent() {
+                    const { part, total } = this.perc.calc2;
+                    if (part !== null && total !== null && !isNaN(part) && !isNaN(total) && total != 0) {
+                        this.perc.calc2.result = parseFloat(((part / total) * 100).toFixed(4)) + ' %';
+                    } else { this.perc.calc2.result = ''; }
+                },
+                resetPercentage() {
+                    this.perc.calc1 = { percent: null, total: null, result: '' };
+                    this.perc.calc2 = { part: null, total: null, result: '' };
+                },
+                async installPWA() {
+                    if (!this.installPromptEvent) return;
+                    this.installPromptEvent.prompt();
+                    const { outcome } = await this.installPromptEvent.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    this.installPromptEvent = null;
+                    this.isShareModalOpen = false;
+                    this.sharePlatforms = this.sharePlatforms.filter(p => p.name !== 'install');
+                },
+                async share(platform) {
+                    if (platform === 'install') {
+                        this.installPWA();
+                        return;
+                    }
+                    if (platform === 'system') {
+                        try { await navigator.share({ title: document.title, url: window.location.href }); } 
+                        catch (err) { console.warn('Nativní sdílení není v tomto prostředí povoleno:', err.name); }
+                        return;
+                    }
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
+                    switch (platform) {
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporučuji:%0A%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'pinterest': shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`; break;
+                        case 'reddit': shareUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'print': window.print(); return;
+                        case 'copy': this.copyToClipboard(); return;
+                    }
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                },
+                copyToClipboard() {
+                    const textToCopy = window.location.href;
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    const copyButton = this.sharePlatforms.find(p => p.name === 'copy');
+                    const originalLabel = copyButton.label;
+                    copyButton.label = 'Zkopírováno!';
+                    setTimeout(() => { copyButton.label = originalLabel; }, 2000);
+                }
+            }));
+        });
+    </script>
+    
+    <script>
+        // Registrace Service Workeru pro PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              console.log('ServiceWorker: Registrace úspěšná, rozsah: ', registration.scope);
+            }, err => {
+              console.log('ServiceWorker: Registrace selhala: ', err);
+            });
+          });
+        }
+    </script>
+</body>
+</html>

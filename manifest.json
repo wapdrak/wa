@@ -1,7 +1,8 @@
 {
     "name": "WapDrak nástroje",
     "short_name": "WapDrak",
-    "start_url": ".",
+    "start_url": "/wa/",
+    "scope": "/wa/",
     "display": "standalone",
     "background_color": "#111827",
     "theme_color": "#111827",

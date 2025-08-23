@@ -1,0 +1,21 @@
+{
+    "name": "WapDrak nástroje",
+    "short_name": "WapDrak",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#111827",
+    "theme_color": "#111827",
+    "description": "Sada online nástrojů od WapDrak.",
+    "icons": [
+      {
+        "src": "img/icons/icon-192x192.jpg",
+        "sizes": "192x192",
+        "type": "image/jpeg"
+      },
+      {
+        "src": "img/icons/icon-512x512.jpg",
+        "sizes": "512x512",
+        "type": "image/jpeg"
+      }
+    ]
+  }

@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Favicon (můžete změnit) -->
-    <link rel="icon" type="image/jpg" href="img/icons/icon-512x512.png.jpg">
+    <link rel="icon" type="image/jpg" href="/img/gimologo2.jpg">
 
     <!-- PWA & Mobile App Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -166,7 +166,7 @@
                 </div>
                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                     <template x-for="platform in sharePlatforms" :key="platform.name">
-                        <button x-show="platform.name !== 'system' || isNativeShareSupported" @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
                             <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
                             <span class="text-xs" x-text="platform.label"></span>
                         </button>
@@ -187,6 +187,7 @@
                 title: 'WapDrak nástroje',
                 isShareModalOpen: false,
                 isNativeShareSupported: false,
+                installPromptEvent: null,
                 sharePlatforms: [
                     { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
                     { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
@@ -206,19 +207,39 @@
                     if (navigator.share) {
                         this.isNativeShareSupported = true;
                     }
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.installPromptEvent = e;
+                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
+                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                        }
+                    });
+                },
+                async installPWA() {
+                    if (!this.installPromptEvent) return;
+                    this.installPromptEvent.prompt();
+                    const { outcome } = await this.installPromptEvent.userChoice;
+                    console.log(`User response to the install prompt: ${outcome}`);
+                    this.installPromptEvent = null;
+                    this.isShareModalOpen = false;
+                    this.sharePlatforms = this.sharePlatforms.filter(p => p.name !== 'install');
                 },
                 async share(platform) {
-                    const url = window.location.href;
-                    const title = document.title;
-                    let shareUrl = '';
+                    if (platform === 'install') {
+                        this.installPWA();
+                        return;
+                    }
                     if (platform === 'system') {
                         try {
-                            await navigator.share({ title, url });
+                            await navigator.share({ title: document.title, url: window.location.href });
                         } catch (err) {
                             console.warn('Nativní sdílení není v tomto prostředí povoleno:', err.name);
                         }
                         return;
                     }
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
                     switch (platform) {
                         case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
                         case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
@@ -266,4 +287,3 @@
     </script>
 </body>
 </html>
-

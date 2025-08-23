@@ -28,6 +28,7 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Online Rádio",
+      "url": "https://wapdrak.github.io/wa/radio.html",
       "description": "Rádiový přehrávač pro poslech různých českých a mezinárodních rozhlasových stanic živě v prohlížeči, s možností vyhledávání a výběru podle žánru.",
       "applicationCategory": "EntertainmentApplication",
       "operatingSystem": "All",
@@ -519,17 +520,7 @@
 
                 getStationsData() {
                     const stations = [
-                        // České stanice
-                        { name: 'Radiožurnál', url: 'https://icecast8.play.cz/cro1-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
-                        { name: 'Vltava', url: 'https://icecast5.play.cz/cro3-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
-                        { name: 'Český Impuls', url: 'https://icecast6.play.cz/cesky-impuls.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '' },
-                        { name: 'Evropa 2', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
-                        { name: 'Frekvence 1', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
-                        { name: 'Radio Beat', url: 'https://icecast2.play.cz/radiobeat128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
-                        { name: 'Čas Rock Radio', url: 'https://icecast7.play.cz/casrock128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
-                        { name: 'ClubRadio.cz', url: 'https://icecast2.play.cz/Clubradio.mp3', genre: 'Dance / Elektronická', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
-
-                        // Izraelské stanice
+                        // Israeli Stations
                         { name: 'Galgalatz', url: 'https://glzwizzlv.bynetcdn.com/glglz_mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Kan 88', url: 'https://29053.live.streamtheworld.com/KAN_88.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Radio Tel Aviv', url: 'https://cdn88.mediacast.co.il/102fm-tlv/102fm_mp3/icecast.audio', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'Audio', bitrate: '128kbps' },
@@ -540,7 +531,7 @@
                         { name: 'Galei Tzahal', url: 'https://glzicylv01.bynetcdn.com/glz_mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Eco 99 FM (AAC)', url: 'https://eco01.livecdn.biz/ecolive/99fm_aac/icecast.audio', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'AAC', bitrate: '' },
                         { name: 'Radio Haifa', url: 'https://cp11.livecdn.biz/radiohaifa', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'Stream', bitrate: '' },
-                        
+
                         // Pop
                         { name: 'Capital FM UK', url: 'https://media-ssl.musicradio.com/CapitalUK', genre: 'Pop', language: 'Angličtina', format: 'AAC', bitrate: '128kbps' },
                         { name: '538 Netherlands', url: 'https://22533.live.streamtheworld.com/RADIO538.mp3', genre: 'Pop', language: 'Nizozemština', format: 'MP3', bitrate: '128kbps' },
@@ -548,15 +539,20 @@
                         // Rock
                         { name: 'Radio Paradise', url: 'https://stream.radioparadise.com/mp3-192', genre: 'Rock', language: 'Angličtina', format: 'MP3', bitrate: '192kbps' },
                         { name: 'Rádio Rock (RU)', url: 'https://nashe1.hostingradio.ru/rock-128.mp3', genre: 'Rock', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Radio Beat', url: 'https://icecast2.play.cz/radiobeat128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Čas Rock Radio', url: 'https://icecast7.play.cz/casrock128.mp3', genre: 'Rock', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'ROCK ANTENNE', url: 'https://mp3channels.webradio.antenne.de/rockantenne', genre: 'Rock', language: 'Němčina', format: 'MP3', bitrate: '' },
                         
-                        // Indie / Alternativa
+                        // Indie / Alternative
                         { name: 'KEXP 90.3 FM', url: 'https://kexp-mp3-128.streamguys1.com/kexp128.mp3', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Radio X UK', url: 'https://media-ssl.musicradio.com/RadioXUK', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'AAC', bitrate: '128kbps' },
                         { name: 'FluxFM', url: 'https://streams.fluxfm.de/fluxfm-live/mp3-320/audio/', genre: 'Indie / Alternativa', language: 'Němčina', format: 'MP3', bitrate: '320kbps' },
                         { name: 'Indie88 (CA)', url: 'https://streams.indie88.com/indie88', genre: 'Indie / Alternativa', language: 'Angličtina', format: 'MP3', bitrate: '' },
 
-                        // Dark / Gothic
+                        // Dance / Electronic
+                        { name: 'ClubRadio.cz', url: 'https://icecast2.play.cz/Clubradio.mp3', genre: 'Dance / Elektronická', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+
+                        // Dark Music / Goth
                         { name: 'SomaFM: Doomed', url: 'https://ice1.somafm.com/doomed-128-mp3', genre: 'Dark / Gothic', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
 
                         // Chillout / Ambient
@@ -569,7 +565,7 @@
                         { name: 'Radio Swiss Jazz', url: 'https://stream.srg-ssr.ch/m/rsj/mp3_128', genre: 'Jazz', language: 'Mezinárodní', format: 'MP3', bitrate: '128kbps' },
                         { name: 'TSF Jazz (FR)', url: 'https://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3', genre: 'Jazz', language: 'Francouzština', format: 'MP3', bitrate: '128kbps' },
                         
-                        // Klasická
+                        // Classical
                         { name: 'WQXR Classical NY', url: 'https://stream.wqxr.org/wqxr', genre: 'Klasická', language: 'Angličtina', format: 'AAC', bitrate: '' },
 
                         // World Music
@@ -578,7 +574,7 @@
                         // Oldies
                         { name: 'ANTENNE BAYERN Oldies', url: 'https://mp3channels.webradio.antenne.de/oldies-but-goldies', genre: 'Oldies', language: 'Němčina', format: 'MP3', bitrate: '128kbps' },
 
-                        // Country Folk
+                        // Country
                         { name: '181.FM - Highway 181', url: 'https://listen.181fm.com/181-highway_128k.mp3', genre: 'Country Folk', language: 'Angličtina', format: 'MP3', bitrate: '128kbps' },
 
                         // Hip Hop
@@ -588,12 +584,19 @@
                         // Punk
                         { name: 'Rádio Nashe Punks', url: 'https://nashe1.hostingradio.ru/nashepunks.mp3', genre: 'Punk', language: 'Ruština', format: 'MP3', bitrate: '' },
 
-                        // Ruské rádio
+                        // Russian
                         { name: 'Rádio Ultra', url: 'https://nashe1.hostingradio.ru/ultra-192.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '192kbps' },
                         { name: 'Rádio Nashe', url: 'https://nashe1.hostingradio.ru/nashe-128.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Nashe 2.0', url: 'https://nashe1.hostingradio.ru:18000/nashe20-128.mp3', genre: 'Ruské rádio', language: 'Ruština', format: 'MP3', bitrate: '128kbps' },
                         
-                        // Různé
+                        // Czech
+                        { name: 'Radiožurnál', url: 'https://icecast8.play.cz/cro1-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Vltava', url: 'https://icecast5.play.cz/cro3-128.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '128kbps' },
+                        { name: 'Český Impuls', url: 'https://icecast6.play.cz/cesky-impuls.mp3', genre: 'České stanice', language: 'Čeština', format: 'MP3', bitrate: '' },
+                        { name: 'Evropa 2', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/EVROPA2AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
+                        { name: 'Frekvence 1', url: 'https://playerservices.streamtheworld.com/api/livestream-redirect/FREKVENCE1AAC.aac', genre: 'České stanice', language: 'Čeština', format: 'AAC', bitrate: '' },
+
+                        // Miscellaneous
                         { name: 'ANTENNE BAYERN', url: 'https://mp3channels.webradio.antenne.de/antenne', genre: 'Různé', language: 'Němčina', format: 'MP3', bitrate: '' },
                         { name: '95.5 Charivari', url: 'https://rs5.stream24.net/stream', genre: 'Různé', language: 'Němčina', format: 'Stream', bitrate: '' },
                         { name: 'Offradio', url: 'https://s3.yesstreaming.net:7062/stream', genre: 'Různé', language: 'Řečtina', format: 'Stream', bitrate: '' },
@@ -608,6 +611,7 @@
                         genresMap.get(station.genre).stations.push(station);
                     });
 
+                    // Sort genres alphabetically by name for better organization
                     const sortedGenres = Array.from(genresMap.values()).sort((a, b) => a.name.localeCompare(b.name, 'cs'));
 
                     return sortedGenres;

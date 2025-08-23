@@ -1,13 +1,13 @@
-// Název cache - Změněno pro novou verzi
-const CACHE_NAME = 'wapdrak-nastroje-cache-v1';
-// Soubory, které se mají uložit do mezipaměti (s relativními cestami)
+// Název cache - Zvýšená verze pro vynucení aktualizace
+const CACHE_NAME = 'wapdrak-nastroje-cache-v2';
+// Soubory, které se mají uložit do mezipaměti (s explicitními relativními cestami)
 const urlsToCache = [
   './',
-  'index.html',
-  'send.html',
-  'calc.html',
-  'qr.html',
-  'radio.html',
+  './index.html',
+  './send.html',
+  './calc.html',
+  './qr.html',
+  './radio.html',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
 ];
@@ -18,9 +18,7 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Cache otevřena');
-        // Používáme fetch s no-cache, abychom zajistili, že se načtou nejnovější verze z CDN
-        const requests = urlsToCache.map(url => new Request(url, {cache: 'no-cache'}));
-        return cache.addAll(requests);
+        return cache.addAll(urlsToCache);
       })
   );
 });

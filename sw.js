@@ -1,6 +1,6 @@
 // Název cache - Zvýšená verze pro vynucení aktualizace
-const CACHE_NAME = 'wapdrak-nastroje-cache-v2';
-// Soubory, které se mají uložit do mezipaměti (s explicitními relativními cestami)
+const CACHE_NAME = 'wapdrak-nastroje-cache-v3';
+// Soubory, které se mají uložit do mezipaměti
 const urlsToCache = [
   './',
   './index.html',

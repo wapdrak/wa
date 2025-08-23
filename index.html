@@ -1,1 +1,269 @@
-,
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WapDrak nástroje</title>
+    
+    <!-- Tailwind CSS Framework -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Favicon (můžete změnit) -->
+    <link rel="icon" type="image/jpg" href="img/icons/icon-512x512.png.jpg">
+
+    <!-- PWA & Mobile App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+    
+    <!-- Schema.org for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "WapDrak nástroje",
+      "url": "https://github.com/wapdrak",
+      "author": {
+        "@type": "Organization",
+        "name": "WapDrak",
+        "url": "https://github.com/wapdrak"
+      },
+      "description": "Sada online nástrojů od WapDrak, včetně odesílače zpráv, kalkulaček, generátoru kódů a online rádia.",
+      "hasPart": [
+        {
+          "@type": "WebApplication",
+          "name": "Univerzální odesílač zpráv",
+          "url": "send.html",
+          "description": "Odesílejte zprávy na WhatsApp, Telegram, SMS a další na neuložená čísla.",
+          "applicationCategory": "CommunicationApplication",
+          "operatingSystem": "All"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Kalkulačky",
+          "url": "calc.html",
+          "description": "Jednoduchá kalkulačka, kalkulačka DPH a procentní kalkulačka.",
+          "applicationCategory": "Utilities",
+          "operatingSystem": "All"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Generátor kódů",
+          "url": "qr.html",
+          "description": "Generování čárového kódu Code 128, QR kódu a čárového kódu EAN-13.",
+          "applicationCategory": "Utilities",
+          "operatingSystem": "All"
+        },
+        {
+          "@type": "WebApplication",
+          "name": "Online Rádio",
+          "url": "radio.html",
+          "description": "Rádiový přehrávač pro poslech českých i mezinárodních rozhlasových stanic online.",
+          "applicationCategory": "EntertainmentApplication",
+          "operatingSystem": "All"
+        }
+      ]
+    }
+    </script>
+
+    <style>
+        /* --- Základní styly --- */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .border-groove { 
+            border-style: groove; 
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
+
+    <!-- Hlavní kontejner stránky s Alpine.js -->
+    <div class="flex flex-col min-h-screen" x-data="app" x-init="init()">
+        
+        <!-- Navigační menu -->
+        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul class="flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-sm sm:text-base h-12">
+                    <li><a href="index.html" class="text-white font-bold transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
+                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Záhlaví -->
+        <header class="w-full p-4 text-center">
+            <h1 class="text-2xl sm:text-4xl font-bold text-white" x-text="title"></h1>
+        </header>
+
+        <!-- Hlavní obsah stránky -->
+        <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2">
+            
+            <!-- Rámeček s tmavým pozadím -->
+            <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
+                
+                <section>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
+                        <a href="send.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="Nástroj pro odesílání zpráv na různá čísla bez ukládání">Odesílač zpráv</a>
+                        <a href="calc.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="Sada kalkulaček včetně DPH a procent">Kalkulačka</a>
+                        <a href="qr.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="Vytvořte si vlastní QR a čárové kódy">Generátor kódů</a>
+                        <a href="radio.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="Poslouchejte online rádio z celého světa">Online Rádio</a>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <!-- Patička -->
+        <footer class="w-full p-2 text-center text-gray-400 mt-4">
+            <div class="flex justify-center items-center mb-2">
+                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                </button>
+            </div>
+            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        </footer>
+
+        <!-- Modální okno pro sdílení -->
+        <div x-show="isShareModalOpen" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+             style="display: none;">
+            <div @click.away="isShareModalOpen = false" 
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-90"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-90"
+                 class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít" aria-label="Zavřít modální okno">&times;</button>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <template x-for="platform in sharePlatforms" :key="platform.name">
+                        <button x-show="platform.name !== 'system' || isNativeShareSupported" @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                            <span class="text-xs" x-text="platform.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Alpine.js Framework -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <!-- Hlavní skript stránky -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                title: 'WapDrak nástroje',
+                isShareModalOpen: false,
+                isNativeShareSupported: false,
+                sharePlatforms: [
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
+                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
+                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
+                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
+                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
+                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
+                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
+                    { name: 'pinterest', title: 'Sdílet na Pinterestu', icon: 'fab fa-pinterest', color: 'text-red-600', label: 'Pinterest' },
+                    { name: 'reddit', title: 'Sdílet na Redditu', icon: 'fab fa-reddit-alien', color: 'text-orange-500', label: 'Reddit' },
+                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                ],
+                init() {
+                    console.log('Alpine.js šablona inicializována.');
+                    if (navigator.share) {
+                        this.isNativeShareSupported = true;
+                    }
+                },
+                async share(platform) {
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
+                    if (platform === 'system') {
+                        try {
+                            await navigator.share({ title, url });
+                        } catch (err) {
+                            console.warn('Nativní sdílení není v tomto prostředí povoleno:', err.name);
+                        }
+                        return;
+                    }
+                    switch (platform) {
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporučuji:%0A%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'pinterest': shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`; break;
+                        case 'reddit': shareUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'print': window.print(); return;
+                        case 'copy': this.copyToClipboard(); return;
+                    }
+                    window.open(shareUrl, '_blank', 'width=600,height=400,scrollbars=yes,toolbar=yes,resizable=yes');
+                },
+                copyToClipboard() {
+                    const textToCopy = window.location.href;
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    const copyButton = this.sharePlatforms.find(p => p.name === 'copy');
+                    const originalLabel = copyButton.label;
+                    copyButton.label = 'Zkopírováno!';
+                    setTimeout(() => { copyButton.label = originalLabel; }, 2000);
+                }
+            }));
+        });
+    </script>
+    
+    <script>
+        // Registrace Service Workeru pro PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              console.log('ServiceWorker: Registrace úspěšná, rozsah: ', registration.scope);
+            }, err => {
+              console.log('ServiceWorker: Registrace selhala: ', err);
+            });
+          });
+        }
+    </script>
+</body>
+</html>
+

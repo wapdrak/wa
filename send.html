@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/jpg" href="img/icons/icon-192x192.jpg">
+    <link rel="icon" type="image/jpg" href="img/gimologo2.jpg">
 
     <!-- PWA & Mobile App Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -23,7 +23,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
-    <link rel="apple-touch-icon" href="img/icons/icon-192x192.jpg">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
 
     <!-- Schema.org for SEO -->
     <script type="application/ld+json">
@@ -112,8 +112,9 @@
                     <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
                     <li><a href="send.html" class="text-white font-bold transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
                     <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
-                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor barkódů</a></li>
                     <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
                 </ul>
             </div>
         </nav>
@@ -240,10 +241,10 @@
                     this.phoneEl = document.querySelector("#phone");
                     
                     // --- VYLEPŠENÍ: Načtení uložené země z localStorage ---
-                    const savedCountry = localStorage.getItem('selectedCountryIso') || 'cz'; // Změněno na 'cz' jako výchozí
+                    const savedCountry = localStorage.getItem('selectedCountryIso') || 'cz';
 
                     this.phoneInput = window.intlTelInput(this.phoneEl, {
-                        initialCountry: savedCountry, // Použití uložené země
+                        initialCountry: savedCountry,
                         showSearchBox: true,
                         separateDialCode: true,
                         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/js/utils.js",
@@ -251,12 +252,12 @@
                     
                     this.phoneInput.promise.then(() => {
                         this.isUtilsLoaded = true;
-
+                        
                         // --- VYLEPŠENÍ: Uložení nové předvolby při změně ---
                         this.phoneEl.addEventListener('countrychange', () => {
                             const selectedCountry = this.phoneInput.getSelectedCountryData();
                             localStorage.setItem('selectedCountryIso', selectedCountry.iso2);
-                            this.validateNumber(); // Znovu validujeme po změně země
+                            this.validateNumber();
                         });
 
                         this.validateNumber();
@@ -306,12 +307,26 @@
                     });
                 },
                 isNumberValid() {
-                    // Ponechána původní, obecnější validace pro českou verzi
-                    if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
-                    return this.phoneInput.isValidNumber();
+                    const country = this.phoneInput.getSelectedCountryData().iso2;
+                    if (country === 'il') { // Ponechána přesná validace pro Izrael
+                        const number = this.phoneEl.value;
+                        if (!number.trim()) return false;
+                        let sanitizedNumber = number.replace(/\D/g, '');
+                        if (sanitizedNumber.startsWith('0')) {
+                            if (sanitizedNumber.startsWith('05')) { return sanitizedNumber.length === 10; } 
+                            else { return sanitizedNumber.length === 9; }
+                        } else {
+                            if (sanitizedNumber.length === 9 && (sanitizedNumber.startsWith('5'))) { return true; }
+                            if (sanitizedNumber.length === 8 && !(sanitizedNumber.startsWith('5'))) { return true; }
+                            return false;
+                        }
+                    } else {
+                        if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
+                        return this.phoneInput.isValidNumber();
+                    }
                 },
                 validateNumber() {
-                    const itiElement = this.phoneInput.a; // The container div
+                    const itiElement = this.phoneInput.a;
                     const iconElement = document.querySelector("#validation-icon");
                     itiElement.classList.remove('iti--valid', 'iti--invalid');
                     iconElement.classList.remove('valid', 'invalid');

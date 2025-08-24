@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/jpg" href="img/gimologo2.jpg">
+    <link rel="icon" type="image/jpg" href="img/icons/icon-192x192.jpg">
 
     <!-- PWA & Mobile App Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -23,7 +23,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
-    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.jpg">
 
     <!-- Schema.org for SEO -->
     <script type="application/ld+json">
@@ -239,8 +239,11 @@
                 init() {
                     this.phoneEl = document.querySelector("#phone");
                     
+                    // --- VYLEPŠENÍ: Načtení uložené země z localStorage ---
+                    const savedCountry = localStorage.getItem('selectedCountryIso') || 'cz'; // Změněno na 'cz' jako výchozí
+
                     this.phoneInput = window.intlTelInput(this.phoneEl, {
-                        initialCountry: "cz",
+                        initialCountry: savedCountry, // Použití uložené země
                         showSearchBox: true,
                         separateDialCode: true,
                         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/js/utils.js",
@@ -248,10 +251,45 @@
                     
                     this.phoneInput.promise.then(() => {
                         this.isUtilsLoaded = true;
-                        this.phoneEl.addEventListener('countrychange', () => this.validateNumber());
+
+                        // --- VYLEPŠENÍ: Uložení nové předvolby při změně ---
+                        this.phoneEl.addEventListener('countrychange', () => {
+                            const selectedCountry = this.phoneInput.getSelectedCountryData();
+                            localStorage.setItem('selectedCountryIso', selectedCountry.iso2);
+                            this.validateNumber(); // Znovu validujeme po změně země
+                        });
+
                         this.validateNumber();
                     }).catch(error => {
                         console.error("Chyba při načítání utils scriptu:", error);
+                    });
+
+                    // --- VYLEPŠENÍ: Detekce předvolby při psaní ---
+                    this.phoneEl.addEventListener('input', () => {
+                        let phoneNumber = this.phoneEl.value.trim();
+
+                        if (phoneNumber.startsWith('++')) {
+                            phoneNumber = '+' + phoneNumber.substring(2);
+                        }
+
+                        if (phoneNumber.startsWith('+')) {
+                            const allCountries = window.intlTelInputGlobals.getCountryData();
+                            let bestMatch = null;
+
+                            for (const country of allCountries) {
+                                const dialCodeWithPlus = '+' + country.dialCode;
+                                if (phoneNumber.startsWith(dialCodeWithPlus)) {
+                                    if (!bestMatch || country.dialCode.length > bestMatch.dialCode.length) {
+                                        bestMatch = country;
+                                    }
+                                }
+                            }
+
+                            if (bestMatch) {
+                                this.phoneInput.setCountry(bestMatch.iso2);
+                                this.phoneEl.value = phoneNumber.substring(1 + bestMatch.dialCode.length);
+                            }
+                        }
                     });
 
                     if ('contacts' in navigator && 'select' in navigator.contacts) {
@@ -268,11 +306,12 @@
                     });
                 },
                 isNumberValid() {
+                    // Ponechána původní, obecnější validace pro českou verzi
                     if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
                     return this.phoneInput.isValidNumber();
                 },
                 validateNumber() {
-                    const itiElement = this.phoneInput.a;
+                    const itiElement = this.phoneInput.a; // The container div
                     const iconElement = document.querySelector("#validation-icon");
                     itiElement.classList.remove('iti--valid', 'iti--invalid');
                     iconElement.classList.remove('valid', 'invalid');

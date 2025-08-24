@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&#128270; Dekodér textů</title>
+    
+    <!-- Tailwind CSS Framework -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpg" href="img/icons/icon-192x192.jpg">
+
+    <!-- PWA & Mobile App Meta Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.jpg">
+
+    <style>
+        /* --- Základní styly --- */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow-x: hidden; 
+        }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+        }
+        .border-groove { 
+            border-style: groove; 
+        }
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+        .copy-success {
+            color: #34d399; /* Zelená barva pro úspěch */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
+
+    <div class="flex flex-col min-h-screen" x-data="decoderApp" x-init="init()">
+        
+        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
+                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
+                    <li><a href="decoder.html" class="text-white font-bold transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <header class="w-full p-4 text-center">
+            <h1 class="text-2xl sm:text-4xl font-bold">
+                <i class="fas fa-cogs" style="color:#60a5fa;"></i>
+                Dekodér textů
+            </h1>
+        </header>
+
+        <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2">
+            <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
+                <section>
+                    <h2 class="text-base sm:text-lg text-gray-300 mt-2">
+                        Nástroje pro kódování a dekódování textu pro různé formáty.
+                    </h2>
+
+                    <div class="mt-6 space-y-6">
+                        <!-- Pole pro vstup a výstup -->
+                        <div class="relative">
+                            <textarea x-model="text" class="bg-gray-800 text-yellow-300 text-left text-base sm:text-lg rounded-md border-2 border-gray-600 p-3 w-full font-mono" rows="8" placeholder="Vložte text sem..."></textarea>
+                            <button @click="copyText()" title="Kopírovat text" class="copy-btn absolute top-3 right-3 text-gray-400 hover:text-white transition">
+                                <i class="fas fa-copy text-xl"></i>
+                            </button>
+                        </div>
+                        <div x-show="copySuccess" class="copy-success text-sm" x-transition>Text zkopírován do schránky!</div>
+
+                        <!-- Sekce s nástroji -->
+                        <div class="space-y-6">
+                            <!-- HTML Entity Coder -->
+                            <div class="p-4 bg-gray-800 rounded-lg">
+                                <h3 class="text-lg font-bold mb-3">HTML Entity</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button @click="encodeHTML()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition">Kódovat</button>
+                                    <button @click="decodeHTML()" class="w-full bg-blue-800 hover:bg-blue-900 text-white font-bold py-2 px-4 rounded-lg transition">Dekódovat</button>
+                                </div>
+                            </div>
+
+                            <!-- URL Coder -->
+                            <div class="p-4 bg-gray-800 rounded-lg">
+                                <h3 class="text-lg font-bold mb-3">URL</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button @click="encodeURL()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Kódovat</button>
+                                    <button @click="decodeURL()" class="w-full bg-green-800 hover:bg-green-900 text-white font-bold py-2 px-4 rounded-lg transition">Dekódovat</button>
+                                </div>
+                            </div>
+                            
+                            <!-- Base64 Coder -->
+                            <div class="p-4 bg-gray-800 rounded-lg">
+                                <h3 class="text-lg font-bold mb-3">Base64</h3>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <button @click="encodeBase64()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg transition">Kódovat</button>
+                                    <button @click="decodeBase64()" class="w-full bg-purple-800 hover:bg-purple-900 text-white font-bold py-2 px-4 rounded-lg transition">Dekódovat</button>
+                                </div>
+                                <p x-show="error" x-text="error" class="text-red-500 text-sm mt-2" x-transition></p>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 border-gray-600">
+                        <button @click="text = ''" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">
+                            <i class="fas fa-trash-alt mr-2"></i>Vymazat
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <footer class="w-full p-2 text-center text-gray-400 mt-4">
+            <div class="flex justify-center items-center mb-2">
+                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                </button>
+            </div>
+            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        </footer>
+
+        <div x-show="isShareModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+            <div @click.away="isShareModalOpen = false" 
+                 class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít" aria-label="Zavřít modální okno">&times;</button>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <template x-for="platform in sharePlatforms" :key="platform.name">
+                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                            <span class="text-xs" x-text="platform.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('decoderApp', () => ({
+                text: '',
+                error: '',
+                copySuccess: false,
+                isShareModalOpen: false,
+                isNativeShareSupported: false,
+                installPromptEvent: null,
+                sharePlatforms: [
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
+                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
+                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
+                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
+                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
+                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
+                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
+                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                ],
+                init() {
+                    if (navigator.share) { this.isNativeShareSupported = true; }
+                     window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.installPromptEvent = e;
+                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
+                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                        }
+                    });
+                },
+                clearError() { this.error = ''; },
+                encodeHTML() {
+                    this.clearError();
+                    const textarea = document.createElement('textarea');
+                    textarea.textContent = this.text;
+                    this.text = textarea.innerHTML;
+                },
+                decodeHTML() {
+                    this.clearError();
+                    const textarea = document.createElement('textarea');
+                    textarea.innerHTML = this.text;
+                    this.text = textarea.value;
+                },
+                encodeURL() {
+                    this.clearError();
+                    this.text = encodeURIComponent(this.text);
+                },
+                decodeURL() {
+                    this.clearError();
+                    try {
+                        this.text = decodeURIComponent(this.text);
+                    } catch (e) {
+                        this.error = "Chyba: Vstupní řetězec není platný pro URL dekódování.";
+                    }
+                },
+                encodeBase64() {
+                    this.clearError();
+                    try {
+                        // Správné kódování pro podporu UTF-8
+                        this.text = btoa(unescape(encodeURIComponent(this.text)));
+                    } catch (e) {
+                        this.error = "Chyba při kódování do Base64.";
+                    }
+                },
+                decodeBase64() {
+                    this.clearError();
+                    try {
+                        // Správné dekódování pro podporu UTF-8
+                        this.text = decodeURIComponent(escape(atob(this.text)));
+                    } catch (e) {
+                        this.error = "Chyba: Vstupní řetězec není platný Base64 formát.";
+                    }
+                },
+                copyText() {
+                    if (!this.text) return;
+                    navigator.clipboard.writeText(this.text).then(() => {
+                        this.copySuccess = true;
+                        setTimeout(() => { this.copySuccess = false; }, 2000);
+                    });
+                },
+                async share(platform) {
+                    if (platform === 'install') { this.installPWA(); return; }
+                    if (platform === 'system') {
+                        try { await navigator.share({ title: document.title, url: window.location.href }); } 
+                        catch (err) { console.warn('Nativní sdílení není v tomto prostředí povoleno:', err.name); }
+                        return;
+                    }
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
+                    switch (platform) {
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'print': window.print(); return;
+                        case 'copy': this.copyShareLink(); return;
+                    }
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                },
+                copyShareLink() {
+                    const textToCopy = window.location.href;
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const copyButton = this.sharePlatforms.find(p => p.name === 'copy');
+                        const originalLabel = copyButton.label;
+                        copyButton.label = 'Zkopírováno!';
+                        setTimeout(() => { copyButton.label = originalLabel; }, 2000);
+                    });
+                }
+            }));
+        });
+    </script>
+    
+    <script>
+        // Registrace Service Workeru pro PWA
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then(registration => {
+              console.log('ServiceWorker: Registrace úspěšná, rozsah: ', registration.scope);
+            }, err => {
+              console.log('ServiceWorker: Registrace selhala: ', err);
+            });
+          });
+        }
+    </script>
+</body>
+</html>

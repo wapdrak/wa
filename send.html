@@ -411,13 +411,13 @@
                     const title = document.title;
                     let shareUrl = '';
                     switch (platform) {
-                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
                         case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
-                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
-                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}`; break;
                         case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
-                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporučuji:%0A%0A${encodeURIComponent(url)}`; break;
-                        case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=Doporu%C4%8Duji%3A%20%0A${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
                         case 'pinterest': shareUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(title)}`; break;
                         case 'reddit': shareUrl = `https://reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
                         case 'print': window.print(); return;

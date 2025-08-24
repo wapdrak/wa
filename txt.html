@@ -118,8 +118,8 @@
                 <div x-show="activeTab === 'markdown'" x-transition>
                     <div class="flex justify-between items-center mb-2">
                         <div class="bg-gray-800 p-1 rounded-lg flex space-x-1">
-                            <button @click="markdownView = 'editor'" :class="{'bg-purple-600 text-white': markdownView === 'editor', 'bg-gray-700 text-gray-400 hover:bg-gray-600': markdownView !== 'editor'}" class="px-3 py-1 text-sm font-medium rounded-md transition">Editor</button>
-                            <button @click="markdownView = 'preview'" :class="{'bg-purple-600 text-white': markdownView === 'preview', 'bg-gray-700 text-gray-400 hover:bg-gray-600': markdownView !== 'preview'}" class="px-3 py-1 text-sm font-medium rounded-md transition">Náhled</button>
+                            <button @click="markdownView = 'preview'" :class="{'bg-purple-600 text-white': markdownView === 'preview', 'bg-gray-700 text-gray-400 hover:bg-gray-600': markdownView !== 'preview'}" class="px-3 py-1 text-sm font-medium rounded-md transition">Editor</button>
+                            <button @click="markdownView = 'editor'" :class="{'bg-purple-600 text-white': markdownView === 'editor', 'bg-gray-700 text-gray-400 hover:bg-gray-600': markdownView !== 'editor'}" class="px-3 py-1 text-sm font-medium rounded-md transition">Náhled</button>
                         </div>
                         <button @click="downloadMD()" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded-lg transition text-sm">
                             <i class="fas fa-download mr-2"></i>Stáhnout .md
@@ -127,22 +127,25 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-x-2 bg-gray-800 p-2 rounded-t-md border-b-2 border-gray-700">
-                        <button @click="formatText('bold')" title="Tučné" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-bold"></i></button>
-                        <button @click="formatText('italic')" title="Kurzíva" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-italic"></i></button>
-                        <button @click="formatText('strike')" title="Přeškrtnuté" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-strikethrough"></i></button>
-                        <button @click="formatText('code')" title="Kód" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-code"></i></button>
-                        <button @click="formatText('link')" title="Odkaz" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-link"></i></button>
-                        <button @click="formatText('h1')" title="Nadpis 1" class="px-2 py-1 hover:bg-gray-700 rounded font-bold">H1</button>
-                        <button @click="formatText('h2')" title="Nadpis 2" class="px-2 py-1 hover:bg-gray-700 rounded font-bold">H2</button>
-                        <button @click="formatText('ul')" title="Seznam s odrážkami" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-list-ul"></i></button>
-                        <button @click="formatText('ol')" title="Číslovaný seznam" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-list-ol"></i></button>
-                        <button @click="formatText('quote')" title="Citace" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-quote-left"></i></button>
-                        <button @click="formatText('hr')" title="Horizontální čára" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-minus"></i></button>
+                        <button @mousedown.prevent @click="formatText('bold')" title="Tučné" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-bold"></i></button>
+                        <button @mousedown.prevent @click="formatText('italic')" title="Kurzíva" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-italic"></i></button>
+                        <button @mousedown.prevent @click="formatText('strike')" title="Přeškrtnuté" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-strikethrough"></i></button>
+                        <button @mousedown.prevent @click="formatText('code')" title="Kód" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-code"></i></button>
+                        <button @mousedown.prevent @click="formatText('link')" title="Odkaz" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-link"></i></button>
+                        <button @mousedown.prevent @click="formatText('h1')" title="Nadpis 1" class="px-2 py-1 hover:bg-gray-700 rounded font-bold">H1</button>
+                        <button @mousedown.prevent @click="formatText('h2')" title="Nadpis 2" class="px-2 py-1 hover:bg-gray-700 rounded font-bold">H2</button>
+                        <button @mousedown.prevent @click="formatText('ul')" title="Seznam s odrážkami" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-list-ul"></i></button>
+                        <button @mousedown.prevent @click="formatText('ol')" title="Číslovaný seznam" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-list-ol"></i></button>
+                        <button @mousedown.prevent @click="formatText('quote')" title="Citace" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-quote-left"></i></button>
+                        <button @mousedown.prevent @click="formatText('hr')" title="Horizontální čára" class="px-2 py-1 hover:bg-gray-700 rounded"><i class="fas fa-minus"></i></button>
                     </div>
 
                     <textarea x-show="markdownView === 'editor'" id="markdown-editor" x-model="text" class="bg-gray-800 text-yellow-300 text-left text-base rounded-b-md border-2 border-t-0 border-gray-600 p-3 w-full font-mono" rows="16" placeholder="Napište svůj Markdown zde..."></textarea>
                     
-                    <div x-show="markdownView === 'preview'" id="markdown-preview" x-html="renderedMarkdown" @input="updateMarkdownFromPreview($event)" contenteditable="true" class="markdown-preview bg-gray-800 text-left text-base rounded-b-md border-2 border-t-0 border-gray-600 p-3 w-full overflow-y-auto"></div>
+                    <div x-show="markdownView === 'preview'" id="markdown-preview" 
+                         @input="updateMarkdownFromPreview($event)" 
+                         contenteditable="true" 
+                         class="markdown-preview bg-gray-800 text-left text-base rounded-b-md border-2 border-t-0 border-gray-600 p-3 w-full overflow-y-auto"></div>
                 </div>
 
                 <!-- HTML Editor -->
@@ -193,7 +196,7 @@
         document.addEventListener('alpine:init', () => {
             Alpine.data('editorsApp', () => ({
                 activeTab: 'markdown',
-                markdownView: 'editor',
+                markdownView: 'preview',
                 text: '',
                 isUpdating: false,
                 turndownService: null,
@@ -216,20 +219,38 @@
                     this.text = localStorage.getItem('editor_text') || '# Ahoj!\n\nToto je tvůj nový editor.';
                     this.turndownService = new TurndownService();
                     
-                    this.$watch('text', (value) => {
-                        localStorage.setItem('editor_text', value);
-                        if (this.isUpdating) return;
-                        this.updatePreview();
+                    this.$watch('text', (newText) => {
+                        localStorage.setItem('editor_text', newText);
+                        if (this.isUpdating) return; // Zabraňte zpětné smyčce
+                        
+                        // Aktualizujte náhled pouze tehdy, pokud je aktivní
+                        if (this.markdownView === 'preview') {
+                            document.getElementById('markdown-preview').innerHTML = this.renderedMarkdown;
+                        }
+                    });
+
+                    this.$watch('markdownView', (newView) => {
+                        if (newView === 'preview') {
+                            this.$nextTick(() => {
+                                document.getElementById('markdown-preview').innerHTML = this.renderedMarkdown;
+                            });
+                        }
+                    });
+
+                    this.$nextTick(() => {
+                        if (this.markdownView === 'preview') {
+                            document.getElementById('markdown-preview').innerHTML = this.renderedMarkdown;
+                        }
                     });
 
                     if (navigator.share) { this.isNativeShareSupported = true; }
                      window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        this.installPromptEvent = e;
-                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
-                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
-                        }
-                    });
+                         e.preventDefault();
+                         this.installPromptEvent = e;
+                         if (!this.sharePlatforms.find(p => p.name === 'install')) {
+                             this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                         }
+                     });
                 },
                 get renderedMarkdown() {
                     return marked.parse(this.text);
@@ -242,48 +263,108 @@
                 },
                 get fullHTML() {
                     const styles = `
-        <style>
-            body { font-family: sans-serif; line-height: 1.6; }
-            h1, h2, h3 { border-bottom: 1px solid #ccc; padding-bottom: 0.3em; }
-            h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }
-            a { color: #0366d6; }
-            code { background-color: #f6f8fa; padding: 0.2em 0.4em; border-radius: 3px; }
-            pre { background-color: #f6f8fa; padding: 1em; border-radius: 6px; overflow-x: auto; }
-            blockquote { border-left: 4px solid #dfe2e5; padding-left: 1em; color: #6a737d; }
-            table { border-collapse: collapse; }
-            th, td { border: 1px solid #dfe2e5; padding: 0.5em; }
-            th { background-color: #f6f8fa; }
-        </style>`;
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; }
+        h1, h2, h3 { border-bottom: 1px solid #ccc; padding-bottom: 0.3em; }
+        h1 { font-size: 2em; } h2 { font-size: 1.5em; } h3 { font-size: 1.25em; }
+        a { color: #0366d6; }
+        code { background-color: #f6f8fa; padding: 0.2em 0.4em; border-radius: 3px; }
+        pre { background-color: #f6f8fa; padding: 1em; border-radius: 6px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #dfe2e5; padding-left: 1em; color: #6a737d; }
+        table { border-collapse: collapse; }
+        th, td { border: 1px solid #dfe2e5; padding: 0.5em; }
+        th { background-color: #f6f8fa; }
+    </style>`;
                     return `<!DOCTYPE html>\n<html lang="cs">\n<head>\n  <meta charset="UTF-8">\n  <title>Dokument</title>\n  ${styles}\n</head>\n<body>\n${this.renderedMarkdown}\n</body>\n</html>`;
                 },
-                updatePreview() {
-                    const preview = document.getElementById('markdown-preview');
-                    if (preview) {
-                        this.isUpdating = true;
-                        preview.innerHTML = this.renderedMarkdown;
-                        this.$nextTick(() => { this.isUpdating = false; });
-                    }
-                },
                 updateMarkdownFromPreview(event) {
-                    if (this.isUpdating) return;
                     this.isUpdating = true;
                     const html = event.target.innerHTML;
                     this.text = this.turndownService.turndown(html);
                     this.$nextTick(() => { this.isUpdating = false; });
                 },
-                formatSelection(command, value = null) {
-                    document.execCommand(command, false, value);
-                    // Po provedení příkazu musíme synchronizovat změny zpět do markdown textu
-                    this.$nextTick(() => {
-                        const preview = document.getElementById('markdown-preview');
-                        if (preview && this.markdownView === 'preview') {
-                            this.updateMarkdownFromPreview({ target: preview });
-                        } else if (this.markdownView === 'editor') {
-                            // Pro textarea musíme text aktualizovat manuálně
-                            const editor = document.getElementById('markdown-editor');
-                            editor.dispatchEvent(new Event('input'));
+                formatText(type) {
+                    const editor = document.getElementById('markdown-editor');
+                    
+                    if (this.markdownView === 'preview') {
+                        let command = '';
+                        let value = null;
+                        switch (type) {
+                            case 'bold': command = 'bold'; break;
+                            case 'italic': command = 'italic'; break;
+                            case 'strike': command = 'strikeThrough'; break;
+                            case 'h1': command = 'formatBlock'; value = '<h1>'; break;
+                            case 'h2': command = 'formatBlock'; value = '<h2>'; break;
+                            case 'ul': command = 'insertUnorderedList'; break;
+                            case 'ol': command = 'insertOrderedList'; break;
+                            case 'quote': command = 'formatBlock'; value = '<blockquote>'; break;
+                            case 'hr': command = 'insertHorizontalRule'; break;
+                            case 'link':
+                                const url = prompt('Zadejte URL odkazu:', 'https://');
+                                if (url) document.execCommand('createLink', false, url);
+                                break;
+                            case 'code':
+                                document.execCommand('formatBlock', false, 'pre');
+                                break;
                         }
-                    });
+                        if (command) {
+                            document.execCommand(command, false, value);
+                        }
+                        // Po provedení příkazu manuálně spustíme událost 'input'
+                        document.getElementById('markdown-preview').dispatchEvent(new Event('input', { bubbles: true }));
+                        return;
+                    }
+
+                    // --- Logika pro editor kódu (textarea) ---
+                    if (this.markdownView === 'editor') {
+                        const start = editor.selectionStart;
+                        const end = editor.selectionEnd;
+                        const selectedText = this.text.substring(start, end);
+                        let prefix = '', suffix = '', replacement = '';
+
+                        switch (type) {
+                            case 'bold': prefix = '**'; suffix = '**'; break;
+                            case 'italic': prefix = '*'; suffix = '*'; break;
+                            case 'strike': prefix = '~~'; suffix = '~~'; break;
+                            case 'link':
+                                const url = prompt('Zadejte URL odkazu:', 'https://');
+                                if (!url) return;
+                                prefix = '['; suffix = `](${url})`;
+                                break;
+                            case 'h1': prefix = '# '; break;
+                            case 'h2': prefix = '## '; break;
+                            case 'hr': replacement = (start > 0 ? '\n\n' : '') + '---\n\n'; break;
+                            case 'code':
+                                replacement = selectedText.includes('\n') ? `\`\`\`\n${selectedText}\n\`\`\`` : `\`${selectedText}\``;
+                                break;
+                            case 'ul':
+                                replacement = selectedText.split('\n').map(line => `* ${line}`).join('\n');
+                                break;
+                            case 'ol':
+                                replacement = selectedText.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
+                                break;
+                            case 'quote':
+                                replacement = selectedText.split('\n').map(line => `> ${line}`).join('\n');
+                                break;
+                        }
+
+                        if (replacement) {
+                            this.text = this.text.substring(0, start) + replacement + this.text.substring(end);
+                        } else {
+                            this.text = this.text.substring(0, start) + prefix + selectedText + suffix + this.text.substring(end);
+                        }
+                        
+                        this.$nextTick(() => {
+                            editor.focus();
+                            if (replacement) {
+                                editor.setSelectionRange(start + replacement.length, start + replacement.length);
+                            } else if (selectedText.length > 0) {
+                                 editor.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+                            } else {
+                                editor.setSelectionRange(start + prefix.length, start + prefix.length);
+                            }
+                        });
+                    }
                 },
                 downloadMD() {
                     const blob = new Blob([this.text], { type: 'text/markdown' });

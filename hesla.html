@@ -5,78 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>&#128273; Generátor hesel</title>
     
-    <!-- Tailwind CSS Framework -->
+    <!-- Společné styly a skripty -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" xintegrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/jpg" href="img/icons/icon-192x192.jpg">
-
-    <!-- PWA & Mobile App Meta Tags -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111827">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="WapDrak nástroje">
-    <link rel="apple-touch-icon" href="img/icons/icon-192x192.jpg">
+    <link rel="icon" type="image/jpg" href="img/icons/icon-192x192.jpg">
 
     <style>
-        /* --- Základní styly --- */
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow-x: hidden; 
-        }
-        body { 
-            font-family: 'Arial', sans-serif; 
-            background-size: cover;
-            background-attachment: fixed;
-            background-position: center;
-        }
-        .border-groove { 
-            border-style: groove; 
-        }
-        
-        /* Vlastní styly pro generátor */
-        .slider-track {
-            background: #374151;
-        }
-        .slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #f59e0b;
-            cursor: pointer;
-            border-radius: 50%;
-        }
+        .border-groove { border-style: groove; }
+        .slider-track { background: #374151; }
+        .slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #f59e0b; cursor: pointer; border-radius: 50%; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #f59e0b; cursor: pointer; border-radius: 50%; }
         input[type=range]::-moz-range-thumb { width: 20px; height: 20px; background: #f59e0b; cursor: pointer; border-radius: 50%; }
-        
-        .copy-btn:active {
-            transform: scale(0.95);
-        }
-        .copy-success {
-            color: #34d399; /* Zelená barva pro úspěch */
-        }
+        .copy-btn:active { transform: scale(0.95); }
+        .copy-success { color: #34d399; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
-    <div class="flex flex-col min-h-screen" x-data="passwordGeneratorApp" x-init="init()">
+    <div class="flex flex-col min-h-screen" x-data="app">
         
+        <!-- NAVIGACE (stejná pro všechny stránky) -->
         <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
             <div class="max-w-7xl mx-auto px-4">
-                <ul class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
+                <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
                     <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
                     <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
                     <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
                     <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
                     <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
-                    <li><a href="txt.html" class="text-white font-bold transition-colors" title="Přejít na textové editory">Textové editory</a></li>
+                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
                     <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
                     <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
                     <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
@@ -84,6 +43,7 @@
             </div>
         </nav>
 
+        <!-- OBSAH STRÁNKY -->
         <header class="w-full p-4 text-center">
             <h1 class="text-2xl sm:text-4xl font-bold">
                 <i class="fas fa-key" style="color:#f59e0b;"></i>
@@ -97,9 +57,7 @@
                     <h2 class="text-base sm:text-lg text-gray-300 mt-2">
                         Vytvořte si silné a bezpečné heslo podle vlastních kritérií.
                     </h2>
-
                     <div class="mt-6 space-y-6">
-                        <!-- Pole pro vygenerované heslo -->
                         <div class="relative">
                             <input readonly :value="password" type="text" class="bg-gray-800 text-yellow-300 text-center text-lg sm:text-2xl rounded-md border-2 border-gray-600 p-3 w-full font-mono" placeholder="Zde se zobrazí heslo...">
                             <button @click="copyPassword()" title="Kopírovat heslo" class="copy-btn absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-400 hover:text-white transition">
@@ -107,8 +65,6 @@
                             </button>
                         </div>
                         <div x-show="copySuccess" class="copy-success text-sm" x-transition>Heslo zkopírováno do schránky!</div>
-
-                        <!-- Nastavení délky hesla -->
                         <div class="space-y-2">
                             <div class="flex justify-between items-center text-gray-300">
                                 <label for="length">Délka hesla:</label>
@@ -116,8 +72,6 @@
                             </div>
                             <input type="range" id="length" min="8" max="64" x-model="length" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-track">
                         </div>
-
-                        <!-- Možnosti znaků -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
                             <label class="flex items-center space-x-2 p-2 bg-gray-800 rounded-md cursor-pointer">
                                 <input type="checkbox" x-model="includeUppercase" class="form-checkbox h-5 w-5 text-yellow-500 bg-gray-700 border-gray-600 rounded">
@@ -136,8 +90,6 @@
                                 <span>Symboly</span>
                             </label>
                         </div>
-
-                        <!-- Tlačítko pro generování -->
                         <button @click="generatePassword()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold py-3 px-4 rounded-lg transition text-xl">
                             <i class="fas fa-sync-alt mr-2"></i>Generovat heslo
                         </button>
@@ -146,6 +98,7 @@
             </div>
         </main>
 
+        <!-- PATIČKA (stejná pro všechny stránky) -->
         <footer class="w-full p-2 text-center text-gray-400 mt-4">
             <div class="flex justify-center items-center mb-2">
                 <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
@@ -155,12 +108,12 @@
             <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
         </footer>
 
+        <!-- MODÁLNÍ OKNO PRO SDÍLENÍ (stejné pro všechny stránky) -->
         <div x-show="isShareModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-            <div @click.away="isShareModalOpen = false" 
-                 class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+            <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Sdílet stránku</h3>
-                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít" aria-label="Zavřít modální okno">&times;</button>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
                 </div>
                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                     <template x-for="platform in sharePlatforms" :key="platform.name">
@@ -172,27 +125,15 @@
                 </div>
             </div>
         </div>
-
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    <!-- UNIVERZÁLNÍ SKRIPT -->
     <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('passwordGeneratorApp', () => ({
-                // Vlastnosti pro generátor hesel
-                password: '',
-                length: 16,
-                includeUppercase: true,
-                includeLowercase: true,
-                includeNumbers: true,
-                includeSymbols: false,
-                copySuccess: false,
-
-                // Vlastnosti pro sdílení (převzato a zachováno)
+        function createApp(pageSpecificLogic = {}) {
+            return {
                 isShareModalOpen: false,
-                isNativeShareSupported: false,
-                installPromptEvent: null,
                 sharePlatforms: [
                     { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
                     { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
@@ -205,60 +146,19 @@
                     { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
                     { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
-                init() {
-                    this.generatePassword(); // Vygenerujeme první heslo při načtení stránky
-                    if (navigator.share) { this.isNativeShareSupported = true; }
-                     window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        this.installPromptEvent = e;
-                        if (!this.sharePlatforms.find(p => p.name === 'install')) {
-                            this.sharePlatforms.unshift({ name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-teal-400', label: 'Instalovat' });
+                ...pageSpecificLogic,
+                automateNav() {
+                    const currentPage = window.location.pathname.split("/").pop();
+                    const navLinks = document.querySelectorAll('#main-nav a');
+                    navLinks.forEach(link => {
+                        const linkPage = link.getAttribute('href').split("/").pop();
+                        if (linkPage === currentPage) {
+                            link.classList.remove('text-gray-300', 'hover:text-white');
+                            link.classList.add('text-white', 'font-bold');
                         }
                     });
                 },
-                generatePassword() {
-                    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-                    const lower = 'abcdefghijklmnopqrstuvwxyz';
-                    const numbers = '0123456789';
-                    const symbols = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
-
-                    let charset = '';
-                    let requiredChars = [];
-
-                    if (this.includeUppercase) { charset += upper; requiredChars.push(upper[Math.floor(Math.random() * upper.length)]); }
-                    if (this.includeLowercase) { charset += lower; requiredChars.push(lower[Math.floor(Math.random() * lower.length)]); }
-                    if (this.includeNumbers) { charset += numbers; requiredChars.push(numbers[Math.floor(Math.random() * numbers.length)]); }
-                    if (this.includeSymbols) { charset += symbols; requiredChars.push(symbols[Math.floor(Math.random() * symbols.length)]); }
-
-                    if (charset === '') {
-                        this.password = 'Vyberte alespoň jednu sadu znaků!';
-                        return;
-                    }
-
-                    let generatedPassword = requiredChars.join('');
-
-                    for (let i = requiredChars.length; i < this.length; i++) {
-                        generatedPassword += charset[Math.floor(Math.random() * charset.length)];
-                    }
-                    
-                    // Zamíchání hesla, aby povinné znaky nebyly vždy na začátku
-                    this.password = generatedPassword.split('').sort(() => 0.5 - Math.random()).join('');
-                },
-                copyPassword() {
-                    if (!this.password || this.password.startsWith('Vyberte')) return;
-                    navigator.clipboard.writeText(this.password).then(() => {
-                        this.copySuccess = true;
-                        setTimeout(() => { this.copySuccess = false; }, 2000);
-                    });
-                },
-                // Funkce pro sdílení (převzato a zachováno)
                 async share(platform) {
-                    if (platform === 'install') { this.installPWA(); return; }
-                    if (platform === 'system') {
-                        try { await navigator.share({ title: document.title, url: window.location.href }); } 
-                        catch (err) { console.warn('Nativní sdílení není v tomto prostředí povoleno:', err.name); }
-                        return;
-                    }
                     const url = window.location.href;
                     const title = document.title;
                     let shareUrl = '';
@@ -277,28 +177,66 @@
                 },
                 copyShareLink() {
                     const textToCopy = window.location.href;
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        const copyButton = this.sharePlatforms.find(p => p.name === 'copy');
-                        const originalLabel = copyButton.label;
-                        copyButton.label = 'Zkopírováno!';
-                        setTimeout(() => { copyButton.label = originalLabel; }, 2000);
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try { document.execCommand('copy'); } 
+                    catch (err) { console.error('Oops, unable to copy', err); }
+                    document.body.removeChild(textArea);
+                },
+                init() {
+                    this.automateNav();
+                    if (typeof this.pageInit === 'function') {
+                        this.pageInit();
+                    }
+                }
+            };
+        }
+
+        document.addEventListener('alpine:init', () => {
+            const pageSpecificLogic = {
+                password: '',
+                length: 16,
+                includeUppercase: true,
+                includeLowercase: true,
+                includeNumbers: true,
+                includeSymbols: false,
+                copySuccess: false,
+                pageInit() {
+                    this.generatePassword(); 
+                },
+                generatePassword() {
+                    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const lower = 'abcdefghijklmnopqrstuvwxyz';
+                    const numbers = '0123456789';
+                    const symbols = '!@#$%^&*()_+~`|}{[]:;?><,./-=';
+                    let charset = '';
+                    let requiredChars = [];
+                    if (this.includeUppercase) { charset += upper; requiredChars.push(upper[Math.floor(Math.random() * upper.length)]); }
+                    if (this.includeLowercase) { charset += lower; requiredChars.push(lower[Math.floor(Math.random() * lower.length)]); }
+                    if (this.includeNumbers) { charset += numbers; requiredChars.push(numbers[Math.floor(Math.random() * numbers.length)]); }
+                    if (this.includeSymbols) { charset += symbols; requiredChars.push(symbols[Math.floor(Math.random() * symbols.length)]); }
+                    if (charset === '') {
+                        this.password = 'Vyberte alespoň jednu sadu znaků!';
+                        return;
+                    }
+                    let generatedPassword = requiredChars.join('');
+                    for (let i = requiredChars.length; i < this.length; i++) {
+                        generatedPassword += charset[Math.floor(Math.random() * charset.length)];
+                    }
+                    this.password = generatedPassword.split('').sort(() => 0.5 - Math.random()).join('');
+                },
+                copyPassword() {
+                    if (!this.password || this.password.startsWith('Vyberte')) return;
+                    navigator.clipboard.writeText(this.password).then(() => {
+                        this.copySuccess = true;
+                        setTimeout(() => { this.copySuccess = false; }, 2000);
                     });
                 }
-            }));
+            };
+            Alpine.data('app', () => createApp(pageSpecificLogic));
         });
-    </script>
-    
-    <script>
-        // Registrace Service Workeru pro PWA
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then(registration => {
-              console.log('ServiceWorker: Registrace úspěšná, rozsah: ', registration.scope);
-            }, err => {
-              console.log('ServiceWorker: Registrace selhala: ', err);
-            });
-          });
-        }
     </script>
 </body>
 </html>

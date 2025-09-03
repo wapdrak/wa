@@ -96,6 +96,7 @@
                             <div class="mt-4 grid grid-cols-2 gap-2">
                                 <button type="button" @click="handleAction('telegram')" class="flex items-center justify-center gap-2 mx-auto text-blue-400 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Telegram"><i class="fab fa-telegram-plane"></i> Telegram</button>
                                 <button type="button" @click="handleAction('messenger')" class="flex items-center justify-center gap-2 mx-auto text-blue-500 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Messenger"><i class="fab fa-facebook-messenger"></i> Messenger</button>
+                                <button type="button" @click="handleAction('signal')" class="flex items-center justify-center gap-2 mx-auto text-blue-600 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Otevřít v Signalu"><i class="fa-brands fa-signal-messenger"></i> Signal</button>
                             </div>
                         </div>
                         <hr class="my-6 border-gray-600">
@@ -285,7 +286,7 @@
                                 if (type === 'whatsapp') url = `https://api.whatsapp.com/send?phone=${fullNumber.substring(1)}&text=${encodedMessage}`;
                                 if (type === 'sms') url = `sms:${fullNumber}?body=${encodedMessage}`;
                                 if (type === 'tel') url = `tel:${fullNumber}`;
-                                if (type === 'signal') url = `signal://send?recipient=${fullNumber}`;
+                                if (type === 'signal') url = `https://signal.me/#p/${fullNumber}`;
                                 if (type === 'viber') url = `viber://chat?number=${fullNumber.substring(1)}`;
                             } else { this.phoneEl.focus(); }
                             break;
@@ -294,6 +295,7 @@
                                 const cleanUsername = this.username.trim().replace('@', '');
                                 if (type === 'telegram') url = `https://t.me/${cleanUsername}?text=${encodedMessage}`;
                                 if (type === 'messenger') url = `https://m.me/${cleanUsername}`;
+                                if (type === 'signal') url = `https://signal.me/#p/${cleanUsername}`;
                             } else { document.querySelector("#username").focus(); }
                             break;
                     }

@@ -82,7 +82,7 @@
                             </div>
                             <button type="button" @click="selectContact()" x-show="contactPickerSupported" class="flex items-center justify-center gap-2 mx-auto text-white bg-gray-700 rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg mt-2" title="Vybrat z kontaktů"><i class="fas fa-address-book"></i> Vybrat z kontaktů</button>
                             <div x-show="contactApiError" x-text="contactApiError" class="text-red-500 bg-black bg-opacity-70 rounded-lg p-2 mt-2 text-sm" x-transition></div>
-                            <textarea name="t" id="text" x-model="message" class="bg-black text-white placeholder-white rounded-2xl m-0.5 p-1 border-4 w-full max-w-md mx-auto mt-4" rows="4" placeholder="   Obsah zprávy..." title="Obsah zprávy (pro WhatsApp, Telegram, SMS)" style="font-size:100%;"></textarea>
+                            <textarea name="t" id="text" x-model="message" class="bg-black text-white placeholder-white rounded-2xl m-0.5 p-1 border-4 w-full max-w-md mx-auto mt-4" rows="4" placeholder="    Obsah zprávy..." title="Obsah zprávy (pro WhatsApp, Telegram, SMS)" style="font-size:100%;"></textarea>
                             <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
                                 <button type="button" @click="handleAction('whatsapp')" class="flex items-center justify-center gap-2 mx-auto text-lime-500 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                                 <button type="button" @click="handleAction('viber')" class="flex items-center justify-center gap-2 mx-auto bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" style="color:#7360F2;" title="Otevřít ve Viberu"><i class="fab fa-viber"></i> Viber</button>
@@ -93,11 +93,11 @@
                         </div>
                         <div class="my-6 text-xl sm:text-2xl font-bold text-gray-400">nebo</div>
                         <div class="my-4">
-                             <input id="username" type="text" x-model="username" placeholder="Uživatelské jméno..." title="Zadejte uživatelské jméno pro Telegram nebo Messenger" class="bg-black text-yellow-300 rounded-md border-4 border-gray-500 m-0.5 p-2 text-center w-full">
-                            <div class="mt-4 grid grid-cols-2 gap-2">
+                             <input id="username" type="text" x-model="username" placeholder="Uživatelské jméno..." title="Zadejte uživatelské jméno pro Telegram, Messenger nebo Signal" class="bg-black text-yellow-300 rounded-md border-4 border-gray-500 m-0.5 p-2 text-center w-full">
+                            <div class="mt-4 grid grid-cols-3 gap-2">
                                 <button type="button" @click="handleAction('telegram')" class="flex items-center justify-center gap-2 mx-auto text-blue-400 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Telegram"><i class="fab fa-telegram-plane"></i> Telegram</button>
                                 <button type="button" @click="handleAction('messenger')" class="flex items-center justify-center gap-2 mx-auto text-blue-500 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Messenger"><i class="fab fa-facebook-messenger"></i> Messenger</button>
-                                <button type="button" @click="handleAction('signal')" class="flex items-center justify-center gap-2 mx-auto text-blue-600 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Otevřít v Signalu"><i class="fa-brands fa-signal-messenger"></i> Signal</button>
+                                <button type="button" @click="handleAction('signal-user')" class="flex items-center justify-center gap-2 mx-auto text-blue-600 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Otevřít v Signalu"><i class="fa-brands fa-signal-messenger"></i> Signal</button>
                             </div>
                         </div>
                         <hr class="my-6 border-gray-600">
@@ -291,12 +291,12 @@
                                 if (type === 'viber') url = `viber://chat?number=${fullNumber.substring(1)}`;
                             } else { this.phoneEl.focus(); }
                             break;
-                        case 'telegram': case 'messenger':
+                        case 'telegram': case 'messenger': case 'signal-user':
                             if (this.username.trim()) {
                                 const cleanUsername = this.username.trim().replace('@', '');
                                 if (type === 'telegram') url = `https://t.me/${cleanUsername}?text=${encodedMessage}`;
                                 if (type === 'messenger') url = `https://m.me/${cleanUsername}`;
-                                if (type === 'signal') url = `https://signal.me/#p/${cleanUsername}`;
+                                if (type === 'signal-user') url = `https://signal.me/#p/${cleanUsername}`;
                             } else { document.querySelector("#username").focus(); }
                             break;
                     }
@@ -314,3 +314,4 @@
     </script>
 </body>
 </html>
+

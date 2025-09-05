@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="cs" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generátor razítek</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Knihovna pro generování obrázku -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- WYSIWYG Editor (Quill.js) -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;700&family=Noto+Sans+Hebrew:wght@400;700&family=Miriam+Libre:wght@400;700&family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Slabo+27px&family=Rubik:wght@400;700&family=Cairo:wght@400;700&family=Almarai:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lalezar&family=Markazi+Text:wght@400;700&family=Noto+Sans:wght@400;700&family=Roboto+Slab:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Základní styly pro tělo a ovládací prvky */
+        body {
+            font-family: 'Noto Sans', sans-serif;
+        }
+        .controls {
+            width: 90vw;
+            max-width: 550px;
+            padding: 20px;
+            background-color: #1a1a1a;
+            border-radius: 15px;
+            color: #FFF;
+        }
+        .controls h2 {
+            margin-top: 0; text-align: center; color: #FFD700;
+        }
+        .controls select {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555;
+            background-color: #333; color: #FFF; font-size: 16px;
+        }
+        .controls select:disabled {
+            background-color: #2d2d2d;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .controls .button-group {
+            display: flex; gap: 10px; margin-top: 15px;
+        }
+        .controls button {
+            flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px;
+            font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s;
+        }
+        .controls button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #download-btn { background-color: #FFD700; color: #000; }
+        #download-btn:hover:not(:disabled) { background-color: #ffed4a; }
+        #share-btn { background-color: #4a5568; color: #FFF; }
+        #share-btn:hover:not(:disabled) { background-color: #2d3748; }
+        
+        /* Styly pro WYSIWYG Editor */
+        #editor-container { background-color: #fff; color: #000; border-radius: 8px; }
+        .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+        .ql-container { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; min-height: 120px; font-size: 16px;}
+
+        /* Styly pro náhled razítka */
+        #stamp-preview-wrapper {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #stamp-preview {
+            background-color: #ffffff;
+            color: #000000;
+            display: grid; /* Použití Grid pro robustní centrování */
+            place-items: center; /* Vertikální i horizontální centrování vnitřního bloku */
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            border-color: #000000;
+            padding: 2px;
+        }
+        #stamp-preview-content {
+            width: 100%;
+        }
+        #stamp-preview-content p { margin: 0; padding: 0; line-height: 1.1; width: 100%; }
+        /* Pravidla pro zarovnání z Quill editoru */
+        #stamp-preview-content .ql-align-center { text-align: center; }
+        #stamp-preview-content .ql-align-right { text-align: right; }
+        #stamp-preview-content .ql-align-left { text-align: left; }
+
+        .zoom-controls button {
+            background-color: #4a5568; color: white; width: 30px; height: 30px;
+            border-radius: 50%; font-size: 20px; line-height: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
+
+    <header class="w-full text-center mb-5">
+        <h1 class="text-3xl sm:text-4xl font-bold text-white">Generátor razítek</h1>
+    </header>
+
+    <main class="w-full max-w-2xl flex flex-col items-center">
+        
+        <!-- OVLÁDACÍ PANEL -->
+        <div class="controls">
+            <h2 class="text-xl font-bold mb-4">Nastavení razítka</h2>
+            
+            <label for="size-select" class="font-bold mb-1 block">Velikost (Model):</label>
+            <select id="size-select"></select>
+
+            <label for="font-select" class="font-bold mb-1 mt-3 block">Písmo:</label>
+            <select id="font-select"></select>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 border-t border-gray-700 pt-4">
+                <div>
+                    <label for="border-style-select" class="font-bold mb-1 block text-sm">Styl rámečku:</label>
+                    <select id="border-style-select">
+                        <option value="none">Žádný</option>
+                        <option value="solid">Plný</option>
+                        <option value="dashed">Čárkovaný</option>
+                        <option value="dotted">Tečkovaný</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="border-shape-select" class="font-bold mb-1 block text-sm">Tvar rámečku:</label>
+                    <select id="border-shape-select">
+                        <option value="0px">Hranatý</option>
+                        <option value="15px">Zaoblený</option>
+                        <option value="50%">Oválný</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="border-thickness-select" class="font-bold mb-1 block text-sm">Tloušťka:</label>
+                    <select id="border-thickness-select">
+                        <option value="1px">Tenká</option>
+                        <option value="2px">Střední</option>
+                        <option value="3px">Silná</option>
+                        <option value="4px">Extra silná</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="font-bold mb-1 mt-3 block">Text razítka:</label>
+            <div id="editor-container">
+                <div id="editor">
+                    <p class="ql-align-center">První řádek</p>
+                    <p class="ql-align-center">Druhý řádek</p>
+                </div>
+            </div>
+
+            <!-- NÁHLED RAZÍTKA -->
+            <div id="stamp-preview-wrapper">
+                 <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
+                 <div class="flex items-center justify-center gap-4 w-full">
+                    <div id="stamp-preview">
+                        <div id="stamp-preview-content"></div>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 zoom-controls">
+                         <button id="zoom-in-btn">+</button>
+                         <button id="zoom-out-btn">-</button>
+                    </div>
+                    <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
+                 </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="download-btn">Stáhnout (PNG)</button>
+                <button id="share-btn" style="display: none;">Sdílet</button>
+            </div>
+        </div>
+
+    </main>
+    
+    <footer class="w-full p-2 text-center text-gray-400 mt-4">
+        <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">WapDrak</a>. Všechna práva vyhrazena.</p>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- ELEMENTY ---
+    const sizeSelect = document.getElementById('size-select');
+    const fontSelect = document.getElementById('font-select');
+    const borderStyleSelect = document.getElementById('border-style-select');
+    const borderShapeSelect = document.getElementById('border-shape-select');
+    const borderThicknessSelect = document.getElementById('border-thickness-select');
+    const downloadBtn = document.getElementById('download-btn');
+    const shareBtn = document.getElementById('share-btn');
+    const stampPreview = document.getElementById('stamp-preview');
+    const stampPreviewContent = document.getElementById('stamp-preview-content');
+    const stampModelName = document.getElementById('stamp-model-name');
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+
+    // --- STAV APLIKACE ---
+    let currentFontSize = 14; // Výchozí velikost písma v px
+
+    // --- DATA ---
+    const MM_TO_PX = 96 / 25.4;
+    const stampSizes = {
+        'Q04 (25x11mm)': { renderWidth: 250, renderHeight: 110, pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+        'Q05 (40x4mm)': { renderWidth: 400, renderHeight: 40, pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
+        'Q10 (48x11mm)': { renderWidth: 480, renderHeight: 110, pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+        'Q12 (49x24mm)': { renderWidth: 490, renderHeight: 240, pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
+        'Q24 (75x28mm)': { renderWidth: 750, renderHeight: 280, pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
+    };
+
+    const fontGroups = {
+        "Hebrejské": [ { name: "David Libre", value: "'David Libre', serif" }, { name: "Noto Sans Hebrew", value: "'Noto Sans Hebrew', sans-serif" }, { name: "Miriam Libre", value: "'Miriam Libre', sans-serif" }, { name: "Frank Ruhl Libre", value: "'Frank Ruhl Libre', serif" }, { name: "Heebo", value: "'Heebo', sans-serif" }, ],
+        "Latinkové / Anglické": [ { name: "Roboto", value: "'Roboto', sans-serif" }, { name: "Open Sans", value: "'Open Sans', sans-serif" }, { name: "Lato", value: "'Lato', sans-serif" }, { name: "Montserrat", value: "'Montserrat', sans-serif" }, { name: "Roboto Slab", value: "'Roboto Slab', serif" }, ],
+        "Ruské (Cyrilice)": [ { name: "Noto Sans", value: "'Noto Sans', sans-serif" }, { name: "Roboto", value: "'Roboto', sans-serif" }, { name: "Merriweather", value: "'Merriweather', serif" }, { name: "Playfair Display", value: "'Playfair Display', serif" }, { name: "Source Sans Pro", value: "'Source Sans Pro', sans-serif" }, ],
+        "Arabské": [ { name: "Cairo", value: "'Cairo', sans-serif" }, { name: "Almarai", value: "'Almarai', sans-serif" }, { name: "Noto Sans Arabic", value: "'Noto Sans Arabic', sans-serif" }, { name: "Lalezar", value: "'Lalezar', cursive" }, { name: "Markazi Text", value: "'Markazi Text', serif" }, ],
+    };
+
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: { toolbar: [ ['bold', 'italic', 'underline'], [{ 'align': [] }] ] }
+    });
+
+    // --- FUNKCE ---
+    function populateFontSelect() {
+        for (const groupName in fontGroups) {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = groupName;
+            fontGroups[groupName].forEach(font => {
+                const option = document.createElement('option');
+                option.value = font.value;
+                option.textContent = font.name;
+                optgroup.appendChild(option);
+            });
+            fontSelect.appendChild(optgroup);
+        }
+    }
+
+    function handleBorderStyleChange() {
+        const isBordered = borderStyleSelect.value !== 'none';
+        borderShapeSelect.disabled = !isBordered;
+        borderThicknessSelect.disabled = !isBordered;
+        updatePreview();
+    }
+
+    function updatePreview() {
+        stampPreviewContent.innerHTML = quill.root.innerHTML;
+        const selectedSizeKey = sizeSelect.value;
+        const selectedSize = stampSizes[selectedSizeKey];
+        
+        if (selectedSize) {
+            stampPreview.style.width = `${selectedSize.pxWidth}px`;
+            stampPreview.style.height = `${selectedSize.pxHeight}px`;
+            stampModelName.textContent = selectedSizeKey.split(' ')[0];
+        }
+
+        const borderStyle = borderStyleSelect.value;
+        if (borderStyle === 'none') {
+            stampPreview.style.border = 'none';
+        } else {
+            stampPreview.style.borderStyle = borderStyle;
+            stampPreview.style.borderRadius = borderShapeSelect.value;
+            stampPreview.style.borderWidth = borderThicknessSelect.value;
+        }
+
+        stampPreviewContent.style.fontFamily = fontSelect.value;
+        stampPreviewContent.style.fontSize = `${currentFontSize}px`;
+    }
+    
+    async function generateCanvas() {
+        // Vytvoříme dočasný klon pro spolehlivé generování obrázku
+        const clone = stampPreview.cloneNode(true);
+        clone.style.position = 'absolute';
+        clone.style.left = '-9999px'; // Schováme ho mimo obrazovku
+        clone.style.top = '0px';
+        clone.style.display = 'block'; // Musí být block pro měření
+        
+        const cloneContent = clone.querySelector('#stamp-preview-content');
+
+        document.body.appendChild(clone);
+        
+        // Vynutíme překreslení a změříme výšky
+        await new Promise(resolve => requestAnimationFrame(resolve)); 
+        
+        const containerHeight = clone.offsetHeight;
+        const contentHeight = cloneContent.scrollHeight;
+        const paddingTop = Math.max(0, (containerHeight - contentHeight) / 2);
+        
+        // Aplikujeme padding a počkáme na jeho vykreslení
+        cloneContent.style.paddingTop = `${paddingTop}px`;
+        cloneContent.style.boxSizing = 'border-box';
+        await new Promise(resolve => requestAnimationFrame(resolve));
+        
+        const scaleFactor = 4;
+        const options = { 
+            backgroundColor: '#ffffff', 
+            scale: scaleFactor 
+        };
+        
+        try {
+            const canvas = await html2canvas(clone, options);
+            return canvas;
+        } catch (err) {
+            console.error("Chyba při generování obrázku:", err);
+            return null;
+        } finally {
+            document.body.removeChild(clone); // Vždy uklidíme klon
+        }
+    }
+
+    async function downloadImage() {
+        const canvas = await generateCanvas();
+        if (!canvas) return;
+
+        const link = document.createElement('a');
+        const filename = sizeSelect.value.split(' ')[0] || 'razitko';
+        link.download = `${filename}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+    
+    async function shareImage() {
+        shareBtn.disabled = true;
+        shareBtn.textContent = 'Generuji...';
+
+        const canvas = await generateCanvas();
+        if (!canvas) {
+            shareBtn.disabled = false;
+            shareBtn.textContent = 'Sdílet';
+            return;
+        }
+
+        try {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) throw new Error("Nepodařilo se vytvořit obrázek (blob).");
+            
+            const filename = sizeSelect.value.split(' ')[0] || 'razitko';
+            const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+            
+            const shareData = { files: [file], title: 'Návrh razítka', text: `Vytvořeno v generátoru razítek.` };
+
+            if (navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                console.error('Váš prohlížeč nepodporuje sdílení souborů tímto způsobem.');
+            }
+        } catch (err) {
+            if (err.name !== 'AbortError') { console.error("Chyba při sdílení:", err); }
+        } finally {
+            shareBtn.disabled = false;
+            shareBtn.textContent = 'Sdílet';
+        }
+    }
+    
+    function changeFontSize(delta) {
+        currentFontSize += delta;
+        if (currentFontSize < 4) currentFontSize = 4;
+        updatePreview();
+    }
+
+    // --- INICIALIZACE A EVENT LISTENERY ---
+    Object.keys(stampSizes).forEach(key => sizeSelect.add(new Option(key, key)));
+    populateFontSelect();
+    
+    quill.formatLine(0, quill.getLength(), 'align', 'center');
+
+    quill.on('text-change', updatePreview);
+    sizeSelect.addEventListener('change', updatePreview);
+    fontSelect.addEventListener('change', updatePreview);
+    borderStyleSelect.addEventListener('change', handleBorderStyleChange);
+    borderShapeSelect.addEventListener('change', updatePreview);
+    borderThicknessSelect.addEventListener('change', updatePreview);
+    downloadBtn.addEventListener('click', downloadImage);
+    zoomInBtn.addEventListener('click', () => changeFontSize(1));
+    zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
+    
+    if (navigator.share) {
+        shareBtn.style.display = 'block';
+        shareBtn.addEventListener('click', shareImage);
+    }
+
+    handleBorderStyleChange();
+    updatePreview();
+});
+</script>
+
+</body>
+</html>
+

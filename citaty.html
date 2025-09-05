@@ -10,19 +10,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#111827">
-    <link rel="icon" type="image/jpg" href="/img/wa.jpg">
+    <link rel="icon" type="image/jpg" href="/img/gimologo2.jpg">
 
     <!-- Knihovna pro generování obrázku -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <!-- Specifické styly pro generátor citátů (vzhled citátu zůstává zachován) -->
     <style>
-        /* Použijeme specifický font pro generátor, aby odpovídal originálu */
         .quote-generator-body {
             font-family: Georgia, 'Times New Roman', serif;
         }
-
-        /* --- Kontejner s citátem, který se bude stahovat --- */
         #q-cont {
             width: 90vw;
             max-width: 550px;
@@ -54,8 +51,6 @@
             width: 100%;
             font-style: italic;
         }
-        
-        /* --- Ovládací panel --- */
         .controls {
             width: 90vw;
             max-width: 550px;
@@ -103,20 +98,20 @@
 
     <div class="flex flex-col min-h-screen" x-data="app">
         
-        <!-- NAVIGACE (stejná pro všechny stránky) -->
+        <!-- NAVIGACE -->
         <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
             <div class="max-w-7xl mx-auto px-4">
                 <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
-                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
-                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
-                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
-                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
-                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
-                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
-                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
-                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
-                    <li><a href="citaty.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor citátů">Generátor citátů</a></li>
-                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors">Odesílač zpráv</a></li>
+                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors">Generátor hesel</a></li>
+                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors">Dekodér textů</a></li>
+                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors">Poznámkový blok</a></li>
+                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors">Textové editory</a></li>
+                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors">Generátor kódů</a></li>
+                    <li><a href="citaty.html" class="text-gray-300 hover:text-white transition-colors">Generátor citátů</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors">Online Rádio</a></li>
                 </ul>
             </div>
         </nav>
@@ -128,38 +123,36 @@
 
         <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2 flex flex-col items-center quote-generator-body">
             
-            <!-- Ovládací panel generátoru -->
             <div class="controls">
-                <h2>Vytvořit citát</h2>
+                <h2 class="text-xl font-bold">Vytvořit citát</h2>
                 <textarea id="input-citat" rows="5" placeholder="Sem napište nebo vložte text citátu..."></textarea>
                 <input type="text" id="input-autor" placeholder="Jméno autora...">
                 <button id="download-btn">Stáhnout obrázek (PNG)</button>
             </div>
         
-            <!-- Vizuální šablona, která se bude vykreslovat do obrázku -->
             <div id="q-cont">
-                <p class="q-text" id="text-citatu">„Zde se v reálném čase zobrazí váš citát. Čím delší text bude, tím vyšší bude tento box.“</p>
+                <p class="q-text" id="text-citatu">„Zde se v reálném čase zobrazí váš citát...“</p>
                 <span class="a-span" id="text-autora">– Autor</span>
             </div>
 
         </main>
 
-        <!-- PATIČKA (stejná pro všechny stránky) -->
+        <!-- PATIČKA -->
         <footer class="w-full p-2 text-center text-gray-400 mt-4">
             <div class="flex justify-center items-center mb-2">
-                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm">
                     <i class="fas fa-share-alt mr-2"></i> Sdílet
                 </button>
             </div>
-            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">WapDrak</a>. Všechna práva vyhrazena.</p>
         </footer>
 
-        <!-- MODÁLNÍ OKNO PRO SDÍLENÍ (stejné pro všechny stránky) -->
+        <!-- MODÁLNÍ OKNO PRO SDÍLENÍ -->
         <div x-show="isShareModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
             <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Sdílet stránku</h3>
-                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white">&times;</button>
                 </div>
                 <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                     <template x-for="platform in sharePlatforms" :key="platform.name">
@@ -175,22 +168,13 @@
     
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
-    <!-- UNIVERZÁLNÍ SKRIPT (stejný pro všechny stránky) -->
+    <!-- UNIVERZÁLNÍ SKRIPT -->
     <script>
         function createApp(pageSpecificLogic = {}) {
             return {
                 isShareModalOpen: false,
                 sharePlatforms: [
-                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
-                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
-                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
-                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
-                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
-                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
-                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
-                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
-                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
-                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' }, { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' }, { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' }, { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' }, { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' }, { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' }, { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' }, { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' }, { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' }, { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
                 ...pageSpecificLogic,
                 automateNav() {
@@ -205,9 +189,7 @@
                     });
                 },
                 async share(platform) {
-                    const url = window.location.href;
-                    const title = document.title;
-                    let shareUrl = '';
+                    const url = window.location.href; const title = document.title; let shareUrl = '';
                     switch (platform) {
                         case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
                         case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
@@ -231,22 +213,11 @@
                     catch (err) { console.error('Oops, unable to copy', err); }
                     document.body.removeChild(textArea);
                 },
-                init() {
-                    this.automateNav();
-                    if (typeof this.pageInit === 'function') {
-                        this.pageInit();
-                    }
-                }
+                init() { this.automateNav(); if (typeof this.pageInit === 'function') { this.pageInit(); } }
             };
         }
-
         document.addEventListener('alpine:init', () => {
-            const pageSpecificLogic = {
-                title: 'Generátor citátů', // Nastavení titulku pro tuto stránku
-                pageInit() {
-                    console.log('Quote generator page logic initialized.');
-                }
-            };
+            const pageSpecificLogic = { title: 'Generátor citátů', pageInit() { console.log('Quote generator page logic initialized.'); } };
             Alpine.data('app', () => createApp(pageSpecificLogic));
         });
     </script>
@@ -269,11 +240,7 @@
         }
 
         function downloadImage() {
-            const options = {
-                backgroundColor: null,
-                scale: 2 
-            };
-            
+            const options = { backgroundColor: null, scale: 2 };
             html2canvas(quoteContainer, options).then(canvas => {
                 const link = document.createElement('a');
                 const autorForFilename = inputAutor.value.trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '') || 'citat';
@@ -282,27 +249,30 @@
                 link.click();
             });
         }
-
-        // --- NOVÝ KÓD PRO ZPRACOVÁNÍ URL PARAMETRŮ ---
+        
+        // --- OPRAVENÁ FUNKCE PRO ZPRACOVÁNÍ URL PARAMETRŮ ---
         function handleUrlParams() {
-            const urlParams = new URLSearchParams(window.location.search);
+            const url = new URL(window.location.href);
+            // Z URL odstraníme část, která obsahuje text "{shared_text}" a "{jmeno_autora}"
+            const cleanSearch = url.search.replace(/\{[^\}]+\}/g, '');
+            const urlParams = new URLSearchParams(cleanSearch);
+
             const citatParam = urlParams.get('citat');
             const autorParam = urlParams.get('autor');
 
             if (citatParam) {
-                inputCitat.value = decodeURIComponent(citatParam);
+                // Dekódujeme text a odstraníme případné přebytečné znaky
+                inputCitat.value = decodeURIComponent(citatParam).replace(/[{}]/g, '');
             }
             if (autorParam) {
-                inputAutor.value = decodeURIComponent(autorParam);
+                inputAutor.value = decodeURIComponent(autorParam).replace(/[{}]/g, '');
             }
         }
 
-        // Přidání event listenerů a úvodní spuštění
         inputCitat.addEventListener('input', updatePreview);
         inputAutor.addEventListener('input', updatePreview);
         downloadBtn.addEventListener('click', downloadImage);
         
-        // Zavolání funkcí po načtení stránky
         handleUrlParams();
         updatePreview();
     </script>

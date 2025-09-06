@@ -11,8 +11,8 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <!-- Knihovna pro generování obrázku -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Knihovna pro generování obrázku (NOVÁ) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 
     <!-- WYSIWYG Editor (Quill.js) -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
@@ -79,26 +79,9 @@
             flex-direction: column;
             align-items: center;
         }
-        #stamp-preview {
-            background-color: #ffffff;
-            color: #000000;
-            display: grid; /* Použití Grid pro robustní centrování */
-            place-items: center; /* Vertikální i horizontální centrování vnitřního bloku */
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            border-color: #000000;
-            padding: 2px;
+        .canvas-container { /* Pro obalení canvasu */
+             border: 1px solid #555;
         }
-        #stamp-preview-content {
-            width: 100%;
-        }
-        #stamp-preview-content p { margin: 0; padding: 0; line-height: 1.1; width: 100%; }
-        /* Pravidla pro zarovnání z Quill editoru */
-        #stamp-preview-content .ql-align-center { text-align: center; }
-        #stamp-preview-content .ql-align-right { text-align: right; }
-        #stamp-preview-content .ql-align-left { text-align: left; }
-
         .zoom-controls button {
             background-color: #4a5568; color: white; width: 30px; height: 30px;
             border-radius: 50%; font-size: 20px; line-height: 1;
@@ -136,18 +119,18 @@
                 <div>
                     <label for="border-shape-select" class="font-bold mb-1 block text-sm">Tvar rámečku:</label>
                     <select id="border-shape-select">
-                        <option value="0px">Hranatý</option>
-                        <option value="15px">Zaoblený</option>
-                        <option value="50%">Oválný</option>
+                        <option value="0">Hranatý</option>
+                        <option value="15">Zaoblený</option>
+                        <option value="oval">Oválný</option>
                     </select>
                 </div>
                 <div>
                     <label for="border-thickness-select" class="font-bold mb-1 block text-sm">Tloušťka:</label>
                     <select id="border-thickness-select">
-                        <option value="1px">Tenká</option>
-                        <option value="2px">Střední</option>
-                        <option value="3px">Silná</option>
-                        <option value="4px">Extra silná</option>
+                        <option value="1">Tenká</option>
+                        <option value="2">Střední</option>
+                        <option value="3">Silná</option>
+                        <option value="4">Extra silná</option>
                     </select>
                 </div>
             </div>
@@ -164,9 +147,7 @@
             <div id="stamp-preview-wrapper">
                  <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
                  <div class="flex items-center justify-center gap-4 w-full">
-                    <div id="stamp-preview">
-                        <div id="stamp-preview-content"></div>
-                    </div>
+                    <canvas id="stamp-canvas"></canvas>
                     <div class="flex flex-col items-center gap-2 zoom-controls">
                          <button id="zoom-in-btn">+</button>
                          <button id="zoom-out-btn">-</button>
@@ -198,30 +179,29 @@ document.addEventListener('DOMContentLoaded', function() {
     const borderThicknessSelect = document.getElementById('border-thickness-select');
     const downloadBtn = document.getElementById('download-btn');
     const shareBtn = document.getElementById('share-btn');
-    const stampPreview = document.getElementById('stamp-preview');
-    const stampPreviewContent = document.getElementById('stamp-preview-content');
     const stampModelName = document.getElementById('stamp-model-name');
     const zoomInBtn = document.getElementById('zoom-in-btn');
     const zoomOutBtn = document.getElementById('zoom-out-btn');
 
     // --- STAV APLIKACE ---
-    let currentFontSize = 14; // Výchozí velikost písma v px
+    let currentFontSize = 14;
+    let fabricCanvas;
 
     // --- DATA ---
     const MM_TO_PX = 96 / 25.4;
     const stampSizes = {
-        'Q04 (25x11mm)': { renderWidth: 250, renderHeight: 110, pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-        'Q05 (40x4mm)': { renderWidth: 400, renderHeight: 40, pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
-        'Q10 (48x11mm)': { renderWidth: 480, renderHeight: 110, pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-        'Q12 (49x24mm)': { renderWidth: 490, renderHeight: 240, pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
-        'Q24 (75x28mm)': { renderWidth: 750, renderHeight: 280, pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
+        'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+        'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
+        'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+        'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
+        'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
     };
 
     const fontGroups = {
-        "Hebrejské": [ { name: "David Libre", value: "'David Libre', serif" }, { name: "Noto Sans Hebrew", value: "'Noto Sans Hebrew', sans-serif" }, { name: "Miriam Libre", value: "'Miriam Libre', sans-serif" }, { name: "Frank Ruhl Libre", value: "'Frank Ruhl Libre', serif" }, { name: "Heebo", value: "'Heebo', sans-serif" }, ],
-        "Latinkové / Anglické": [ { name: "Roboto", value: "'Roboto', sans-serif" }, { name: "Open Sans", value: "'Open Sans', sans-serif" }, { name: "Lato", value: "'Lato', sans-serif" }, { name: "Montserrat", value: "'Montserrat', sans-serif" }, { name: "Roboto Slab", value: "'Roboto Slab', serif" }, ],
-        "Ruské (Cyrilice)": [ { name: "Noto Sans", value: "'Noto Sans', sans-serif" }, { name: "Roboto", value: "'Roboto', sans-serif" }, { name: "Merriweather", value: "'Merriweather', serif" }, { name: "Playfair Display", value: "'Playfair Display', serif" }, { name: "Source Sans Pro", value: "'Source Sans Pro', sans-serif" }, ],
-        "Arabské": [ { name: "Cairo", value: "'Cairo', sans-serif" }, { name: "Almarai", value: "'Almarai', sans-serif" }, { name: "Noto Sans Arabic", value: "'Noto Sans Arabic', sans-serif" }, { name: "Lalezar", value: "'Lalezar', cursive" }, { name: "Markazi Text", value: "'Markazi Text', serif" }, ],
+        "Hebrejské": [ { name: "David Libre", value: "David Libre" }, { name: "Noto Sans Hebrew", value: "Noto Sans Hebrew" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, ],
+        "Latinkové / Anglické": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Roboto Slab", value: "Roboto Slab" }, ],
+        "Ruské (Cyrilice)": [ { name: "Noto Sans", value: "Noto Sans" }, { name: "Roboto", value: "Roboto" }, { name: "Merriweather", value: "Merriweather" }, { name: "Playfair Display", value: "Playfair Display" }, { name: "Source Sans Pro", value: "Source Sans Pro" }, ],
+        "Arabské": [ { name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Noto Sans Arabic", value: "Noto Sans Arabic" }, { name: "Lalezar", value: "Lalezar" }, { name: "Markazi Text", value: "Markazi Text" }, ],
     };
 
     const quill = new Quill('#editor', {
@@ -248,112 +228,124 @@ document.addEventListener('DOMContentLoaded', function() {
         const isBordered = borderStyleSelect.value !== 'none';
         borderShapeSelect.disabled = !isBordered;
         borderThicknessSelect.disabled = !isBordered;
-        updatePreview();
+        updateCanvas();
     }
 
-    function updatePreview() {
-        stampPreviewContent.innerHTML = quill.root.innerHTML;
-        const selectedSizeKey = sizeSelect.value;
-        const selectedSize = stampSizes[selectedSizeKey];
-        
-        if (selectedSize) {
-            stampPreview.style.width = `${selectedSize.pxWidth}px`;
-            stampPreview.style.height = `${selectedSize.pxHeight}px`;
-            stampModelName.textContent = selectedSizeKey.split(' ')[0];
+    function getQuillAlignment() {
+        const delta = quill.getContents();
+        let alignment = 'center'; // Výchozí
+        try {
+            if (delta.ops.length > 0) {
+                 const format = quill.getFormat(0, quill.getLength());
+                 if(format && format.align) {
+                    return format.align;
+                 }
+            }
+        } catch (e) {
+            console.warn("Could not determine alignment, defaulting to center.");
         }
-
-        const borderStyle = borderStyleSelect.value;
-        if (borderStyle === 'none') {
-            stampPreview.style.border = 'none';
-        } else {
-            stampPreview.style.borderStyle = borderStyle;
-            stampPreview.style.borderRadius = borderShapeSelect.value;
-            stampPreview.style.borderWidth = borderThicknessSelect.value;
-        }
-
-        stampPreviewContent.style.fontFamily = fontSelect.value;
-        stampPreviewContent.style.fontSize = `${currentFontSize}px`;
+        return alignment;
     }
     
-    async function generateCanvas() {
-        // Vytvoříme dočasný klon pro spolehlivé generování obrázku
-        const clone = stampPreview.cloneNode(true);
-        clone.style.position = 'absolute';
-        clone.style.left = '-9999px'; // Schováme ho mimo obrazovku
-        clone.style.top = '0px';
-        clone.style.display = 'block'; // Musí být block pro měření
-        
-        const cloneContent = clone.querySelector('#stamp-preview-content');
+    function updateCanvas() {
+        if (!fabricCanvas) return;
 
-        document.body.appendChild(clone);
-        
-        // Vynutíme překreslení a změříme výšky
-        await new Promise(resolve => requestAnimationFrame(resolve)); 
-        
-        const containerHeight = clone.offsetHeight;
-        const contentHeight = cloneContent.scrollHeight;
-        const paddingTop = Math.max(0, (containerHeight - contentHeight) / 2);
-        
-        // Aplikujeme padding a počkáme na jeho vykreslení
-        cloneContent.style.paddingTop = `${paddingTop}px`;
-        cloneContent.style.boxSizing = 'border-box';
-        await new Promise(resolve => requestAnimationFrame(resolve));
-        
-        const scaleFactor = 4;
-        const options = { 
-            backgroundColor: '#ffffff', 
-            scale: scaleFactor 
-        };
-        
-        try {
-            const canvas = await html2canvas(clone, options);
-            return canvas;
-        } catch (err) {
-            console.error("Chyba při generování obrázku:", err);
-            return null;
-        } finally {
-            document.body.removeChild(clone); // Vždy uklidíme klon
+        fabricCanvas.clear();
+        fabricCanvas.backgroundColor = '#ffffff';
+
+        const selectedSizeKey = sizeSelect.value;
+        const selectedSize = stampSizes[selectedSizeKey];
+        if (!selectedSize) return;
+
+        fabricCanvas.setWidth(selectedSize.pxWidth);
+        fabricCanvas.setHeight(selectedSize.pxHeight);
+        stampModelName.textContent = selectedSizeKey.split(' ')[0];
+
+        // Rámeček
+        const borderStyle = borderStyleSelect.value;
+        if (borderStyle !== 'none') {
+            const thickness = parseInt(borderThicknessSelect.value, 10);
+            const shape = borderShapeSelect.value;
+            const width = selectedSize.pxWidth - thickness;
+            const height = selectedSize.pxHeight - thickness;
+
+            let border;
+            if (shape === 'oval') {
+                border = new fabric.Ellipse({
+                    left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2,
+                    rx: width / 2, ry: height / 2,
+                    originX: 'center', originY: 'center',
+                    fill: 'transparent', stroke: 'black', strokeWidth: thickness,
+                });
+            } else {
+                border = new fabric.Rect({
+                    left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2,
+                    width: width, height: height,
+                    rx: parseInt(shape, 10), ry: parseInt(shape, 10),
+                    originX: 'center', originY: 'center',
+                    fill: 'transparent', stroke: 'black', strokeWidth: thickness,
+                });
+            }
+
+            if (borderStyle === 'dashed') border.strokeDashArray = [5, 5];
+            if (borderStyle === 'dotted') border.strokeDashArray = [2, 2];
+            
+            fabricCanvas.add(border);
         }
+
+        // Text
+        const textContent = quill.getText(0, quill.getLength() - 1);
+        const text = new fabric.Textbox(textContent, {
+            left: selectedSize.pxWidth / 2,
+            top: selectedSize.pxHeight / 2,
+            width: selectedSize.pxWidth * 0.9, // Odsazení od kraje
+            fontSize: currentFontSize,
+            fontFamily: fontSelect.value,
+            textAlign: getQuillAlignment(),
+            originX: 'center',
+            originY: 'center',
+            fill: 'black'
+        });
+
+        fabricCanvas.add(text);
+        fabricCanvas.renderAll();
+    }
+    
+    async function getDataUrl(multiplier = 1) {
+        return fabricCanvas.toDataURL({
+            format: 'png',
+            multiplier: multiplier
+        });
     }
 
     async function downloadImage() {
-        const canvas = await generateCanvas();
-        if (!canvas) return;
-
+        const dataUrl = await getDataUrl(4);
         const link = document.createElement('a');
         const filename = sizeSelect.value.split(' ')[0] || 'razitko';
         link.download = `${filename}.png`;
-        link.href = canvas.toDataURL('image/png');
+        link.href = dataUrl;
         link.click();
     }
     
     async function shareImage() {
         shareBtn.disabled = true;
         shareBtn.textContent = 'Generuji...';
-
-        const canvas = await generateCanvas();
-        if (!canvas) {
-            shareBtn.disabled = false;
-            shareBtn.textContent = 'Sdílet';
-            return;
-        }
-
+        
         try {
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-            if (!blob) throw new Error("Nepodařilo se vytvořit obrázek (blob).");
-            
+            const dataUrl = await getDataUrl(2); // Menší pro sdílení
+            const blob = await (await fetch(dataUrl)).blob();
             const filename = sizeSelect.value.split(' ')[0] || 'razitko';
             const file = new File([blob], `${filename}.png`, { type: 'image/png' });
             
-            const shareData = { files: [file], title: 'Návrh razítka', text: `Vytvořeno v generátoru razítek.` };
+            const shareData = { files: [file], title: 'Návrh razítka' };
 
             if (navigator.canShare && navigator.canShare(shareData)) {
                 await navigator.share(shareData);
             } else {
-                console.error('Váš prohlížeč nepodporuje sdílení souborů tímto způsobem.');
+                alert('Váš prohlížeč nepodporuje sdílení souborů.');
             }
         } catch (err) {
-            if (err.name !== 'AbortError') { console.error("Chyba při sdílení:", err); }
+            console.error("Chyba při sdílení:", err);
         } finally {
             shareBtn.disabled = false;
             shareBtn.textContent = 'Sdílet';
@@ -363,21 +355,23 @@ document.addEventListener('DOMContentLoaded', function() {
     function changeFontSize(delta) {
         currentFontSize += delta;
         if (currentFontSize < 4) currentFontSize = 4;
-        updatePreview();
+        updateCanvas();
     }
 
-    // --- INICIALIZACE A EVENT LISTENERY ---
+    // --- INICIALIZACE ---
     Object.keys(stampSizes).forEach(key => sizeSelect.add(new Option(key, key)));
     populateFontSelect();
     
+    fabricCanvas = new fabric.Canvas('stamp-canvas');
     quill.formatLine(0, quill.getLength(), 'align', 'center');
 
-    quill.on('text-change', updatePreview);
-    sizeSelect.addEventListener('change', updatePreview);
-    fontSelect.addEventListener('change', updatePreview);
+    // --- EVENT LISTENERY ---
+    quill.on('text-change', updateCanvas);
+    sizeSelect.addEventListener('change', updateCanvas);
+    fontSelect.addEventListener('change', updateCanvas);
     borderStyleSelect.addEventListener('change', handleBorderStyleChange);
-    borderShapeSelect.addEventListener('change', updatePreview);
-    borderThicknessSelect.addEventListener('change', updatePreview);
+    borderShapeSelect.addEventListener('change', updateCanvas);
+    borderThicknessSelect.addEventListener('change', updateCanvas);
     downloadBtn.addEventListener('click', downloadImage);
     zoomInBtn.addEventListener('click', () => changeFontSize(1));
     zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
@@ -388,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     handleBorderStyleChange();
-    updatePreview();
+    updateCanvas();
 });
 </script>
 

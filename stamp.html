@@ -22,8 +22,6 @@
         body { font-family: 'Noto Sans', sans-serif; }
         .controls { width: 90vw; max-width: 550px; padding: 20px; background-color: #1a1a1a; border-radius: 15px; color: #FFF; }
         .controls h2 { margin-top: 0; text-align: center; color: #FFD700; }
-        .controls select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background-color: #333; color: #FFF; font-size: 16px; }
-        .controls select:disabled { background-color: #2d2d2d; opacity: 0.5; cursor: not-allowed; }
         .controls .button-group { display: flex; gap: 10px; margin-top: 15px; }
         .controls button { flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
         .controls button:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -31,37 +29,81 @@
         #download-btn:hover:not(:disabled) { background-color: #ffed4a; }
         #share-btn { background-color: #4a5568; color: #FFF; }
         #share-btn:hover:not(:disabled) { background-color: #2d3748; }
-        #editor-container { background-color: #fff; color: #000; border-radius: 8px; }
-        .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; }
-        .ql-container { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; min-height: 120px; font-size: 16px;}
+        #editor-wrapper { background-color: #fff; border-radius: 8px; }
+        .ql-container { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; min-height: 120px; font-size: 16px; color: #000; border-top:none !important; }
         #stamp-preview-wrapper { margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; display: flex; flex-direction: column; align-items: center; }
         .canvas-container { border: 1px solid #555; }
         .zoom-controls button { background-color: #4a5568; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 20px; line-height: 1; }
+        
+        /* NOVÉ STYLY PRO ODDĚLENÉ LIŠTY */
+        .ql-toolbar.ql-snow {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            border-bottom: none;
+            padding: 8px 8px 4px 8px;
+        }
+        #custom-controls-toolbar {
+            padding: 4px 8px 8px 8px;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #d1d5db;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
+        }
+        .toolbar-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .toolbar-divider {
+            border-left: 1px solid #d1d5db;
+            height: 24px;
+            margin: 0 4px;
+        }
+        .toolbar-group label {
+            font-size: 12px;
+            color: #4b5563;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        #custom-controls-toolbar select {
+            background-color: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-size: 12px;
+            color: #374151;
+            vertical-align: middle;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.5rem center;
+            background-size: 1em;
+            padding-right: 2rem;
+        }
+        #custom-controls-toolbar select:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
     <div class="flex flex-col min-h-screen" x-data="app" x-init="init()">
         
-        <!-- NAVIGACE (stejná pro všechny stránky) -->
         <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
             <div class="max-w-7xl mx-auto px-4">
                 <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
-                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
-                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
-                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
-                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
-                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
-                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
-                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
-                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
-                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
-                    <li><a href="stamp.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor razítek">Generátor razítek</a></li>
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors">Domů</a></li>
+                    <li><a href="stamp.html" class="text-gray-300 hover:text-white transition-colors">Klasická razítka</a></li>
+                    <li><a href="stamp-round.html" class="text-gray-300 hover:text-white transition-colors">Kulatá razítka</a></li>
                 </ul>
             </div>
         </nav>
 
-        <!-- OBSAH STRÁNKY -->
         <header class="w-full p-4 text-center">
             <h1 class="text-2xl sm:text-4xl font-bold" x-text="title"></h1>
         </header>
@@ -69,52 +111,65 @@
         <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2 flex flex-col items-center">
             <div class="controls">
                 <h2 class="text-xl font-bold mb-4">Nastavení razítka</h2>
-                <label for="size-select" class="font-bold mb-1 block">Velikost (Model):</label>
-                <select id="size-select"></select>
-                <label for="font-select" class="font-bold mb-1 mt-3 block">Písmo:</label>
-                <select id="font-select"></select>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 border-t border-gray-700 pt-4">
-                    <div>
-                        <label for="border-style-select" class="font-bold mb-1 block text-sm">Styl rámečku:</label>
-                        <select id="border-style-select">
-                            <option value="none">Žádný</option>
-                            <option value="solid">Plný</option>
-                            <option value="dashed">Čárkovaný</option>
-                            <option value="dotted">Tečkovaný</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="border-shape-select" class="font-bold mb-1 block text-sm">Tvar rámečku:</label>
-                        <select id="border-shape-select">
-                            <option value="0">Hranatý</option>
-                            <option value="15">Zaoblený</option>
-                            <option value="oval">Oválný</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label for="border-thickness-select" class="font-bold mb-1 block text-sm">Tloušťka:</label>
-                        <select id="border-thickness-select">
-                            <option value="1">Tenká</option>
-                            <option value="2">Střední</option>
-                            <option value="3">Silná</option>
-                            <option value="4">Extra silná</option>
-                        </select>
+                
+                <div class="mt-4">
+                    <div id="editor-wrapper">
+                        <!-- LIŠTA PRO QUILL EDITOR (1. ŘÁDEK) -->
+                        <div id="quill-toolbar">
+                            <span class="ql-formats">
+                                <button class="ql-bold" title="Tučné"></button>
+                                <button class="ql-italic" title="Kurzíva"></button>
+                                <button class="ql-underline" title="Podtržené"></button>
+                                <select class="ql-align" title="Zarovnání"></select>
+                            </span>
+                        </div>
+                        <!-- VLASTNÍ LIŠTA PRO RAZÍTKA (2. ŘÁDEK) -->
+                        <div id="custom-controls-toolbar">
+                            <div class="toolbar-group">
+                                <label for="font-select">Písmo:</label>
+                                <select id="font-select" title="Písmo"></select>
+                            </div>
+                            <div class="toolbar-divider"></div>
+                            <div class="toolbar-group">
+                                <label for="size-select">Model:</label>
+                                <select id="size-select" title="Velikost (Model)"></select>
+                            </div>
+                            <div class="toolbar-divider"></div>
+                            <div class="toolbar-group">
+                               <label>Rámeček:</label>
+                               <select id="border-style-select" title="Styl rámečku">
+                                    <option value="none">Žádný</option>
+                                    <option value="solid">Plný</option>
+                                    <option value="dashed">Čárkovaný</option>
+                                    <option value="dotted">Tečkovaný</option>
+                                </select>
+                                <select id="border-shape-select" title="Tvar rámečku">
+                                    <option value="0">Hranatý</option>
+                                    <option value="15">Zaoblený</option>
+                                    <option value="oval">Oválný</option>
+                                </select>
+                                <select id="border-thickness-select" title="Tloušťka rámečku">
+                                    <option value="1">Tenký</option>
+                                    <option value="2">Střední</option>
+                                    <option value="3">Silný</option>
+                                    <option value="4">Extra</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="editor">
+                            <p class="ql-align-center">První řádek</p>
+                            <p class="ql-align-center">Druhý řádek</p>
+                        </div>
                     </div>
                 </div>
-                <label class="font-bold mb-1 mt-3 block">Text razítka:</label>
-                <div id="editor-container">
-                    <div id="editor">
-                        <p class="ql-align-center">První řádek</p>
-                        <p class="ql-align-center">Druhý řádek</p>
-                    </div>
-                </div>
+
                 <div id="stamp-preview-wrapper">
                     <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
                     <div class="flex items-center justify-center gap-4 w-full">
                         <canvas id="stamp-canvas"></canvas>
                         <div class="flex flex-col items-center gap-2 zoom-controls">
-                            <button id="zoom-in-btn">+</button>
-                            <button id="zoom-out-btn">-</button>
+                            <button id="zoom-in-btn" title="Zvětšit písmo">+</button>
+                            <button id="zoom-out-btn" title="Zmenšit písmo">-</button>
                         </div>
                         <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
                     </div>
@@ -126,11 +181,9 @@
             </div>
         </main>
         
-        <!-- PATIČKA (bude vložena skriptem) -->
         <div id="footer-placeholder"></div>
     </div>
 
-    <!-- ⚙️ Skripty specifické pro funkčnost TÉTO stránky -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
@@ -148,17 +201,36 @@
             let currentFontSize = 14;
             let fabricCanvas;
             const MM_TO_PX = 96 / 25.4;
+            
             const stampSizes = {
-                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
+                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+                'Q05 (60x4mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
+                'Q10 (40x11mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
+                'Q11 (48x16mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 16 * MM_TO_PX },
+                'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
+                'Q13 (49x13mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 13 * MM_TO_PX },
+                'Q14 (60x14mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 14 * MM_TO_PX },
+                'Q16 (61x36mm)': { pxWidth: 61 * MM_TO_PX, pxHeight: 36 * MM_TO_PX },
+                'Q18 (69x22mm)': { pxWidth: 69 * MM_TO_PX, pxHeight: 22 * MM_TO_PX },
+                'Q24 (78x28mm)': { pxWidth: 78 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
+                'Q26 (83x16mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }
             };
+
             const fontGroups = {
                 "Hebrejské": [ { name: "David Libre", value: "David Libre" }, { name: "Noto Sans Hebrew", value: "Noto Sans Hebrew" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, ],"Latinkové / Anglické": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Roboto Slab", value: "Roboto Slab" }, ],"Ruské (Cyrilice)": [ { name: "Noto Sans", value: "Noto Sans" }, { name: "Roboto", value: "Roboto" }, { name: "Merriweather", value: "Merriweather" }, { name: "Playfair Display", value: "Playfair Display" }, { name: "Source Sans Pro", value: "Source Sans Pro" }, ],"Arabské": [ { name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Noto Sans Arabic", value: "Noto Sans Arabic" }, { name: "Lalezar", value: "Lalezar" }, { name: "Markazi Text", value: "Markazi Text" }, ],
             };
-            const quill = new Quill('#editor', { theme: 'snow', modules: { toolbar: [ ['bold', 'italic', 'underline'], [{ 'align': [] }] ] } });
+            
+            const quill = new Quill('#editor', { 
+                theme: 'snow', 
+                modules: { 
+                    toolbar: '#quill-toolbar'
+                } 
+            });
+
             function populateFontSelect() { for (const groupName in fontGroups) { const optgroup = document.createElement('optgroup'); optgroup.label = groupName; fontGroups[groupName].forEach(font => { const option = document.createElement('option'); option.value = font.value; option.textContent = font.name; optgroup.appendChild(option); }); fontSelect.appendChild(optgroup); } }
             function handleBorderStyleChange() { const isBordered = borderStyleSelect.value !== 'none'; borderShapeSelect.disabled = !isBordered; borderThicknessSelect.disabled = !isBordered; updateCanvas(); }
-            function getQuillAlignment() { const delta = quill.getContents(); let alignment = 'center'; try { if (delta.ops.length > 0) { const format = quill.getFormat(0, quill.getLength()); if(format && format.align) { return format.align; } } } catch (e) { console.warn("Could not determine alignment, defaulting to center."); } return alignment; }
-            function updateCanvas() { if (!fabricCanvas) return; fabricCanvas.clear(); fabricCanvas.backgroundColor = '#ffffff'; const selectedSizeKey = sizeSelect.value; const selectedSize = stampSizes[selectedSizeKey]; if (!selectedSize) return; fabricCanvas.setWidth(selectedSize.pxWidth); fabricCanvas.setHeight(selectedSize.pxHeight); stampModelName.textContent = selectedSizeKey.split(' ')[0]; const borderStyle = borderStyleSelect.value; if (borderStyle !== 'none') { const thickness = parseInt(borderThicknessSelect.value, 10); const shape = borderShapeSelect.value; const width = selectedSize.pxWidth - thickness; const height = selectedSize.pxHeight - thickness; let border; if (shape === 'oval') { border = new fabric.Ellipse({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, rx: width / 2, ry: height / 2, originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } else { border = new fabric.Rect({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: width, height: height, rx: parseInt(shape, 10), ry: parseInt(shape, 10), originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } if (borderStyle === 'dashed') border.strokeDashArray = [5, 5]; if (borderStyle === 'dotted') border.strokeDashArray = [2, 2]; fabricCanvas.add(border); } const textContent = quill.getText(0, quill.getLength() - 1); const text = new fabric.Textbox(textContent, { left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: selectedSize.pxWidth * 0.9, fontSize: currentFontSize, fontFamily: fontSelect.value, textAlign: getQuillAlignment(), originX: 'center', originY: 'center', fill: 'black' }); fabricCanvas.add(text); fabricCanvas.renderAll(); }
+            function getQuillAlignment() { try { const format = quill.getFormat(quill.getSelection(true) || 0); return format.align || 'center'; } catch(e) { return 'center'; } }
+            function updateCanvas() { if (!fabricCanvas) return; fabricCanvas.clear(); fabricCanvas.backgroundColor = '#ffffff'; const selectedSizeKey = sizeSelect.value; const selectedSize = stampSizes[selectedSizeKey]; if (!selectedSize) return; fabricCanvas.setWidth(selectedSize.pxWidth); fabricCanvas.setHeight(selectedSize.pxHeight); stampModelName.textContent = selectedSizeKey.split(' ')[0]; const borderStyle = borderStyleSelect.value; if (borderStyle !== 'none') { const thickness = parseInt(borderThicknessSelect.value, 10); const shape = borderShapeSelect.value; const width = selectedSize.pxWidth - thickness; const height = selectedSize.pxHeight - thickness; let border; if (shape === 'oval') { border = new fabric.Ellipse({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, rx: width / 2, ry: height / 2, originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } else { border = new fabric.Rect({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: width, height: height, rx: parseInt(shape, 10), ry: parseInt(shape, 10), originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } if (borderStyle === 'dashed') border.strokeDashArray = [5, 5]; if (borderStyle === 'dotted') border.strokeDashArray = [2, 2]; fabricCanvas.add(border); } const textContent = quill.getText(0, quill.getLength() - 1); const text = new fabric.Textbox(textContent, { left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: selectedSize.pxWidth * 0.9, fontSize: currentFontSize, fontFamily: fontSelect.value, textAlign: getQuillAlignment(), originX: 'center', originY: 'center', fill: 'black', lineHeight: 0.9 }); fabricCanvas.add(text); fabricCanvas.renderAll(); }
             async function getDataUrl(multiplier = 1) { return fabricCanvas.toDataURL({ format: 'png', multiplier: multiplier }); }
             async function downloadImage() { const dataUrl = await getDataUrl(4); const link = document.createElement('a'); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; link.download = `${filename}.png`; link.href = dataUrl; link.click(); }
             async function shareImage() { shareBtn.disabled = true; shareBtn.textContent = 'Generuji...'; try { const dataUrl = await getDataUrl(2); const blob = await (await fetch(dataUrl)).blob(); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; const file = new File([blob], `${filename}.png`, { type: 'image/png' }); const shareData = { files: [file], title: 'Návrh razítka' }; if (navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); } else { alert('Váš prohlížeč nepodporuje sdílení souborů.'); } } catch (err) { console.error("Chyba při sdílení:", err); } finally { shareBtn.disabled = false; shareBtn.textContent = 'Sdílet'; } }
@@ -182,11 +254,7 @@
         });
     </script>
     
-    <!-- 🌍 Sdílená logika a inicializace Alpine.js -->
     <script>
-        /**
-         * Generuje a vkládá HTML patičky na místo určeného placeholderu.
-         */
         function generateFooter() {
             const footerHTML = `
             <footer class="w-full p-2 text-center text-gray-400 mt-4">
@@ -218,29 +286,13 @@
                 placeholder.outerHTML = footerHTML;
             }
         }
-
-        /**
-         * Vytváří a vrací datový objekt pro Alpine.js, který kombinuje sdílenou logiku
-         * s logikou specifickou pro danou stránku.
-         * @param {object} pageLogic - Objekt s vlastnostmi specifickými pro stránku (např. title).
-         * @returns {object} - Kompletní datový objekt pro Alpine.js.
-         */
         function createApp(pageLogic = {}) {
             return {
                 isShareModalOpen: false,
                 sharePlatforms: [
-                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
-                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
-                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
-                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
-                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
-                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
-                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
-                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
-                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
-                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' }, { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' }, { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' }, { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' }, { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' }, { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' }, { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' }, { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' }, { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' }, { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
-                ...pageLogic, // Vloží title a pageInit z pageSpecificLogic
+                ...pageLogic,
                 automateNav() {
                     const currentPage = window.location.pathname.split("/").pop() || 'index.html';
                     const navLinks = document.querySelectorAll('#main-nav a');
@@ -291,7 +343,7 @@
 
         document.addEventListener('alpine:init', () => {
              const pageSpecificLogic = {
-                title: 'Generátor razítek',
+                title: 'Generátor klasických razítek',
                 pageInit() {
                     console.log('Logika generátoru razítek byla inicializována.');
                 }

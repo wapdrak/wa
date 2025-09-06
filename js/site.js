@@ -1,70 +1,10 @@
-/**
- * =================================================================================
- * 🌐 UNIVERZÁLNÍ SKRIPT PRO CELÝ WEB (site.js) 🌐
- * =================================================================================
- * Tento soubor obsahuje veškerou sdílenou JavaScriptovou logiku pro web WapDrak.
- * Zajišťuje generování patičky a inicializaci interaktivních prvků pomocí Alpine.js.
- * * Pro nasazení na jakoukoliv stránku stačí přidat do <head>:
- * <script src="https://wapdrak.github.io/wa/js/site.js" defer></script>
- * A do <body> vložit placeholder pro patičku:
- * <div id="footer-placeholder"></div>
- * =================================================================================
- */
+document.addEventListener('alpine:init', () => {
 
-
-/**
- * 🦶 SEKCE 1: GENERÁTOR PATIČKY 🦶
- * Dynamicky generuje a vkládá patičku na místo určeného placeholderu.
- */
-function generateFooter() {
-    const footerHTML = `
-        <footer class="w-full p-2 text-center text-gray-400 mt-4">
-            <div class="flex justify-center items-center mb-2">
-                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
-                    <i class="fas fa-share-alt mr-2"></i> Sdílet
-                </button>
-            </div>
-            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
-            
-            <!-- MODÁLNÍ OKNO PRO SDÍLENÍ (generováno skriptem) -->
-            <div x-show="isShareModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-                <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">Sdílet stránku</h3>
-                        <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
-                    </div>
-                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                        <template x-for="platform in sharePlatforms" :key="platform.name">
-                            <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
-                                <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
-                                <span class="text-xs" x-text="platform.label"></span>
-                            </button>
-                        </template>
-                    </div>
-                </div>
-            </div>
-        </footer>
-    `;
-
-    const placeholder = document.getElementById('footer-placeholder');
-    if (placeholder) {
-        placeholder.outerHTML = footerHTML;
-    } else {
-        console.warn('Placeholder pro patičku (footer-placeholder) nebyl nalezen. Patička byla vložena na konec stránky.');
-        document.body.insertAdjacentHTML('beforeend', footerHTML);
-    }
-}
-
-// Spustí generování patičky, jakmile je HTML načteno.
-document.addEventListener('DOMContentLoaded', generateFooter);
-
-
-/**
- * 🚀 SEKCE 2: LOGIKA APLIKACE (Alpine.js) 🚀
- * Definuje hlavní reaktivní logiku pro navigaci, sdílení a další prvky.
- */
-function createApp(pageSpecificLogic = {}) {
-    return {
+    // 1. Definuje všechna data a logiku pro Alpine komponentu 'app'
+    const appData = {
+        // =====================================================
+        // 📣 SHARE LOGIC START
+        // =====================================================
         isShareModalOpen: false,
         sharePlatforms: [
             { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
@@ -78,20 +18,6 @@ function createApp(pageSpecificLogic = {}) {
             { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
             { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
         ],
-        // Dynamicky načte titulek stránky z HTML tagu <title>
-        title: document.title, 
-        ...pageSpecificLogic,
-        automateNav() {
-            const currentPage = window.location.pathname.split("/").pop();
-            const navLinks = document.querySelectorAll('#main-nav a');
-            navLinks.forEach(link => {
-                const linkPage = link.getAttribute('href').split("/").pop();
-                if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
-                    link.classList.remove('text-gray-300', 'hover:text-white');
-                    link.classList.add('text-white', 'font-bold');
-                }
-            });
-        },
         async share(platform) {
             const url = window.location.href;
             const title = document.title;
@@ -115,26 +41,79 @@ function createApp(pageSpecificLogic = {}) {
             textArea.value = textToCopy;
             document.body.appendChild(textArea);
             textArea.select();
-            try { document.execCommand('copy'); } 
+            try { document.execCommand('copy'); }
             catch (err) { console.error('Oops, unable to copy', err); }
             document.body.removeChild(textArea);
         },
+        // =====================================================
+        // 📣 SHARE LOGIC END
+        // =====================================================
+
+        title: document.title || 'WapDrak Nástroj', // Dynamicky načte titulek přímo z HTML
+
+        // Zvýrazní aktivní odkaz v navigaci
+        automateNav() {
+            const currentPage = window.location.pathname.split("/").pop() || 'index.html';
+            const navLinks = document.querySelectorAll('#main-nav a');
+            navLinks.forEach(link => {
+                const linkPage = link.getAttribute('href').split("/").pop();
+                if (linkPage === currentPage) {
+                    link.classList.remove('text-gray-300', 'hover:text-white');
+                    link.classList.add('text-white', 'font-bold');
+                    link.setAttribute('aria-current', 'page'); // Pro lepší přístupnost
+                }
+            });
+        },
+
+        // Hlavní inicializační funkce volaná z `x-init`
         init() {
             this.automateNav();
-            if (typeof this.pageInit === 'function') {
-                this.pageInit();
-            }
         }
     };
-}
 
-// Spustí a inicializuje Alpine.js, jakmile je knihovna připravena.
-document.addEventListener('alpine:init', () => {
-    // Zde můžeme v budoucnu přidat logiku specifickou pro jednotlivé stránky, pokud bude potřeba.
-    const pageSpecificLogic = {
-        pageInit() {
-            console.log(`Univerzální skript inicializován pro stránku: ${document.title}`);
-        }
-    };
-    Alpine.data('app', () => createApp(pageSpecificLogic));
+    // 2. Zaregistruje data pro Alpine pod názvem 'app'
+    Alpine.data('app', () => (appData));
+
+
+    // ======================================================================
+    // 🚀 FOOTER & SHARE MODAL GENERATION
+    // Tato část kódu dynamicky generuje HTML pro patičku a modální okno
+    // a vkládá ho do placeholderu na stránce.
+    // ======================================================================
+    const footerHTML = `
+    <footer class="w-full p-2 text-center text-gray-400 mt-4">
+        <div class="flex justify-center items-center mb-2">
+            <!-- Tlačítko pro otevření modálního okna sdílení -->
+            <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                <i class="fas fa-share-alt mr-2"></i> Sdílet
+            </button>
+        </div>
+        <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        
+        <!-- 📣 Modální okno pro sdílení START -->
+        <div x-show="isShareModalOpen" @keydown.escape.window="isShareModalOpen = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+            <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    <template x-for="platform in sharePlatforms" :key="platform.name">
+                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                            <span class="text-xs" x-text="platform.label"></span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+        <!-- 📣 Modální okno pro sdílení END -->
+    </footer>`;
+    
+    const placeholder = document.getElementById('footer-placeholder');
+    if (placeholder) {
+        // Nahradíme placeholder kompletní patičkou
+        placeholder.outerHTML = footerHTML;
+    }
 });
+

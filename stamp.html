@@ -5,387 +5,305 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generátor razítek</title>
 
-    <!-- Tailwind CSS -->
+    <!-- 🎨 Styly a knihovny pro design a základní funkce -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-    <!-- Knihovna pro generování obrázku (NOVÁ) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-
-    <!-- WYSIWYG Editor (Quill.js) -->
+    
+    <!-- Knihovny specifické pro tuto stránku -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;700&family=Noto+Sans+Hebrew:wght@400;700&family=Miriam+Libre:wght@400;700&family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Slabo+27px&family=Rubik:wght@400;700&family=Cairo:wght@400;700&family=Almarai:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lalezar&family=Markazi+Text:wght@400;700&family=Noto+Sans:wght@400;700&family=Roboto+Slab:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Hlavní knihovna pro interaktivitu -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
     <style>
-        /* Základní styly pro tělo a ovládací prvky */
-        body {
-            font-family: 'Noto Sans', sans-serif;
-        }
-        .controls {
-            width: 90vw;
-            max-width: 550px;
-            padding: 20px;
-            background-color: #1a1a1a;
-            border-radius: 15px;
-            color: #FFF;
-        }
-        .controls h2 {
-            margin-top: 0; text-align: center; color: #FFD700;
-        }
-        .controls select {
-            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555;
-            background-color: #333; color: #FFF; font-size: 16px;
-        }
-        .controls select:disabled {
-            background-color: #2d2d2d;
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .controls .button-group {
-            display: flex; gap: 10px; margin-top: 15px;
-        }
-        .controls button {
-            flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px;
-            font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s;
-        }
-        .controls button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        body { font-family: 'Noto Sans', sans-serif; }
+        .controls { width: 90vw; max-width: 550px; padding: 20px; background-color: #1a1a1a; border-radius: 15px; color: #FFF; }
+        .controls h2 { margin-top: 0; text-align: center; color: #FFD700; }
+        .controls select { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #555; background-color: #333; color: #FFF; font-size: 16px; }
+        .controls select:disabled { background-color: #2d2d2d; opacity: 0.5; cursor: not-allowed; }
+        .controls .button-group { display: flex; gap: 10px; margin-top: 15px; }
+        .controls button { flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
+        .controls button:disabled { opacity: 0.6; cursor: not-allowed; }
         #download-btn { background-color: #FFD700; color: #000; }
         #download-btn:hover:not(:disabled) { background-color: #ffed4a; }
         #share-btn { background-color: #4a5568; color: #FFF; }
         #share-btn:hover:not(:disabled) { background-color: #2d3748; }
-        
-        /* Styly pro WYSIWYG Editor */
         #editor-container { background-color: #fff; color: #000; border-radius: 8px; }
         .ql-toolbar { border-top-left-radius: 8px; border-top-right-radius: 8px; }
         .ql-container { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; min-height: 120px; font-size: 16px;}
-
-        /* Styly pro náhled razítka */
-        #stamp-preview-wrapper {
-            margin-top: 20px;
-            padding: 20px;
-            background-color: #333;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .canvas-container { /* Pro obalení canvasu */
-             border: 1px solid #555;
-        }
-        .zoom-controls button {
-            background-color: #4a5568; color: white; width: 30px; height: 30px;
-            border-radius: 50%; font-size: 20px; line-height: 1;
-        }
+        #stamp-preview-wrapper { margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; display: flex; flex-direction: column; align-items: center; }
+        .canvas-container { border: 1px solid #555; }
+        .zoom-controls button { background-color: #4a5568; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 20px; line-height: 1; }
     </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex flex-col items-center min-h-screen p-4">
+<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
-    <header class="w-full text-center mb-5">
-        <h1 class="text-3xl sm:text-4xl font-bold text-white">Generátor razítek</h1>
-    </header>
-
-    <main class="w-full max-w-2xl flex flex-col items-center">
+    <div class="flex flex-col min-h-screen" x-data="app" x-init="init()">
         
-        <!-- OVLÁDACÍ PANEL -->
-        <div class="controls">
-            <h2 class="text-xl font-bold mb-4">Nastavení razítka</h2>
-            
-            <label for="size-select" class="font-bold mb-1 block">Velikost (Model):</label>
-            <select id="size-select"></select>
-
-            <label for="font-select" class="font-bold mb-1 mt-3 block">Písmo:</label>
-            <select id="font-select"></select>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 border-t border-gray-700 pt-4">
-                <div>
-                    <label for="border-style-select" class="font-bold mb-1 block text-sm">Styl rámečku:</label>
-                    <select id="border-style-select">
-                        <option value="none">Žádný</option>
-                        <option value="solid">Plný</option>
-                        <option value="dashed">Čárkovaný</option>
-                        <option value="dotted">Tečkovaný</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="border-shape-select" class="font-bold mb-1 block text-sm">Tvar rámečku:</label>
-                    <select id="border-shape-select">
-                        <option value="0">Hranatý</option>
-                        <option value="15">Zaoblený</option>
-                        <option value="oval">Oválný</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="border-thickness-select" class="font-bold mb-1 block text-sm">Tloušťka:</label>
-                    <select id="border-thickness-select">
-                        <option value="1">Tenká</option>
-                        <option value="2">Střední</option>
-                        <option value="3">Silná</option>
-                        <option value="4">Extra silná</option>
-                    </select>
-                </div>
+        <!-- NAVIGACE (stejná pro všechny stránky) -->
+        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
+            <div class="max-w-7xl mx-auto px-4">
+                <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
+                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
+                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
+                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
+                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
+                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
+                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
+                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
+                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
+                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
+                    <li><a href="stamp.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor razítek">Generátor razítek</a></li>
+                </ul>
             </div>
+        </nav>
 
-            <label class="font-bold mb-1 mt-3 block">Text razítka:</label>
-            <div id="editor-container">
-                <div id="editor">
-                    <p class="ql-align-center">První řádek</p>
-                    <p class="ql-align-center">Druhý řádek</p>
-                </div>
-            </div>
+        <!-- OBSAH STRÁNKY -->
+        <header class="w-full p-4 text-center">
+            <h1 class="text-2xl sm:text-4xl font-bold" x-text="title"></h1>
+        </header>
 
-            <!-- NÁHLED RAZÍTKA -->
-            <div id="stamp-preview-wrapper">
-                 <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
-                 <div class="flex items-center justify-center gap-4 w-full">
-                    <canvas id="stamp-canvas"></canvas>
-                    <div class="flex flex-col items-center gap-2 zoom-controls">
-                         <button id="zoom-in-btn">+</button>
-                         <button id="zoom-out-btn">-</button>
+        <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2 flex flex-col items-center">
+            <div class="controls">
+                <h2 class="text-xl font-bold mb-4">Nastavení razítka</h2>
+                <label for="size-select" class="font-bold mb-1 block">Velikost (Model):</label>
+                <select id="size-select"></select>
+                <label for="font-select" class="font-bold mb-1 mt-3 block">Písmo:</label>
+                <select id="font-select"></select>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3 border-t border-gray-700 pt-4">
+                    <div>
+                        <label for="border-style-select" class="font-bold mb-1 block text-sm">Styl rámečku:</label>
+                        <select id="border-style-select">
+                            <option value="none">Žádný</option>
+                            <option value="solid">Plný</option>
+                            <option value="dashed">Čárkovaný</option>
+                            <option value="dotted">Tečkovaný</option>
+                        </select>
                     </div>
-                    <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
-                 </div>
+                    <div>
+                        <label for="border-shape-select" class="font-bold mb-1 block text-sm">Tvar rámečku:</label>
+                        <select id="border-shape-select">
+                            <option value="0">Hranatý</option>
+                            <option value="15">Zaoblený</option>
+                            <option value="oval">Oválný</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="border-thickness-select" class="font-bold mb-1 block text-sm">Tloušťka:</label>
+                        <select id="border-thickness-select">
+                            <option value="1">Tenká</option>
+                            <option value="2">Střední</option>
+                            <option value="3">Silná</option>
+                            <option value="4">Extra silná</option>
+                        </select>
+                    </div>
+                </div>
+                <label class="font-bold mb-1 mt-3 block">Text razítka:</label>
+                <div id="editor-container">
+                    <div id="editor">
+                        <p class="ql-align-center">První řádek</p>
+                        <p class="ql-align-center">Druhý řádek</p>
+                    </div>
+                </div>
+                <div id="stamp-preview-wrapper">
+                    <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
+                    <div class="flex items-center justify-center gap-4 w-full">
+                        <canvas id="stamp-canvas"></canvas>
+                        <div class="flex flex-col items-center gap-2 zoom-controls">
+                            <button id="zoom-in-btn">+</button>
+                            <button id="zoom-out-btn">-</button>
+                        </div>
+                        <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="download-btn">Stáhnout (PNG)</button>
+                    <button id="share-btn" style="display: none;">Sdílet</button>
+                </div>
             </div>
-            
-            <div class="button-group">
-                <button id="download-btn">Stáhnout (PNG)</button>
-                <button id="share-btn" style="display: none;">Sdílet</button>
-            </div>
-        </div>
-
-    </main>
-    
-    <footer class="w-full p-2 text-center text-gray-400 mt-4">
-        <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white">WapDrak</a>. Všechna práva vyhrazena.</p>
-    </footer>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // --- ELEMENTY ---
-    const sizeSelect = document.getElementById('size-select');
-    const fontSelect = document.getElementById('font-select');
-    const borderStyleSelect = document.getElementById('border-style-select');
-    const borderShapeSelect = document.getElementById('border-shape-select');
-    const borderThicknessSelect = document.getElementById('border-thickness-select');
-    const downloadBtn = document.getElementById('download-btn');
-    const shareBtn = document.getElementById('share-btn');
-    const stampModelName = document.getElementById('stamp-model-name');
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-
-    // --- STAV APLIKACE ---
-    let currentFontSize = 14;
-    let fabricCanvas;
-
-    // --- DATA ---
-    const MM_TO_PX = 96 / 25.4;
-    const stampSizes = {
-        'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-        'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
-        'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-        'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
-        'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
-    };
-
-    const fontGroups = {
-        "Hebrejské": [ { name: "David Libre", value: "David Libre" }, { name: "Noto Sans Hebrew", value: "Noto Sans Hebrew" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, ],
-        "Latinkové / Anglické": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Roboto Slab", value: "Roboto Slab" }, ],
-        "Ruské (Cyrilice)": [ { name: "Noto Sans", value: "Noto Sans" }, { name: "Roboto", value: "Roboto" }, { name: "Merriweather", value: "Merriweather" }, { name: "Playfair Display", value: "Playfair Display" }, { name: "Source Sans Pro", value: "Source Sans Pro" }, ],
-        "Arabské": [ { name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Noto Sans Arabic", value: "Noto Sans Arabic" }, { name: "Lalezar", value: "Lalezar" }, { name: "Markazi Text", value: "Markazi Text" }, ],
-    };
-
-    const quill = new Quill('#editor', {
-        theme: 'snow',
-        modules: { toolbar: [ ['bold', 'italic', 'underline'], [{ 'align': [] }] ] }
-    });
-
-    // --- FUNKCE ---
-    function populateFontSelect() {
-        for (const groupName in fontGroups) {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = groupName;
-            fontGroups[groupName].forEach(font => {
-                const option = document.createElement('option');
-                option.value = font.value;
-                option.textContent = font.name;
-                optgroup.appendChild(option);
-            });
-            fontSelect.appendChild(optgroup);
-        }
-    }
-
-    function handleBorderStyleChange() {
-        const isBordered = borderStyleSelect.value !== 'none';
-        borderShapeSelect.disabled = !isBordered;
-        borderThicknessSelect.disabled = !isBordered;
-        updateCanvas();
-    }
-
-    function getQuillAlignment() {
-        const delta = quill.getContents();
-        let alignment = 'center'; // Výchozí
-        try {
-            if (delta.ops.length > 0) {
-                 const format = quill.getFormat(0, quill.getLength());
-                 if(format && format.align) {
-                    return format.align;
-                 }
-            }
-        } catch (e) {
-            console.warn("Could not determine alignment, defaulting to center.");
-        }
-        return alignment;
-    }
-    
-    function updateCanvas() {
-        if (!fabricCanvas) return;
-
-        fabricCanvas.clear();
-        fabricCanvas.backgroundColor = '#ffffff';
-
-        const selectedSizeKey = sizeSelect.value;
-        const selectedSize = stampSizes[selectedSizeKey];
-        if (!selectedSize) return;
-
-        fabricCanvas.setWidth(selectedSize.pxWidth);
-        fabricCanvas.setHeight(selectedSize.pxHeight);
-        stampModelName.textContent = selectedSizeKey.split(' ')[0];
-
-        // Rámeček
-        const borderStyle = borderStyleSelect.value;
-        if (borderStyle !== 'none') {
-            const thickness = parseInt(borderThicknessSelect.value, 10);
-            const shape = borderShapeSelect.value;
-            const width = selectedSize.pxWidth - thickness;
-            const height = selectedSize.pxHeight - thickness;
-
-            let border;
-            if (shape === 'oval') {
-                border = new fabric.Ellipse({
-                    left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2,
-                    rx: width / 2, ry: height / 2,
-                    originX: 'center', originY: 'center',
-                    fill: 'transparent', stroke: 'black', strokeWidth: thickness,
-                });
-            } else {
-                border = new fabric.Rect({
-                    left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2,
-                    width: width, height: height,
-                    rx: parseInt(shape, 10), ry: parseInt(shape, 10),
-                    originX: 'center', originY: 'center',
-                    fill: 'transparent', stroke: 'black', strokeWidth: thickness,
-                });
-            }
-
-            if (borderStyle === 'dashed') border.strokeDashArray = [5, 5];
-            if (borderStyle === 'dotted') border.strokeDashArray = [2, 2];
-            
-            fabricCanvas.add(border);
-        }
-
-        // Text
-        const textContent = quill.getText(0, quill.getLength() - 1);
-        const text = new fabric.Textbox(textContent, {
-            left: selectedSize.pxWidth / 2,
-            top: selectedSize.pxHeight / 2,
-            width: selectedSize.pxWidth * 0.9, // Odsazení od kraje
-            fontSize: currentFontSize,
-            fontFamily: fontSelect.value,
-            textAlign: getQuillAlignment(),
-            originX: 'center',
-            originY: 'center',
-            fill: 'black'
-        });
-
-        fabricCanvas.add(text);
-        fabricCanvas.renderAll();
-    }
-    
-    async function getDataUrl(multiplier = 1) {
-        return fabricCanvas.toDataURL({
-            format: 'png',
-            multiplier: multiplier
-        });
-    }
-
-    async function downloadImage() {
-        const dataUrl = await getDataUrl(4);
-        const link = document.createElement('a');
-        const filename = sizeSelect.value.split(' ')[0] || 'razitko';
-        link.download = `${filename}.png`;
-        link.href = dataUrl;
-        link.click();
-    }
-    
-    async function shareImage() {
-        shareBtn.disabled = true;
-        shareBtn.textContent = 'Generuji...';
+        </main>
         
-        try {
-            const dataUrl = await getDataUrl(2); // Menší pro sdílení
-            const blob = await (await fetch(dataUrl)).blob();
-            const filename = sizeSelect.value.split(' ')[0] || 'razitko';
-            const file = new File([blob], `${filename}.png`, { type: 'image/png' });
-            
-            const shareData = { files: [file], title: 'Návrh razítka' };
+        <!-- PATIČKA (bude vložena skriptem) -->
+        <div id="footer-placeholder"></div>
+    </div>
 
-            if (navigator.canShare && navigator.canShare(shareData)) {
-                await navigator.share(shareData);
-            } else {
-                alert('Váš prohlížeč nepodporuje sdílení souborů.');
+    <!-- ⚙️ Skripty specifické pro funkčnost TÉTO stránky -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sizeSelect = document.getElementById('size-select');
+            const fontSelect = document.getElementById('font-select');
+            const borderStyleSelect = document.getElementById('border-style-select');
+            const borderShapeSelect = document.getElementById('border-shape-select');
+            const borderThicknessSelect = document.getElementById('border-thickness-select');
+            const downloadBtn = document.getElementById('download-btn');
+            const shareBtn = document.getElementById('share-btn');
+            const stampModelName = document.getElementById('stamp-model-name');
+            const zoomInBtn = document.getElementById('zoom-in-btn');
+            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            let currentFontSize = 14;
+            let fabricCanvas;
+            const MM_TO_PX = 96 / 25.4;
+            const stampSizes = {
+                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
+            };
+            const fontGroups = {
+                "Hebrejské": [ { name: "David Libre", value: "David Libre" }, { name: "Noto Sans Hebrew", value: "Noto Sans Hebrew" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, ],"Latinkové / Anglické": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Roboto Slab", value: "Roboto Slab" }, ],"Ruské (Cyrilice)": [ { name: "Noto Sans", value: "Noto Sans" }, { name: "Roboto", value: "Roboto" }, { name: "Merriweather", value: "Merriweather" }, { name: "Playfair Display", value: "Playfair Display" }, { name: "Source Sans Pro", value: "Source Sans Pro" }, ],"Arabské": [ { name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Noto Sans Arabic", value: "Noto Sans Arabic" }, { name: "Lalezar", value: "Lalezar" }, { name: "Markazi Text", value: "Markazi Text" }, ],
+            };
+            const quill = new Quill('#editor', { theme: 'snow', modules: { toolbar: [ ['bold', 'italic', 'underline'], [{ 'align': [] }] ] } });
+            function populateFontSelect() { for (const groupName in fontGroups) { const optgroup = document.createElement('optgroup'); optgroup.label = groupName; fontGroups[groupName].forEach(font => { const option = document.createElement('option'); option.value = font.value; option.textContent = font.name; optgroup.appendChild(option); }); fontSelect.appendChild(optgroup); } }
+            function handleBorderStyleChange() { const isBordered = borderStyleSelect.value !== 'none'; borderShapeSelect.disabled = !isBordered; borderThicknessSelect.disabled = !isBordered; updateCanvas(); }
+            function getQuillAlignment() { const delta = quill.getContents(); let alignment = 'center'; try { if (delta.ops.length > 0) { const format = quill.getFormat(0, quill.getLength()); if(format && format.align) { return format.align; } } } catch (e) { console.warn("Could not determine alignment, defaulting to center."); } return alignment; }
+            function updateCanvas() { if (!fabricCanvas) return; fabricCanvas.clear(); fabricCanvas.backgroundColor = '#ffffff'; const selectedSizeKey = sizeSelect.value; const selectedSize = stampSizes[selectedSizeKey]; if (!selectedSize) return; fabricCanvas.setWidth(selectedSize.pxWidth); fabricCanvas.setHeight(selectedSize.pxHeight); stampModelName.textContent = selectedSizeKey.split(' ')[0]; const borderStyle = borderStyleSelect.value; if (borderStyle !== 'none') { const thickness = parseInt(borderThicknessSelect.value, 10); const shape = borderShapeSelect.value; const width = selectedSize.pxWidth - thickness; const height = selectedSize.pxHeight - thickness; let border; if (shape === 'oval') { border = new fabric.Ellipse({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, rx: width / 2, ry: height / 2, originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } else { border = new fabric.Rect({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: width, height: height, rx: parseInt(shape, 10), ry: parseInt(shape, 10), originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } if (borderStyle === 'dashed') border.strokeDashArray = [5, 5]; if (borderStyle === 'dotted') border.strokeDashArray = [2, 2]; fabricCanvas.add(border); } const textContent = quill.getText(0, quill.getLength() - 1); const text = new fabric.Textbox(textContent, { left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: selectedSize.pxWidth * 0.9, fontSize: currentFontSize, fontFamily: fontSelect.value, textAlign: getQuillAlignment(), originX: 'center', originY: 'center', fill: 'black' }); fabricCanvas.add(text); fabricCanvas.renderAll(); }
+            async function getDataUrl(multiplier = 1) { return fabricCanvas.toDataURL({ format: 'png', multiplier: multiplier }); }
+            async function downloadImage() { const dataUrl = await getDataUrl(4); const link = document.createElement('a'); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; link.download = `${filename}.png`; link.href = dataUrl; link.click(); }
+            async function shareImage() { shareBtn.disabled = true; shareBtn.textContent = 'Generuji...'; try { const dataUrl = await getDataUrl(2); const blob = await (await fetch(dataUrl)).blob(); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; const file = new File([blob], `${filename}.png`, { type: 'image/png' }); const shareData = { files: [file], title: 'Návrh razítka' }; if (navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); } else { alert('Váš prohlížeč nepodporuje sdílení souborů.'); } } catch (err) { console.error("Chyba při sdílení:", err); } finally { shareBtn.disabled = false; shareBtn.textContent = 'Sdílet'; } }
+            function changeFontSize(delta) { currentFontSize += delta; if (currentFontSize < 4) currentFontSize = 4; updateCanvas(); }
+            Object.keys(stampSizes).forEach(key => sizeSelect.add(new Option(key, key)));
+            populateFontSelect();
+            fabricCanvas = new fabric.Canvas('stamp-canvas');
+            quill.formatLine(0, quill.getLength(), 'align', 'center');
+            quill.on('text-change', updateCanvas);
+            sizeSelect.addEventListener('change', updateCanvas);
+            fontSelect.addEventListener('change', updateCanvas);
+            borderStyleSelect.addEventListener('change', handleBorderStyleChange);
+            borderShapeSelect.addEventListener('change', updateCanvas);
+            borderThicknessSelect.addEventListener('change', updateCanvas);
+            downloadBtn.addEventListener('click', downloadImage);
+            zoomInBtn.addEventListener('click', () => changeFontSize(1));
+            zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
+            if (navigator.share) { shareBtn.style.display = 'block'; shareBtn.addEventListener('click', shareImage); }
+            handleBorderStyleChange();
+            updateCanvas();
+        });
+    </script>
+    
+    <!-- 🌍 Sdílená logika a inicializace Alpine.js -->
+    <script>
+        /**
+         * Generuje a vkládá HTML patičky na místo určeného placeholderu.
+         */
+        function generateFooter() {
+            const footerHTML = `
+            <footer class="w-full p-2 text-center text-gray-400 mt-4">
+                <div class="flex justify-center items-center mb-2">
+                    <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
+                        <i class="fas fa-share-alt mr-2"></i> Sdílet
+                    </button>
+                </div>
+                <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+                <div x-show="isShareModalOpen" @keydown.escape.window="isShareModalOpen = false" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+                    <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">Sdílet stránku</h3>
+                            <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
+                        </div>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                            <template x-for="platform in sharePlatforms" :key="platform.name">
+                                <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
+                                    <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                                    <span class="text-xs" x-text="platform.label"></span>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </footer>`;
+            const placeholder = document.getElementById('footer-placeholder');
+            if (placeholder) {
+                placeholder.outerHTML = footerHTML;
             }
-        } catch (err) {
-            console.error("Chyba při sdílení:", err);
-        } finally {
-            shareBtn.disabled = false;
-            shareBtn.textContent = 'Sdílet';
         }
-    }
+
+        /**
+         * Vytváří a vrací datový objekt pro Alpine.js, který kombinuje sdílenou logiku
+         * s logikou specifickou pro danou stránku.
+         * @param {object} pageLogic - Objekt s vlastnostmi specifickými pro stránku (např. title).
+         * @returns {object} - Kompletní datový objekt pro Alpine.js.
+         */
+        function createApp(pageLogic = {}) {
+            return {
+                isShareModalOpen: false,
+                sharePlatforms: [
+                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
+                    { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
+                    { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
+                    { name: 'telegram', title: 'Sdílet na Telegramu', icon: 'fab fa-telegram-plane', color: 'text-blue-500', label: 'Telegram' },
+                    { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
+                    { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
+                    { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
+                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
+                ],
+                ...pageLogic, // Vloží title a pageInit z pageSpecificLogic
+                automateNav() {
+                    const currentPage = window.location.pathname.split("/").pop() || 'index.html';
+                    const navLinks = document.querySelectorAll('#main-nav a');
+                    navLinks.forEach(link => {
+                        const linkPage = link.getAttribute('href').split("/").pop();
+                        if (linkPage === currentPage) {
+                            link.classList.remove('text-gray-300', 'hover:text-white');
+                            link.classList.add('text-white', 'font-bold');
+                            link.setAttribute('aria-current', 'page');
+                        }
+                    });
+                },
+                async share(platform) {
+                    const url = window.location.href;
+                    const title = document.title;
+                    let shareUrl = '';
+                    switch (platform) {
+                        case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'facebook': shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`; break;
+                        case 'twitter': shareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'telegram': shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`; break;
+                        case 'linkedin': shareUrl = `https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`; break;
+                        case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporučuji:%0A%0A${encodeURIComponent(url)}`; break;
+                        case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
+                        case 'print': window.print(); return;
+                        case 'copy': this.copyShareLink(); return;
+                    }
+                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                },
+                copyShareLink() {
+                    const textToCopy = window.location.href;
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try { document.execCommand('copy'); }
+                    catch (err) { console.error('Oops, unable to copy', err); }
+                    document.body.removeChild(textArea);
+                },
+                init() {
+                    this.automateNav();
+                    if (typeof this.pageInit === 'function') {
+                        this.pageInit();
+                    }
+                }
+            };
+        }
+
+        document.addEventListener('alpine:init', () => {
+             const pageSpecificLogic = {
+                title: 'Generátor razítek',
+                pageInit() {
+                    console.log('Logika generátoru razítek byla inicializována.');
+                }
+            };
+            Alpine.data('app', () => createApp(pageSpecificLogic));
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            generateFooter();
+        });
+    </script>
     
-    function changeFontSize(delta) {
-        currentFontSize += delta;
-        if (currentFontSize < 4) currentFontSize = 4;
-        updateCanvas();
-    }
-
-    // --- INICIALIZACE ---
-    Object.keys(stampSizes).forEach(key => sizeSelect.add(new Option(key, key)));
-    populateFontSelect();
-    
-    fabricCanvas = new fabric.Canvas('stamp-canvas');
-    quill.formatLine(0, quill.getLength(), 'align', 'center');
-
-    // --- EVENT LISTENERY ---
-    quill.on('text-change', updateCanvas);
-    sizeSelect.addEventListener('change', updateCanvas);
-    fontSelect.addEventListener('change', updateCanvas);
-    borderStyleSelect.addEventListener('change', handleBorderStyleChange);
-    borderShapeSelect.addEventListener('change', updateCanvas);
-    borderThicknessSelect.addEventListener('change', updateCanvas);
-    downloadBtn.addEventListener('click', downloadImage);
-    zoomInBtn.addEventListener('click', () => changeFontSize(1));
-    zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
-    
-    if (navigator.share) {
-        shareBtn.style.display = 'block';
-        shareBtn.addEventListener('click', shareImage);
-    }
-
-    handleBorderStyleChange();
-    updateCanvas();
-});
-</script>
-
 </body>
 </html>
 

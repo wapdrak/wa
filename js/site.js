@@ -40,7 +40,6 @@ function generateFooter() {
     
     const placeholder = document.getElementById('footer-placeholder');
     if (placeholder) {
-        // Nahradíme placeholder kompletní patičkou
         placeholder.outerHTML = footerHTML;
     }
 }
@@ -48,10 +47,10 @@ function generateFooter() {
 /**
  * Vytváří a vrací datový objekt pro Alpine.js, který kombinuje sdílenou logiku
  * s logikou specifickou pro danou stránku.
- * @param {object} pageSpecificLogic - Objekt s vlastnostmi specifickými pro stránku (např. title).
+ * @param {object} pageLogic - Objekt s vlastnostmi specifickými pro stránku (např. title).
  * @returns {object} - Kompletní datový objekt pro Alpine.js.
  */
-function createApp(pageSpecificLogic = {}) {
+function createApp(pageLogic = {}) {
     const sharedLogic = {
         // =====================================================
         // 📣 SHARE LOGIC
@@ -120,8 +119,25 @@ function createApp(pageSpecificLogic = {}) {
         }
     };
 
-    return { ...sharedLogic, ...pageSpecificLogic };
+    return { ...sharedLogic, ...pageLogic };
 }
+
+// ======================================================================
+// 🚀 INITIALIZATION
+// Hlavní vstupní bod, který se spustí, když je Alpine připraven.
+// ======================================================================
+document.addEventListener('alpine:init', () => {
+    // Zkontroluje, zda byla v HTML definována globální proměnná pageSpecificLogic
+    if (typeof pageSpecificLogic !== 'undefined') {
+        // Vytvoří a zaregistruje 'app' data pro Alpine s použitím specifické logiky stránky
+        Alpine.data('app', () => createApp(pageSpecificLogic));
+    } else {
+        // Fallback pro případ, že by data nebyla definována
+        console.error('Chyba: pageSpecificLogic není definována. Ujistěte se, že je skript s daty vložen před site.js.');
+        Alpine.data('app', () => createApp({ title: 'Chyba načítání' }));
+    }
+});
+
 
 // Spustí generování patičky, jakmile je DOM připraven.
 document.addEventListener('DOMContentLoaded', generateFooter);

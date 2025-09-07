@@ -11,8 +11,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Knihovny pro náhled a editor -->
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
     <style>
         body { font-family: 'Noto Sans', sans-serif; }
@@ -21,82 +23,65 @@
         .controls .button-group { display: flex; gap: 10px; margin-top: 15px; }
         .controls button { flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
         #download-btn { background-color: #FFD700; color: #000; }
-        #download-btn:hover:not(:disabled) { background-color: #ffed4a; }
         #share-btn { background-color: #4a5568; color: #FFF; }
-        #share-btn:hover:not(:disabled) { background-color: #2d3748; }
         
-        #stamp-preview-wrapper { margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; display: flex; flex-direction: column; align-items: center; }
-        #stamp-canvas-container { border: 1px solid #555; background-color: white; border-radius: 50%;}
-        .zoom-controls button { background-color: #4a5568; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 20px; line-height: 1; }
-
-        /* STYLY PRO NOVOU LIŠTU */
-        #controls-wrapper {
-            background-color: #f9fafb;
-            border-radius: 8px;
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            border: 1px solid #d1d5db;
+        #stamp-preview-wrapper { 
+            margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; 
+            display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative;
         }
-        .controls-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 12px;
-        }
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .control-group label, .control-group-label {
-            font-size: 12px;
-            color: #4b5563;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .controls-row input, .controls-row select {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 4px 6px;
-            font-size: 12px;
-            color: #374151;
-            vertical-align: middle;
-        }
-         .controls-row select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1em;
-            padding-right: 2rem;
-        }
-        .controls-row input[type="text"] {
-            flex-grow: 1;
-        }
-        
-        #center-editor-wrapper {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
+        #preview-area {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            align-items: start;
             width: 100%;
         }
-        #center-quill-toolbar {
-             border-bottom: 1px solid #d1d5db;
+        #stamp-canvas-container { border: 1px solid #555; background-color: white; border-radius: 50%; justify-self: center; cursor: grab; }
+        #stamp-canvas-container:focus { outline: 2px solid #FFD700; }
+        
+        #keyboard-help {
+            font-size: 11px; color: #d1d5db; background-color: #4b5563; padding: 8px; border-radius: 6px; text-align: left;
         }
-        #center-editor {
-            min-height: 60px;
-            color: #000;
+        #keyboard-help ul { list-style-position: inside; padding-left: 5px; }
+        #keyboard-help kbd { background-color: #374151; border-radius: 3px; padding: 1px 4px; font-family: monospace; }
+
+        /* Styly pro lištu s ovládacími prvky */
+        #controls-wrapper, #preview-controls-top {
+            background-color: #f9fafb; border-radius: 8px; padding: 8px; display: flex; 
+            gap: 8px; border: 1px solid #d1d5db;
         }
-        .ql-snow.ql-toolbar button, .ql-snow .ql-toolbar .ql-picker {
-            height: 28px;
-            width: 28px;
-            padding: 4px;
+        #controls-wrapper { flex-direction: column; }
+        #preview-controls-top { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 1rem; color: #4b5563; }
+        .controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+        .control-group { display: flex; align-items: center; gap: 4px; }
+        .control-group label { font-size: 12px; color: #4b5563; font-weight: bold; white-space: nowrap; }
+        .controls-row input, .controls-row textarea, .controls-row select, .controls-row button, #preview-controls-top select { background-color: #fff; border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 6px; font-size: 12px; color: #374151; vertical-align: middle; }
+        .controls-row select, #preview-controls-top select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; padding-right: 2rem; }
+        .controls-row input[type="text"], .controls-row textarea { flex-grow: 1; }
+        
+        /* Plovoucí editační lišta */
+        #editor-toolbar {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            border-radius: 8px; padding: 6px; display: none;
+            align-items: center;
+            gap: 6px; z-index: 100;
         }
+        #editor-toolbar.visible { display: flex; }
+        #editor-toolbar select, #editor-toolbar input { font-size: 12px; padding: 2px 4px; background: #fff; color: #000; border-radius: 4px; border: 1px solid #555;}
+        #editor-toolbar button { background-color: #fff; border: 1px solid #555; border-radius: 4px; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; font-weight: bold; color: #000;}
+        #editor-toolbar button.active { background-color: #FFD700; }
+        .toolbar-divider { width: 1px; height: 20px; background-color: #555; margin: 0 4px;}
+
+        /* Modální okno pro symboly */
+        #symbol-modal { background-color: rgba(0,0,0,0.7); }
+        #symbol-library-modal { max-height: 60vh; overflow-y: auto; background-color: #f9fafb; border-radius: 8px; padding: 16px; border: 1px solid #d1d5db; }
+        #symbol-library-modal h3 { color: #1f2937; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;}
+        .symbol-category { margin-bottom: 8px; }
+        .symbol-category-title { font-size: 1rem; font-weight: bold; color: #4b5563; margin-bottom: 4px; }
+        .symbol-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .symbol-grid i { cursor: pointer; font-size: 28px; padding: 5px; border-radius: 4px; transition: background-color 0.2s; color: #1f2937; width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center; }
+        .symbol-grid i:hover { background-color: #e5e7eb; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
@@ -122,73 +107,50 @@
                 <h2 class="text-xl font-bold mb-4">Nastavení kulatého razítka</h2>
                 
                 <div id="controls-wrapper">
-                    <div class="controls-row">
+                    <div class="controls-row"><div class="control-group w-full"><label for="top-text-input">Horní:</label><input type="text" id="top-text-input" value="HORNÍ TEXT" class="flex-1"></div></div>
+                    <div class="controls-row"><div class="control-group w-full"><label for="center-text-input">Střed:</label><textarea id="center-text-input" rows="2" class="flex-1">Střed 1&#10;Střed 2</textarea></div></div>
+                    <div class="controls-row"><div class="control-group w-full"><label for="bottom-text-input">Dolní:</label><input type="text" id="bottom-text-input" value="DOLNÍ TEXT" class="flex-1"></div></div>
+                </div>
+
+                <div id="stamp-preview-wrapper">
+                    <div id="editor-toolbar">
+                        <select id="toolbar-font-select"></select>
+                        <input type="number" id="toolbar-fontsize-input" min="5" max="100" step="1">
+                        <button id="toolbar-bold-btn">B</button>
+                        <button id="toolbar-italic-btn">I</button>
+                        <div class="toolbar-divider"></div>
+                        <button id="toolbar-align-left-btn" title="Zarovnat vlevo"><i class="fas fa-align-left"></i></button>
+                        <button id="toolbar-align-center-btn" title="Zarovnat na střed"><i class="fas fa-align-center"></i></button>
+                        <button id="toolbar-align-right-btn" title="Zarovnat vpravo"><i class="fas fa-align-right"></i></button>
+                    </div>
+                    
+                    <div id="preview-controls-top" class="w-full">
                         <div class="control-group">
                             <label for="size-select">Model:</label>
                             <select id="size-select"></select>
                         </div>
                         <div class="control-group">
-                            <label for="font-select">Písmo:</label>
-                            <select id="font-select"></select>
-                        </div>
-                        <div class="control-group">
                            <label>Rámeček:</label>
-                           <select id="border-style-select" title="Styl rámečku">
-                                <option value="solid">Plný</option>
-                                <option value="dashed">Čárkovaný</option>
-                                <option value="dotted">Tečkovaný</option>
-                                <option value="none">Žádný</option>
-                            </select>
-                            <select id="border-thickness-select" title="Tloušťka rámečku">
-                                <option value="1">Tenký</option>
-                                <option value="2">Střední</option>
-                                <option value="3">Silný</option>
-                                <option value="4">Extra</option>
-                            </select>
+                           <select id="border-style-select" title="Styl rámečku"><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option><option value="none">Žádný</option></select>
+                           <select id="border-thickness-select" title="Tloušťka rámečku"><option value="1">Tenký</option><option value="2">Střední</option><option value="3">Silný</option><option value="4">Extra</option></select>
                         </div>
                     </div>
-                    <div class="controls-row">
-                         <div class="control-group w-full">
-                            <label for="top-text">Horní:</label>
-                            <input type="text" id="top-text" value="HORNÍ TEXT" class="flex-1">
-                        </div>
-                    </div>
-                    
-                    <div class="w-full">
-                        <span class="control-group-label">Střed:</span>
-                         <div id="center-editor-wrapper" class="mt-1">
-                            <div id="center-quill-toolbar">
-                                <span class="ql-formats">
-                                    <button class="ql-bold" title="Tučné"></button>
-                                    <button class="ql-italic" title="Kurzíva"></button>
-                                    <button class="ql-underline" title="Podtržené"></button>
-                                    <select class="ql-align" title="Zarovnání"></select>
-                                </span>
-                            </div>
-                            <div id="center-editor">
-                                <p class="ql-align-center">Střed 1</p>
-                                <p class="ql-align-center">Střed 2</p>
-                            </div>
-                        </div>
-                     </div>
 
-                     <div class="controls-row">
-                         <div class="control-group w-full">
-                            <label for="bottom-text">Dolní:</label>
-                            <input type="text" id="bottom-text" value="DOLNÍ TEXT" class="flex-1">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="stamp-preview-wrapper">
-                     <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
-                     <div class="flex items-center justify-center gap-4 w-full">
+                    <div id="preview-area">
                         <div id="stamp-canvas-container"></div>
-                        <div class="flex flex-col items-center gap-2 zoom-controls">
-                            <button id="zoom-in-btn" title="Zvětšit písmo">+</button>
-                            <button id="zoom-out-btn" title="Zmenšit písmo">-</button>
+                         <div class="flex flex-col gap-4">
+                            <button id="add-symbol-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md">Vložit symbol</button>
+                            <div id="keyboard-help">
+                                <strong>Ovládání klávesnicí:</strong>
+                                <ul>
+                                    <li>Vyberte objekt kliknutím.</li>
+                                    <li><kbd>+</kbd> / <kbd>-</kbd> : Zvětšit / Zmenšit</li>
+                                    <li><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> : Posunout</li>
+                                    <li><kbd>5</kbd> : Vystředit</li>
+                                    <li><kbd>Delete</kbd> : Smazat</li>
+                                </ul>
+                            </div>
                         </div>
-                        <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
                     </div>
                 </div>
 
@@ -200,248 +162,294 @@
         </main>
         
         <div id="footer-placeholder"></div>
+
+        <!-- Modální okno pro symboly -->
+        <div id="symbol-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none;">
+             <div class="absolute inset-0 bg-black bg-opacity-75"></div>
+             <div class="relative w-full max-w-lg">
+                <div id="symbol-library-modal" class="bg-white">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-black">Vybrat symbol</h3>
+                        <button id="close-symbol-modal" class="text-2xl text-gray-600 hover:text-black">&times;</button>
+                    </div>
+                    <div id="symbol-container-modal"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- Element definitions ---
-            const sizeSelect = document.getElementById('size-select');
-            const fontSelect = document.getElementById('font-select');
-            const topTextInput = document.getElementById('top-text');
-            const bottomTextInput = document.getElementById('bottom-text');
-            const borderStyleSelect = document.getElementById('border-style-select');
-            const borderThicknessSelect = document.getElementById('border-thickness-select');
-            const downloadBtn = document.getElementById('download-btn');
-            const shareBtn = document.getElementById('share-btn');
-            const stampModelName = document.getElementById('stamp-model-name');
-            const zoomInBtn = document.getElementById('zoom-in-btn');
-            const zoomOutBtn = document.getElementById('zoom-out-btn');
+            const elements = {
+                sizeSelect: document.getElementById('size-select'), 
+                borderStyleSelect: document.getElementById('border-style-select'), 
+                borderThicknessSelect: document.getElementById('border-thickness-select'),
+                downloadBtn: document.getElementById('download-btn'), 
+                shareBtn: document.getElementById('share-btn'),
+                symbolContainerModal: document.getElementById('symbol-container-modal'),
+                addSymbolBtn: document.getElementById('add-symbol-btn'),
+                symbolModal: document.getElementById('symbol-modal'),
+                closeSymbolModal: document.getElementById('close-symbol-modal'),
+                toolbar: document.getElementById('editor-toolbar'),
+                toolbarFontSelect: document.getElementById('toolbar-font-select'),
+                toolbarFontsizeInput: document.getElementById('toolbar-fontsize-input'),
+                toolbarBoldBtn: document.getElementById('toolbar-bold-btn'),
+                toolbarItalicBtn: document.getElementById('toolbar-italic-btn'),
+                toolbarAlignLeftBtn: document.getElementById('toolbar-align-left-btn'),
+                toolbarAlignCenterBtn: document.getElementById('toolbar-align-center-btn'),
+                toolbarAlignRightBtn: document.getElementById('toolbar-align-right-btn'),
+                topTextInput: document.getElementById('top-text-input'),
+                centerTextInput: document.getElementById('center-text-input'),
+                bottomTextInput: document.getElementById('bottom-text-input'),
+            };
             
             // --- State variables ---
-            let stage, layer;
-            let currentFontSize;
-            const MM_TO_PX = 96 / 25.4;
+            let stage, layer, tr;
             let backgroundNode, borderNode, topTextNode, middleTextNode, bottomTextNode;
 
             // --- Data ---
+            const MM_TO_PX = 96 / 25.4;
             const stampSizes = {
-                'Q34 (20mm ø)': { diameter: 20 * MM_TO_PX },
-                'Q38 (24mm ø)': { diameter: 24 * MM_TO_PX },
-                'Q53 (38mm ø)': { diameter: 38 * MM_TO_PX },
-                'Q63 (45mm ø)': { diameter: 45 * MM_TO_PX },
+                'Q34 (20mm ø)': { diameter: 20 * MM_TO_PX },'Q38 (24mm ø)': { diameter: 24 * MM_TO_PX },
+                'Q53 (38mm ø)': { diameter: 38 * MM_TO_PX },'Q63 (45mm ø)': { diameter: 45 * MM_TO_PX },
             };
-             const fontGroups = {
-                "Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],
+             const fontGroups = {"Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],};
+            const symbols = {
+                "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
+                "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
+                "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }],
+                "Sociální sítě": [{ class: "fab fa-whatsapp", char: "\uf232" }, { class: "fab fa-facebook-f", char: "\uf39e" }, { class: "fab fa-instagram", char: "\uf16d" }, { class: "fab fa-twitter", char: "\uf099" }, { class: "fab fa-linkedin-in", char: "\uf0e1" }],
+                "Náboženské symboly": [{ class: "fas fa-cross", char: "\uf654" }, { class: "fas fa-star-of-david", char: "\uf69a" }, { class: "fas fa-hamsa", char: "\uf665" }, { class: "fas fa-star-and-crescent", char: "\uf699" }, { class: "fas fa-om", char: "\uf679" }]
             };
-
-            const quillCenter = new Quill('#center-editor', {
-                theme: 'snow',
-                modules: { toolbar: '#center-quill-toolbar' }
-            });
             
-            // --- Helper Functions ---
-            function populateSelect(selectElement, data) {
-                 Object.keys(data).forEach(key => selectElement.add(new Option(key, key)));
+            // --- Functions ---
+            function populateSelect(select, data, isFont = false) {
+                if(isFont) {
+                     for (const g in data) { const o = document.createElement('optgroup'); o.label = g; data[g].forEach(f => { const op = document.createElement('option'); op.value = f.value; op.textContent = f.name; o.appendChild(op); }); select.appendChild(o); }
+                } else {
+                     Object.keys(data).forEach(k => select.add(new Option(k,k)));
+                }
             }
-            function populateFontSelect() { 
-                for (const groupName in fontGroups) { 
-                    const optgroup = document.createElement('optgroup'); 
-                    optgroup.label = groupName; 
-                    fontGroups[groupName].forEach(font => { 
-                        const option = document.createElement('option'); 
-                        option.value = font.value; 
-                        option.textContent = font.name; 
-                        optgroup.appendChild(option); 
-                    }); 
-                    fontSelect.appendChild(optgroup); 
-                } 
+            
+            function populateSymbols(container) {
+                container.innerHTML = '';
+                for(const category in symbols) {
+                    const categoryDiv = document.createElement('div'); categoryDiv.className = 'symbol-category';
+                    const title = document.createElement('h4'); title.className = 'symbol-category-title'; title.textContent = category;
+                    categoryDiv.appendChild(title);
+                    const grid = document.createElement('div'); grid.className = 'symbol-grid';
+                    symbols[category].forEach(symbol => {
+                        const icon = document.createElement('i'); icon.className = symbol.class;
+                        icon.addEventListener('click', () => { addSymbolToCanvas(symbol); elements.symbolModal.style.display = 'none'; });
+                        grid.appendChild(icon);
+                    });
+                    categoryDiv.appendChild(grid);
+                    container.appendChild(categoryDiv);
+                }
             }
-             function getQuillAlignment(quillInstance) { 
-                try { 
-                    const format = quillInstance.getFormat(quillInstance.getSelection(true) || 0); 
-                    return format.align || 'center'; 
-                } catch(e) { 
-                    return 'center'; 
-                } 
+            
+            function addSymbolToCanvas(symbol) {
+                const diameter = stampSizes[elements.sizeSelect.value].diameter;
+                const fontFamily = symbol.class.startsWith('fab') ? '"Font Awesome 5 Brands"' : '"Font Awesome 5 Free"';
+                const symbolNode = new Konva.Text({
+                    text: symbol.char, fontSize: diameter/4, fontFamily: fontFamily,
+                    fontStyle: symbol.class.startsWith('fab') ? 'normal' : '900',
+                    fill: 'black', draggable: true, x: diameter/2, y: diameter/2, name: 'draggable-item'
+                });
+                layer.add(symbolNode);
             }
+            
+            function updateToolbar(node) {
+                 if (node) {
+                    elements.toolbar.classList.add('visible');
+                    
+                    const isText = node.name().includes('text') || node.name() === 'draggable-item';
+                    [elements.toolbarFontSelect, elements.toolbarFontsizeInput, elements.toolbarBoldBtn, elements.toolbarItalicBtn].forEach(el => el.style.display = isText ? 'inline-block' : 'none');
 
-            // --- EFEKTIVNÍ AKTUALIZAČNÍ FUNKCE ---
+                    if(isText) {
+                        elements.toolbarFontSelect.value = node.fontFamily();
+                        elements.toolbarFontsizeInput.value = Math.round(node.fontSize());
+                        elements.toolbarBoldBtn.classList.toggle('active', node.fontStyle().includes('bold'));
+                        elements.toolbarItalicBtn.classList.toggle('active', node.fontStyle().includes('italic'));
+                    }
+
+                    const isCenterText = node === middleTextNode;
+                    [elements.toolbarAlignLeftBtn, elements.toolbarAlignCenterBtn, elements.toolbarAlignRightBtn].forEach(btn => btn.style.display = isCenterText ? 'inline-flex' : 'none');
+                    if (isCenterText) {
+                         elements.toolbarAlignLeftBtn.classList.toggle('active', node.align() === 'left');
+                         elements.toolbarAlignCenterBtn.classList.toggle('active', node.align() === 'center');
+                         elements.toolbarAlignRightBtn.classList.toggle('active', node.align() === 'right');
+                    }
+                } else {
+                    elements.toolbar.classList.remove('visible');
+                }
+            }
             
             function updateAll() {
-                updateBorder();
-                updateTopText();
-                updateMiddleText();
-                updateBottomText();
+                 const size = stampSizes[elements.sizeSelect.value]; const d = size.diameter; const r = d/2; const c = {x:r,y:r};
+                 const t = parseInt(elements.borderThicknessSelect.value, 10);
+                 const pTop = t + (topTextNode.fontSize() * 0.7);
+                 const pBottom = t + (bottomTextNode.fontSize() * 0.5);
+
+                backgroundNode.radius(r).position(c);
+                const bs = elements.borderStyleSelect.value;
+                borderNode.visible(bs !== 'none').radius(r - (t/2)).strokeWidth(t).dash(bs === 'dashed' ? [5, 5] : (bs === 'dotted' ? [2, 2] : [])).position(c);
+                
+                const topPath = `M ${pTop},${c.y} A ${r - pTop},${r - pTop} 0 0 1 ${d - pTop},${c.y}`;
+                topTextNode.data(topPath);
+                
+                const bottomPath = `M ${pBottom},${c.y} A ${r-pBottom},${r-pBottom} 0 1 0 ${d-pBottom},${c.y}`;
+                bottomTextNode.data(bottomPath);
+
+                middleTextNode.width(null);
+                middleTextNode.position({ x: c.x - middleTextNode.width()/2, y: c.y - middleTextNode.height()/2 });
+
                 layer.batchDraw();
             }
 
-            function updateBorder() {
-                const selectedSizeKey = sizeSelect.value;
-                const selectedSize = stampSizes[selectedSizeKey];
-                const diameter = selectedSize.diameter;
-                const radius = diameter / 2;
-                const center = { x: radius, y: radius };
-                const thickness = parseInt(borderThicknessSelect.value, 10);
-                
-                backgroundNode.radius(radius);
-                backgroundNode.position(center);
-                
-                const borderStyle = borderStyleSelect.value;
-                borderNode.visible(borderStyle !== 'none');
-                borderNode.radius(radius - (thickness / 2));
-                borderNode.strokeWidth(thickness);
-                borderNode.dash(borderStyle === 'dashed' ? [5, 5] : (borderStyle === 'dotted' ? [2, 2] : []));
-                borderNode.position(center);
-            }
-
-            function updateTopText() {
-                const selectedSizeKey = sizeSelect.value;
-                const selectedSize = stampSizes[selectedSizeKey];
-                const diameter = selectedSize.diameter;
-                const radius = diameter / 2;
-                const center = { x: radius, y: radius };
-                const thickness = parseInt(borderThicknessSelect.value, 10);
-                const padding = thickness + (currentFontSize * 0.7);
-
-                const topPath = `M ${padding},${center.y} A ${radius - padding},${radius - padding} 0 0 1 ${diameter - padding},${center.y}`;
-                topTextNode.data(topPath);
-                topTextNode.text(topTextInput.value.toUpperCase());
-                topTextNode.fontSize(currentFontSize);
-                topTextNode.fontFamily(fontSelect.value);
-            }
-
-            function updateMiddleText() {
-                const selectedSizeKey = sizeSelect.value;
-                const selectedSize = stampSizes[selectedSizeKey];
-                const diameter = selectedSize.diameter;
-                const radius = diameter / 2;
-                const center = { x: radius, y: radius };
-                
-                middleTextNode.text(quillCenter.getText(0, quillCenter.getLength() - 1).trim());
-                middleTextNode.fontSize(currentFontSize * 1.1);
-                middleTextNode.fontFamily(fontSelect.value);
-                middleTextNode.width(diameter * 0.7);
-                middleTextNode.align(getQuillAlignment(quillCenter));
-                middleTextNode.position({
-                    x: center.x - middleTextNode.width() / 2,
-                    y: center.y - middleTextNode.height() / 2
-                });
-            }
-
-            function updateBottomText() {
-                const selectedSizeKey = sizeSelect.value;
-                const selectedSize = stampSizes[selectedSizeKey];
-                const diameter = selectedSize.diameter;
-                const radius = diameter / 2;
-                const center = { x: radius, y: radius };
-                const thickness = parseInt(borderThicknessSelect.value, 10);
-                const padding = thickness + (currentFontSize * 0.5); // FINÁLNÍ ÚPRAVA ODSZENÍ
-
-                const bottomPath = `M ${padding},${center.y} A ${radius - padding},${radius - padding} 0 1 0 ${diameter - padding},${center.y}`;
-                bottomTextNode.data(bottomPath);
-                bottomTextNode.text(bottomTextInput.value.toUpperCase());
-                bottomTextNode.fontSize(currentFontSize);
-                bottomTextNode.fontFamily(fontSelect.value);
-            }
-
             function fullRedraw() {
-                const selectedSizeKey = sizeSelect.value;
-                const selectedSize = stampSizes[selectedSizeKey];
-                const diameter = selectedSize.diameter;
-                currentFontSize = diameter / 10;
-                stage.width(diameter);
-                stage.height(diameter);
-                stampModelName.textContent = selectedSizeKey.split(' ')[0];
+                const size = stampSizes[elements.sizeSelect.value]; const d = size.diameter;
+                stage.width(d).height(d);
+                
+                const initialFontSize = d / 10;
+                topTextNode.fontSize(initialFontSize);
+                middleTextNode.fontSize(initialFontSize);
+                bottomTextNode.fontSize(initialFontSize);
+                
                 updateAll();
             }
             
-            // --- ACTION FUNCTIONS ---
-            function changeFontSize(delta) {
-                currentFontSize += delta;
-                if (currentFontSize < 4) currentFontSize = 4;
-                updateAll();
-            }
-            async function downloadImage() { 
-                backgroundNode.visible(false);
-                layer.draw(); 
+            function downloadImage() { 
+                tr.nodes([]);
+                backgroundNode.visible(false); layer.draw(); 
                 const dataUrl = stage.toDataURL({ pixelRatio: 4 }); 
-                backgroundNode.visible(true); 
-                layer.draw();
-                
-                const link = document.createElement('a'); 
-                const filename = sizeSelect.value.split(' ')[0] || 'razitko-kulate'; 
-                link.download = `${filename}.png`; 
-                link.href = dataUrl; 
-                link.click(); 
+                backgroundNode.visible(true); layer.draw();
+                const link = document.createElement('a'); link.download = `${elements.sizeSelect.value.split(' ')[0] || 'razitko'}.png`; link.href = dataUrl; link.click(); 
             }
-            async function shareImage() {
-                shareBtn.disabled = true;
-                shareBtn.textContent = 'Generuji...';
+             async function shareImage() {
+                shareBtn.disabled = true; shareBtn.textContent = 'Generuji...';
                 try {
-                    backgroundNode.visible(false);
-                    layer.draw();
+                    tr.nodes([]);
+                    backgroundNode.visible(false); layer.draw();
                     const dataUrl = stage.toDataURL({ pixelRatio: 2 });
-                    backgroundNode.visible(true);
-                    layer.draw();
-                    
+                    backgroundNode.visible(true); layer.draw();
                     const blob = await (await fetch(dataUrl)).blob();
-                    const filename = sizeSelect.value.split(' ')[0] || 'razitko-kulate';
+                    const filename = elements.sizeSelect.value.split(' ')[0] || 'razitko-kulate';
                     const file = new File([blob], `${filename}.png`, { type: 'image/png' });
                     const shareData = { files: [file], title: 'Návrh kulatého razítka' };
-                    if (navigator.canShare && navigator.canShare(shareData)) {
-                        await navigator.share(shareData);
-                    } else {
-                        alert('Váš prohlížeč nepodporuje sdílení souborů.');
-                    }
-                } catch (err) {
-                    console.error("Chyba při sdílení:", err);
-                } finally {
-                    shareBtn.disabled = false;
-                    shareBtn.textContent = 'Sdílet';
-                }
+                    if (navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); } else { alert('Váš prohlížeč nepodporuje sdílení souborů.'); }
+                } catch (err) { console.error("Chyba při sdílení:", err); } finally { shareBtn.disabled = false; shareBtn.textContent = 'Sdílet'; }
             }
-
-            // --- INITIALIZATION ---
+            
             function initialize() {
-                populateSelect(sizeSelect, stampSizes);
-                populateFontSelect();
-                
-                const initialSize = stampSizes[Object.keys(stampSizes)[0]];
-                stage = new Konva.Stage({
-                    container: 'stamp-canvas-container',
-                    width: initialSize.diameter,
-                    height: initialSize.diameter,
-                });
-                layer = new Konva.Layer();
-                stage.add(layer);
+                populateSelect(elements.sizeSelect, stampSizes);
+                populateSelect(elements.toolbarFontSelect, fontGroups, true);
+                populateSymbols(elements.symbolContainerModal);
+
+                const initSize = stampSizes[Object.keys(stampSizes)[0]];
+                stage = new Konva.Stage({ container: 'stamp-canvas-container', width: initSize.diameter, height: initSize.diameter });
+                layer = new Konva.Layer(); stage.add(layer);
                 
                 backgroundNode = new Konva.Circle({ fill: 'white'});
-                borderNode = new Konva.Circle({ stroke: 'black' });
-                topTextNode = new Konva.TextPath({ fill: 'black', align: 'center' });
-                middleTextNode = new Konva.Text({ fill: 'black' });
-                bottomTextNode = new Konva.TextPath({ fill: 'black', align: 'center' });
+                borderNode = new Konva.Circle({ stroke: 'black', name: 'border' });
+                layer.add(backgroundNode, borderNode);
                 
-                layer.add(backgroundNode, borderNode, topTextNode, middleTextNode, bottomTextNode);
-                
-                topTextInput.addEventListener('input', () => { updateTopText(); layer.batchDraw(); });
-                bottomTextInput.addEventListener('input', () => { updateBottomText(); layer.batchDraw(); });
-                quillCenter.on('text-change', () => { updateMiddleText(); layer.batchDraw(); });
-                
-                const generalElements = [fontSelect, borderStyleSelect, borderThicknessSelect];
-                generalElements.forEach(el => el.addEventListener('change', updateAll));
+                const d = initSize.diameter;
+                const initialFontSize = d/10;
+                topTextNode = new Konva.TextPath({ draggable: true, name: 'curved-text', fill: 'black', align: 'center', text: elements.topTextInput.value.toUpperCase(), fontSize: initialFontSize, fontFamily: 'Roboto' });
+                middleTextNode = new Konva.Text({ text: elements.centerTextInput.value, fontSize: initialFontSize, fontFamily: 'Roboto', fill: 'black', draggable: true, name: 'editable-text', align: 'center' });
+                bottomTextNode = new Konva.TextPath({ draggable: true, name: 'curved-text', fill: 'black', align: 'center', text: elements.bottomTextInput.value.toUpperCase(), fontSize: initialFontSize, fontFamily: 'Roboto' });
+                layer.add(topTextNode, middleTextNode, bottomTextNode);
 
-                sizeSelect.addEventListener('change', fullRedraw);
-                zoomInBtn.addEventListener('click', () => changeFontSize(1));
-                zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
-                downloadBtn.addEventListener('click', downloadImage);
+                tr = new Konva.Transformer({ nodes: [], keepRatio: true, centeredScaling: true, rotationSnaps: [0, 90, 180, 270], anchorStroke: '#007bff', anchorFill: '#fff', borderStroke: '#007bff'});
+                layer.add(tr);
+
+                stage.on('click tap', function(e) {
+                    if (e.target === stage || e.target.name() === 'border') { tr.nodes([]); updateToolbar(null); return; }
+                    tr.nodes([e.target]);
+                    updateToolbar(e.target);
+                });
                 
-                if (navigator.share) {
-                    shareBtn.style.display = 'block';
-                    shareBtn.addEventListener('click', shareImage);
-                }
+                const container = stage.container();
+                container.tabIndex = 1;
+                container.focus();
+                container.addEventListener('keydown', (e) => {
+                     if (tr.nodes().length === 0) { return; }
+                     const node = tr.nodes()[0];
+                     const moveStep = 1; const scaleBy = 1.02;
+                    switch (e.key) {
+                        case '+': case '=': node.scaleX(node.scaleX() * scaleBy); node.scaleY(node.scaleY() * scaleBy); break;
+                        case '-': node.scaleX(node.scaleX() / scaleBy); node.scaleY(node.scaleY() / scaleBy); break;
+                        case 'ArrowUp': node.y(node.y() - moveStep); break;
+                        case 'ArrowDown': node.y(node.y() + moveStep); break;
+                        case 'ArrowLeft': node.x(node.x() - moveStep); break;
+                        case 'ArrowRight': node.x(node.x() + moveStep); break;
+                        case '5': 
+                             const box = node.getClientRect({skipTransform: true});
+                             node.position({ x: stage.width()/2 - box.width / 2, y: stage.height()/2 - box.height / 2 }); 
+                             break;
+                        case 'Delete': case 'Backspace': tr.nodes().forEach(n => n.destroy()); tr.nodes([]); updateToolbar(null); break;
+                        default: return;
+                    }
+                    e.preventDefault();
+                });
+
+                // Listenery pro hlavní ovládací prvky
+                elements.topTextInput.addEventListener('input', (e) => topTextNode.text(e.target.value.toUpperCase()));
+                elements.centerTextInput.addEventListener('input', (e) => {
+                    middleTextNode.text(e.target.value);
+                    updateAll(); // Pro přepočítání pozice
+                });
+                elements.bottomTextInput.addEventListener('input', (e) => bottomTextNode.text(e.target.value.toUpperCase()));
+
+                ['change'].forEach(evt => {
+                    elements.sizeSelect.addEventListener(evt, fullRedraw);
+                    elements.borderStyleSelect.addEventListener(evt, updateAll);
+                    elements.borderThicknessSelect.addEventListener(evt, updateAll);
+                });
+
+                 // Listenery pro plovoucí lištu
+                ['input', 'change'].forEach(evt => {
+                    elements.toolbarFontSelect.addEventListener(evt, (e) => {
+                        if (tr.nodes().length > 0) { tr.nodes()[0].fontFamily(e.target.value); updateAll(); }
+                    });
+                     elements.toolbarFontsizeInput.addEventListener(evt, (e) => {
+                        if (tr.nodes().length > 0) { tr.nodes()[0].fontSize(parseInt(e.target.value, 10)); updateAll(); }
+                    });
+                });
+                elements.toolbarBoldBtn.addEventListener('click', () => {
+                     if (tr.nodes().length > 0) {
+                        const node = tr.nodes()[0];
+                        const isBold = node.fontStyle().includes('bold');
+                        node.fontStyle(isBold ? node.fontStyle().replace('bold', '').trim() : `bold ${node.fontStyle()}`.trim());
+                        elements.toolbarBoldBtn.classList.toggle('active', !isBold);
+                     }
+                });
+                 elements.toolbarItalicBtn.addEventListener('click', () => {
+                     if (tr.nodes().length > 0) {
+                        const node = tr.nodes()[0];
+                        const isItalic = node.fontStyle().includes('italic');
+                        node.fontStyle(isItalic ? node.fontStyle().replace('italic', '').trim() : `italic ${node.fontStyle()}`.trim());
+                         elements.toolbarItalicBtn.classList.toggle('active', !isItalic);
+                     }
+                });
+                 ['left', 'center', 'right'].forEach(align => {
+                    document.getElementById(`toolbar-align-${align}-btn`).addEventListener('click', () => {
+                        if (tr.nodes().length > 0 && tr.nodes()[0].name() === 'editable-text') {
+                             tr.nodes()[0].align(align);
+                             updateToolbar(tr.nodes()[0]);
+                        }
+                    });
+                });
+                
+                // Listenery pro modální okno
+                elements.addSymbolBtn.addEventListener('click', () => elements.symbolModal.style.display = 'flex');
+                elements.closeSymbolModal.addEventListener('click', () => elements.symbolModal.style.display = 'none');
+
+
+                elements.downloadBtn.addEventListener('click', downloadImage);
+                if (navigator.share) { elements.shareBtn.style.display = 'block'; elements.shareBtn.addEventListener('click', shareImage); }
                 
                 fullRedraw();
             }

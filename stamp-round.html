@@ -73,10 +73,10 @@
         #editor-toolbar button.active { background-color: #FFD700; }
         .toolbar-divider { width: 1px; height: 20px; background-color: #555; margin: 0 4px;}
 
-        /* Modální okno pro symboly */
-        #symbol-modal { background-color: rgba(0,0,0,0.7); }
-        #symbol-library-modal { max-height: 60vh; overflow-y: auto; background-color: #f9fafb; border-radius: 8px; padding: 16px; border: 1px solid #d1d5db; }
-        #symbol-library-modal h3 { color: #1f2937; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;}
+        /* Modální okna */
+        .modal { background-color: rgba(0,0,0,0.7); }
+        .modal-content { max-height: 60vh; overflow-y: auto; background-color: #f9fafb; border-radius: 8px; padding: 16px; border: 1px solid #d1d5db; color: #1f2937;}
+        .modal-content h3 { color: #1f2937; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;}
         .symbol-category { margin-bottom: 8px; }
         .symbol-category-title { font-size: 1rem; font-weight: bold; color: #4b5563; margin-bottom: 4px; }
         .symbol-grid { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -140,6 +140,7 @@
                         <div id="stamp-canvas-container"></div>
                          <div class="flex flex-col gap-4">
                             <button id="add-symbol-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md">Vložit symbol</button>
+                            <button id="add-frame-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-md">Vložit rámeček</button>
                             <div id="keyboard-help">
                                 <strong>Ovládání klávesnicí:</strong>
                                 <ul>
@@ -156,7 +157,7 @@
 
                 <div class="button-group">
                     <button id="download-btn">Stáhnout (PNG)</button>
-                    <button id="share-btn" style="display: none;">Sdílet</button>
+                    <button id="share-btn">Odeslat objednávku</button>
                 </div>
             </div>
         </main>
@@ -164,15 +165,32 @@
         <div id="footer-placeholder"></div>
 
         <!-- Modální okno pro symboly -->
-        <div id="symbol-modal" class="fixed inset-0 z-50 items-center justify-center p-4" style="display: none;">
-             <div class="absolute inset-0 bg-black bg-opacity-75"></div>
+        <div id="symbol-modal" class="fixed inset-0 z-50 items-center justify-center p-4 modal" style="display: none;">
+             <div class="absolute inset-0"></div>
              <div class="relative w-full max-w-lg">
-                <div id="symbol-library-modal" class="bg-white">
+                <div id="symbol-library-modal" class="modal-content">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-black">Vybrat symbol</h3>
+                        <h3>Vybrat symbol</h3>
                         <button id="close-symbol-modal" class="text-2xl text-gray-600 hover:text-black">&times;</button>
                     </div>
                     <div id="symbol-container-modal"></div>
+                </div>
+            </div>
+        </div>
+        
+         <!-- Modální okno pro odeslání objednávky -->
+        <div id="share-modal" class="fixed inset-0 z-50 items-center justify-center p-4 modal" style="display: none;">
+             <div class="absolute inset-0"></div>
+             <div id="share-dialog" class="relative w-full max-w-xs modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3>Odeslat návrh</h3>
+                    <button id="close-share-modal" class="text-2xl text-gray-600 hover:text-black">&times;</button>
+                </div>
+                <p class="text-sm mb-4">Vyberte preferovaný způsob kontaktu.</p>
+                <div class="flex flex-col gap-3">
+                    <button id="share-native-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-md">Sdílet obrázek (doporučeno)</button>
+                    <button id="copy-email-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">Kopírovat E-mail obchodu</button>
+                    <button id="copy-whatsapp-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md">Kopírovat WhatsApp</button>
                 </div>
             </div>
         </div>
@@ -189,8 +207,14 @@
                 shareBtn: document.getElementById('share-btn'),
                 symbolContainerModal: document.getElementById('symbol-container-modal'),
                 addSymbolBtn: document.getElementById('add-symbol-btn'),
+                addFrameBtn: document.getElementById('add-frame-btn'),
                 symbolModal: document.getElementById('symbol-modal'),
                 closeSymbolModal: document.getElementById('close-symbol-modal'),
+                shareModal: document.getElementById('share-modal'),
+                closeShareModal: document.getElementById('close-share-modal'),
+                shareNativeBtn: document.getElementById('share-native-btn'),
+                copyEmailBtn: document.getElementById('copy-email-btn'),
+                copyWhatsappBtn: document.getElementById('copy-whatsapp-btn'),
                 toolbar: document.getElementById('editor-toolbar'),
                 toolbarFontSelect: document.getElementById('toolbar-font-select'),
                 toolbarFontsizeInput: document.getElementById('toolbar-fontsize-input'),
@@ -216,9 +240,10 @@
             };
              const fontGroups = {"Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],};
             const symbols = {
-                "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
-                "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
-                "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }],
+                "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "far fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "far fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "far fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
+                "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "far fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
+                "Geometrie": [{ shape: 'Rect' }, { shape: 'Circle' }, { shape: 'Wedge' } ],
+                "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }, { class: "far fa-envelope", char: "\uf0e0" }],
                 "Sociální sítě": [{ class: "fab fa-whatsapp", char: "\uf232" }, { class: "fab fa-facebook-f", char: "\uf39e" }, { class: "fab fa-instagram", char: "\uf16d" }, { class: "fab fa-twitter", char: "\uf099" }, { class: "fab fa-linkedin-in", char: "\uf0e1" }],
                 "Náboženské symboly": [{ class: "fas fa-cross", char: "\uf654" }, { class: "fas fa-star-of-david", char: "\uf69a" }, { class: "fas fa-hamsa", char: "\uf665" }, { class: "fas fa-star-and-crescent", char: "\uf699" }, { class: "fas fa-om", char: "\uf679" }]
             };
@@ -240,8 +265,13 @@
                     categoryDiv.appendChild(title);
                     const grid = document.createElement('div'); grid.className = 'symbol-grid';
                     symbols[category].forEach(symbol => {
-                        const icon = document.createElement('i'); icon.className = symbol.class;
-                        icon.addEventListener('click', () => { addSymbolToCanvas(symbol); elements.symbolModal.style.display = 'none'; });
+                        const icon = document.createElement('i'); icon.className = symbol.class || `fas fa-${symbol.shape.toLowerCase()}`;
+                         if (symbol.rotation) { icon.style.transform = `rotate(${symbol.rotation}deg)`; }
+                        icon.addEventListener('click', () => { 
+                            if(symbol.shape) addShapeToCanvas(symbol.shape);
+                            else addSymbolToCanvas(symbol); 
+                            elements.symbolModal.style.display = 'none'; 
+                        });
                         grid.appendChild(icon);
                     });
                     categoryDiv.appendChild(grid);
@@ -249,12 +279,31 @@
                 }
             }
             
+            function addShapeToCanvas(shapeType) {
+                const diameter = stampSizes[elements.sizeSelect.value].diameter;
+                let shape;
+                const commonProps = {
+                    x: diameter / 2, y: diameter / 2,
+                    stroke: 'black', strokeWidth: 2,
+                    draggable: true, name: 'draggable-item'
+                };
+                if(shapeType === 'Rect') {
+                    shape = new Konva.Rect({ ...commonProps, width: diameter/2, height: diameter/2 });
+                } else if (shapeType === 'Circle') {
+                    shape = new Konva.Circle({ ...commonProps, radius: diameter/4 });
+                } else if (shapeType === 'Wedge') { // Triangle
+                    shape = new Konva.Wedge({ ...commonProps, radius: diameter/3, angle: 180, rotation: -90, stroke: 'black', strokeWidth: 2 });
+                }
+                if (shape) layer.add(shape);
+            }
+
             function addSymbolToCanvas(symbol) {
                 const diameter = stampSizes[elements.sizeSelect.value].diameter;
-                const fontFamily = symbol.class.startsWith('fab') ? '"Font Awesome 5 Brands"' : '"Font Awesome 5 Free"';
+                const fontFamily = symbol.class.includes('fab') ? '"Font Awesome 5 Brands"' : (symbol.class.includes('far') ? '"Font Awesome 5 Free"' : '"Font Awesome 5 Free"');
+                const fontWeight = symbol.class.includes('far') ? '400' : '900';
                 const symbolNode = new Konva.Text({
                     text: symbol.char, fontSize: diameter/4, fontFamily: fontFamily,
-                    fontStyle: symbol.class.startsWith('fab') ? 'normal' : '900',
+                    fontStyle: fontWeight,
                     fill: 'black', draggable: true, x: diameter/2, y: diameter/2, name: 'draggable-item'
                 });
                 layer.add(symbolNode);
@@ -264,7 +313,7 @@
                  if (node) {
                     elements.toolbar.classList.add('visible');
                     
-                    const isText = node.name().includes('text') || node.name() === 'draggable-item';
+                    const isText = node instanceof Konva.Text;
                     [elements.toolbarFontSelect, elements.toolbarFontsizeInput, elements.toolbarBoldBtn, elements.toolbarItalicBtn].forEach(el => el.style.display = isText ? 'inline-block' : 'none');
 
                     if(isText) {
@@ -327,19 +376,53 @@
                 backgroundNode.visible(true); layer.draw();
                 const link = document.createElement('a'); link.download = `${elements.sizeSelect.value.split(' ')[0] || 'razitko'}.png`; link.href = dataUrl; link.click(); 
             }
-             async function shareImage() {
-                shareBtn.disabled = true; shareBtn.textContent = 'Generuji...';
+            
+            function copyToClipboard(text, button) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const originalText = button.textContent;
+                    button.textContent = 'Zkopírováno!';
+                    setTimeout(() => { button.textContent = originalText; }, 2000);
+                } catch (err) {
+                    console.error('Chyba při kopírování:', err);
+                }
+                document.body.removeChild(textArea);
+            }
+            
+             async function shareNative() {
+                elements.shareNativeBtn.disabled = true; elements.shareNativeBtn.textContent = 'Generuji...';
                 try {
                     tr.nodes([]);
                     backgroundNode.visible(false); layer.draw();
                     const dataUrl = stage.toDataURL({ pixelRatio: 2 });
                     backgroundNode.visible(true); layer.draw();
+                    
                     const blob = await (await fetch(dataUrl)).blob();
                     const filename = elements.sizeSelect.value.split(' ')[0] || 'razitko-kulate';
                     const file = new File([blob], `${filename}.png`, { type: 'image/png' });
-                    const shareData = { files: [file], title: 'Návrh kulatého razítka' };
-                    if (navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); } else { alert('Váš prohlížeč nepodporuje sdílení souborů.'); }
-                } catch (err) { console.error("Chyba při sdílení:", err); } finally { shareBtn.disabled = false; shareBtn.textContent = 'Sdílet'; }
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                         await navigator.share({
+                            files: [file],
+                            title: 'Návrh razítka',
+                            text: 'Posílám návrh razítka.',
+                        });
+                    } else {
+                       alert('Váš prohlížeč nepodporuje přímé sdílení souborů. Obrázek bude stažen, prosím, přiložte ho ručně.');
+                       downloadImage();
+                    }
+                } catch (err) { 
+                    console.error("Chyba při sdílení:", err); 
+                    alert('Došlo k chybě při sdílení.');
+                } finally { 
+                    elements.shareNativeBtn.disabled = false; elements.shareNativeBtn.textContent = 'Sdílet obrázek (doporučeno)'; 
+                }
             }
             
             function initialize() {
@@ -386,10 +469,20 @@
                         case 'ArrowLeft': node.x(node.x() - moveStep); break;
                         case 'ArrowRight': node.x(node.x() + moveStep); break;
                         case '5': 
-                             const box = node.getClientRect({skipTransform: true});
-                             node.position({ x: stage.width()/2 - box.width / 2, y: stage.height()/2 - box.height / 2 }); 
-                             break;
-                        case 'Delete': case 'Backspace': tr.nodes().forEach(n => n.destroy()); tr.nodes([]); updateToolbar(null); break;
+                             if (node instanceof Konva.Circle) {
+                                node.position({ x: stage.width() / 2, y: stage.height() / 2 });
+                            } else {
+                                const box = node.getClientRect({skipTransform: true});
+                                node.position({ x: stage.width()/2 - box.width / 2, y: stage.height()/2 - box.height / 2 }); 
+                            }
+                            break;
+                        case 'Delete': case 'Backspace': 
+                            if(node !== middleTextNode && node !== topTextNode && node !== bottomTextNode) {
+                                tr.nodes().forEach(n => n.destroy());
+                                tr.nodes([]); 
+                                updateToolbar(null);
+                            }
+                            break;
                         default: return;
                     }
                     e.preventDefault();
@@ -398,8 +491,12 @@
                 // Listenery pro hlavní ovládací prvky
                 elements.topTextInput.addEventListener('input', (e) => topTextNode.text(e.target.value.toUpperCase()));
                 elements.centerTextInput.addEventListener('input', (e) => {
+                    if (middleTextNode.isDestroyed()) {
+                        middleTextNode = new Konva.Text({ text: e.target.value, fontSize: topTextNode.fontSize(), fontFamily: 'Roboto', fill: 'black', draggable: true, name: 'editable-text', align: 'center' });
+                        layer.add(middleTextNode);
+                    }
                     middleTextNode.text(e.target.value);
-                    updateAll(); // Pro přepočítání pozice
+                    updateAll(); 
                 });
                 elements.bottomTextInput.addEventListener('input', (e) => bottomTextNode.text(e.target.value.toUpperCase()));
 
@@ -443,13 +540,28 @@
                     });
                 });
                 
-                // Listenery pro modální okno
+                // Listenery pro modální okna
                 elements.addSymbolBtn.addEventListener('click', () => elements.symbolModal.style.display = 'flex');
                 elements.closeSymbolModal.addEventListener('click', () => elements.symbolModal.style.display = 'none');
+                elements.shareBtn.addEventListener('click', () => elements.shareModal.style.display = 'flex');
+                elements.closeShareModal.addEventListener('click', () => elements.shareModal.style.display = 'none');
+                elements.shareNativeBtn.addEventListener('click', shareNative);
+                elements.copyEmailBtn.addEventListener('click', (e) => copyToClipboard('haifa@gimo.co.il', e.target));
+                elements.copyWhatsappBtn.addEventListener('click', (e) => copyToClipboard('97248650507', e.target));
+                
+                elements.addFrameBtn.addEventListener('click', () => {
+                    const d = stampSizes[elements.sizeSelect.value].diameter;
+                    const newFrame = new Konva.Circle({
+                        x: d / 2, y: d / 2,
+                        radius: d / 3,
+                        stroke: 'black', strokeWidth: 1,
+                        draggable: true, name: 'draggable-item'
+                    });
+                    layer.add(newFrame);
+                });
 
 
                 elements.downloadBtn.addEventListener('click', downloadImage);
-                if (navigator.share) { elements.shareBtn.style.display = 'block'; elements.shareBtn.addEventListener('click', shareImage); }
                 
                 fullRedraw();
             }

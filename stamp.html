@@ -131,7 +131,7 @@
                         <div class="control-group">
                            <label>Rámeček:</label>
                            <select id="border-style-select" title="Styl rámečku"><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option><option value="none">Žádný</option></select>
-                           <select id="border-shape-select" title="Tvar rámečku"><option value="0">Hranatý</option><option value="15">Zaoblený</option></select>
+                           <select id="border-shape-select" title="Tvar rámečku"><option value="0">Hranatý</option><option value="15">Zaoblený</option><option value="oval">Oválný</option></select>
                            <select id="border-thickness-select" title="Tloušťka rámečku"><option value="1">Tenký</option><option value="2">Střední</option><option value="3">Silný</option><option value="4">Extra</option></select>
                         </div>
                     </div>
@@ -282,7 +282,7 @@
                 const size = stampSizes[elements.sizeSelect.value];
                 const node = new Konva.Text({
                     text: text, fontSize: size.pxHeight/3, fontFamily: 'Roboto', fill: 'black',
-                    draggable: true, x: size.pxWidth/2, y: size.pxHeight/2, name: 'editable-text',
+                    draggable: true, name: 'editable-text', align: 'center',
                     ...options
                 });
                 layer.add(node);
@@ -298,7 +298,7 @@
                     draggable: true, name: 'draggable-item'
                 };
                 if(shapeType === 'Rect') {
-                    shape = new Konva.Rect({ ...commonProps, width: size.pxWidth/2, height: size.pxHeight/2 });
+                    shape = new Konva.Rect({ ...commonProps, width: size.pxWidth/2, height: size.pxHeight/2, offsetX: size.pxWidth/4, offsetY: size.pxHeight/4 });
                 } else if (shapeType === 'Circle') {
                     shape = new Konva.Circle({ ...commonProps, radius: Math.min(size.pxWidth, size.pxHeight) / 4 });
                 } else if (shapeType === 'Wedge') { // Triangle
@@ -351,8 +351,14 @@
 
                 backgroundNode.width(size.pxWidth).height(size.pxHeight);
                 const bs = elements.borderStyleSelect.value;
-                borderNode.visible(bs !== 'none').width(size.pxWidth).height(size.pxHeight).strokeWidth(t).dash(bs === 'dashed' ? [5, 5] : (bs === 'dotted' ? [2, 2] : [])).cornerRadius(parseInt(elements.borderShapeSelect.value, 10));
+                const shape = elements.borderShapeSelect.value;
+                borderNode.visible(bs !== 'none').width(size.pxWidth).height(size.pxHeight).strokeWidth(t).dash(bs === 'dashed' ? [5, 5] : (bs === 'dotted' ? [2, 2] : [])).cornerRadius(shape === 'oval' ? Math.min(size.pxWidth, size.pxHeight) / 2 : parseInt(shape, 10));
                 
+                mainTextNode.width(size.pxWidth - (2*t) - 10);
+                mainTextNode.position({ x: size.pxWidth / 2, y: size.pxHeight / 2 });
+                mainTextNode.offsetX(mainTextNode.width() / 2);
+                mainTextNode.offsetY(mainTextNode.height() / 2);
+
                 layer.batchDraw();
             }
 
@@ -431,7 +437,7 @@
                 borderNode = new Konva.Rect({ stroke: 'black', name: 'border' });
                 layer.add(backgroundNode, borderNode);
                 
-                mainTextNode = addDraggableText(elements.mainTextInput.value);
+                mainTextNode = addDraggableText(elements.mainTextInput.value, {align: 'center'});
                 
                 tr = new Konva.Transformer({ nodes: [], keepRatio: true, centeredScaling: true, rotationSnaps: [0, 90, 180, 270], anchorStroke: '#007bff', anchorFill: '#fff', borderStroke: '#007bff'});
                 layer.add(tr);
@@ -460,9 +466,11 @@
                              node.position({ x: stage.width()/2, y: stage.height()/2 }); 
                              break;
                         case 'Delete': case 'Backspace': 
-                            tr.nodes().forEach(n => n.destroy());
-                            tr.nodes([]); 
-                            updateToolbar(null);
+                            if(node !== mainTextNode) {
+                                tr.nodes().forEach(n => n.destroy());
+                                tr.nodes([]); 
+                                updateToolbar(null);
+                            }
                             break;
                         default: return;
                     }
@@ -472,7 +480,7 @@
                 // Listenery pro hlavní ovládací prvky
                  elements.mainTextInput.addEventListener('input', (e) => {
                     if (!mainTextNode || mainTextNode.isDestroyed()) {
-                         mainTextNode = addDraggableText(e.target.value);
+                         mainTextNode = addDraggableText(e.target.value, {align: 'center'});
                     }
                     mainTextNode.text(e.target.value);
                 });

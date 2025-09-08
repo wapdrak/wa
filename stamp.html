@@ -5,18 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generátor razítek</title>
 
-    <!-- 🎨 Styly a knihovny pro design a základní funkce -->
+    <!-- Styly a knihovny -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    
-    <!-- Knihovny specifické pro tuto stránku -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=David+Libre:wght@400;700&family=Noto+Sans+Hebrew:wght@400;700&family=Miriam+Libre:wght@400;700&family=Frank+Ruhl+Libre:wght@400;700&family=Heebo:wght@400;700&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Slabo+27px&family=Rubik:wght@400;700&family=Cairo:wght@400;700&family=Almarai:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Lalezar&family=Markazi+Text:wght@400;700&family=Noto+Sans:wght@400;700&family=Roboto+Slab:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Source+Sans+Pro:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Hlavní knihovna pro interaktivitu -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Knihovna pro náhled -->
+    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
     <style>
         body { font-family: 'Noto Sans', sans-serif; }
@@ -24,70 +22,66 @@
         .controls h2 { margin-top: 0; text-align: center; color: #FFD700; }
         .controls .button-group { display: flex; gap: 10px; margin-top: 15px; }
         .controls button { flex-grow: 1; padding: 15px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
-        .controls button:disabled { opacity: 0.6; cursor: not-allowed; }
         #download-btn { background-color: #FFD700; color: #000; }
-        #download-btn:hover:not(:disabled) { background-color: #ffed4a; }
         #share-btn { background-color: #4a5568; color: #FFF; }
-        #share-btn:hover:not(:disabled) { background-color: #2d3748; }
-        #editor-wrapper { background-color: #fff; border-radius: 8px; }
-        .ql-container { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; min-height: 120px; font-size: 16px; color: #000; border-top:none !important; }
-        #stamp-preview-wrapper { margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; display: flex; flex-direction: column; align-items: center; }
-        .canvas-container { border: 1px solid #555; }
-        .zoom-controls button { background-color: #4a5568; color: white; width: 30px; height: 30px; border-radius: 50%; font-size: 20px; line-height: 1; }
         
-        /* NOVÉ STYLY PRO ODDĚLENÉ LIŠTY */
-        .ql-toolbar.ql-snow {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            border-bottom: none;
-            padding: 8px 8px 4px 8px;
+        #stamp-preview-wrapper { 
+            margin-top: 20px; padding: 20px; background-color: #333; border-radius: 10px; 
+            display: flex; flex-direction: column; gap: 15px; align-items: center; position: relative;
         }
-        #custom-controls-toolbar {
-            padding: 4px 8px 8px 8px;
-            background-color: #f9fafb;
-            border-bottom: 1px solid #d1d5db;
-            display: flex;
-            flex-wrap: wrap;
+        #preview-area {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 20px;
+            align-items: start;
+            width: 100%;
+        }
+        #stamp-canvas-container { border: 1px solid #555; background-color: white; justify-self: center; cursor: grab; }
+        #stamp-canvas-container:focus { outline: 2px solid #FFD700; }
+        
+        #keyboard-help {
+            font-size: 11px; color: #d1d5db; background-color: #4b5563; padding: 8px; border-radius: 6px; text-align: left;
+        }
+        #keyboard-help ul { list-style-position: inside; padding-left: 5px; }
+        #keyboard-help kbd { background-color: #374151; border-radius: 3px; padding: 1px 4px; font-family: monospace; }
+
+        /* Styly pro lištu s ovládacími prvky */
+        #controls-wrapper, #preview-controls-top {
+            background-color: #f9fafb; border-radius: 8px; padding: 8px; display: flex; 
+            gap: 8px; border: 1px solid #d1d5db;
+        }
+        #controls-wrapper { flex-direction: column; }
+        #preview-controls-top { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 1rem; color: #4b5563; }
+        .controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+        .control-group { display: flex; align-items: center; gap: 4px; }
+        .control-group label { font-size: 12px; color: #4b5563; font-weight: bold; white-space: nowrap; }
+        .controls-row input, .controls-row textarea, .controls-row select, .controls-row button, #preview-controls-top select { background-color: #fff; border: 1px solid #d1d5db; border-radius: 4px; padding: 4px 6px; font-size: 12px; color: #374151; vertical-align: middle; }
+        .controls-row select, #preview-controls-top select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em; padding-right: 2rem; }
+        .controls-row input[type="text"], .controls-row textarea { flex-grow: 1; }
+        
+        /* Plovoucí editační lišta */
+        #editor-toolbar {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            border-radius: 8px; padding: 6px; display: none;
             align-items: center;
-            gap: 6px;
+            gap: 6px; z-index: 100;
         }
-        .toolbar-group {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .toolbar-divider {
-            border-left: 1px solid #d1d5db;
-            height: 24px;
-            margin: 0 4px;
-        }
-        .toolbar-group label {
-            font-size: 12px;
-            color: #4b5563;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        #custom-controls-toolbar select {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            padding: 4px 6px;
-            font-size: 12px;
-            color: #374151;
-            vertical-align: middle;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem center;
-            background-size: 1em;
-            padding-right: 2rem;
-        }
-        #custom-controls-toolbar select:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+        #editor-toolbar.visible { display: flex; }
+        #editor-toolbar select, #editor-toolbar input { font-size: 12px; padding: 2px 4px; background: #fff; color: #000; border-radius: 4px; border: 1px solid #555;}
+        #editor-toolbar button { background-color: #fff; border: 1px solid #555; border-radius: 4px; width: 24px; height: 24px; display: inline-flex; justify-content: center; align-items: center; font-weight: bold; color: #000;}
+        #editor-toolbar button.active { background-color: #FFD700; }
+        .toolbar-divider { width: 1px; height: 20px; background-color: #555; margin: 0 4px;}
+
+        /* Modální okna */
+        .modal { background-color: rgba(0,0,0,0.7); }
+        .modal-content { max-height: 60vh; overflow-y: auto; background-color: #f9fafb; border-radius: 8px; padding: 16px; border: 1px solid #d1d5db; color: #1f2937;}
+        .modal-content h3 { color: #1f2937; font-weight: bold; margin-bottom: 8px; font-size: 1.1rem;}
+        .symbol-category { margin-bottom: 8px; }
+        .symbol-category-title { font-size: 1rem; font-weight: bold; color: #4b5563; margin-bottom: 4px; }
+        .symbol-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .symbol-grid i { cursor: pointer; font-size: 28px; padding: 5px; border-radius: 4px; transition: background-color 0.2s; color: #1f2937; width: 40px; height: 40px; display: inline-flex; justify-content: center; align-items: center; }
+        .symbol-grid i:hover { background-color: #e5e7eb; }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
@@ -110,151 +104,460 @@
 
         <main class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2 flex flex-col items-center">
             <div class="controls">
-                <h2 class="text-xl font-bold mb-4">Nastavení razítka</h2>
+                <h2 class="text-xl font-bold mb-4">Nastavení klasického razítka</h2>
                 
-                <div class="mt-4">
-                    <div id="editor-wrapper">
-                        <!-- LIŠTA PRO QUILL EDITOR (1. ŘÁDEK) -->
-                        <div id="quill-toolbar">
-                            <span class="ql-formats">
-                                <button class="ql-bold" title="Tučné"></button>
-                                <button class="ql-italic" title="Kurzíva"></button>
-                                <button class="ql-underline" title="Podtržené"></button>
-                                <select class="ql-align" title="Zarovnání"></select>
-                            </span>
+                <div id="controls-wrapper">
+                    <div class="controls-row"><div class="control-group w-full"><label for="main-text-input">Text razítka:</label><textarea id="main-text-input" rows="2" class="flex-1">První řádek&#10;Druhý řádek</textarea></div></div>
+                </div>
+
+                <div id="stamp-preview-wrapper">
+                    <div id="editor-toolbar">
+                        <select id="toolbar-font-select"></select>
+                        <input type="number" id="toolbar-fontsize-input" min="5" max="100" step="1">
+                        <button id="toolbar-bold-btn">B</button>
+                        <button id="toolbar-italic-btn">I</button>
+                        <button id="toolbar-underline-btn">U</button>
+                        <div class="toolbar-divider"></div>
+                        <button id="toolbar-align-left-btn" title="Zarovnat vlevo"><i class="fas fa-align-left"></i></button>
+                        <button id="toolbar-align-center-btn" title="Zarovnat na střed"><i class="fas fa-align-center"></i></button>
+                        <button id="toolbar-align-right-btn" title="Zarovnat vpravo"><i class="fas fa-align-right"></i></button>
+                    </div>
+                    
+                    <div id="preview-controls-top" class="w-full">
+                        <div class="control-group">
+                            <label for="size-select">Model:</label>
+                            <select id="size-select"></select>
                         </div>
-                        <!-- VLASTNÍ LIŠTA PRO RAZÍTKA (2. ŘÁDEK) -->
-                        <div id="custom-controls-toolbar">
-                            <div class="toolbar-group">
-                                <label for="font-select">Písmo:</label>
-                                <select id="font-select" title="Písmo"></select>
-                            </div>
-                            <div class="toolbar-divider"></div>
-                            <div class="toolbar-group">
-                                <label for="size-select">Model:</label>
-                                <select id="size-select" title="Velikost (Model)"></select>
-                            </div>
-                            <div class="toolbar-divider"></div>
-                            <div class="toolbar-group">
-                               <label>Rámeček:</label>
-                               <select id="border-style-select" title="Styl rámečku">
-                                    <option value="none">Žádný</option>
-                                    <option value="solid">Plný</option>
-                                    <option value="dashed">Čárkovaný</option>
-                                    <option value="dotted">Tečkovaný</option>
-                                </select>
-                                <select id="border-shape-select" title="Tvar rámečku">
-                                    <option value="0">Hranatý</option>
-                                    <option value="15">Zaoblený</option>
-                                    <option value="oval">Oválný</option>
-                                </select>
-                                <select id="border-thickness-select" title="Tloušťka rámečku">
-                                    <option value="1">Tenký</option>
-                                    <option value="2">Střední</option>
-                                    <option value="3">Silný</option>
-                                    <option value="4">Extra</option>
-                                </select>
-                            </div>
+                        <div class="control-group">
+                           <label>Rámeček:</label>
+                           <select id="border-style-select" title="Styl rámečku"><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option><option value="none">Žádný</option></select>
+                           <select id="border-shape-select" title="Tvar rámečku"><option value="0">Hranatý</option><option value="15">Zaoblený</option></select>
+                           <select id="border-thickness-select" title="Tloušťka rámečku"><option value="1">Tenký</option><option value="2">Střední</option><option value="3">Silný</option><option value="4">Extra</option></select>
                         </div>
-                        <div id="editor">
-                            <p class="ql-align-center">První řádek</p>
-                            <p class="ql-align-center">Druhý řádek</p>
+                    </div>
+
+                    <div id="preview-area">
+                        <div id="stamp-canvas-container"></div>
+                         <div class="flex flex-col gap-4">
+                            <button id="add-symbol-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md">Vložit symbol</button>
+                            <button id="add-frame-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-md">Vložit rámeček</button>
+                            <div id="keyboard-help">
+                                <strong>Ovládání klávesnicí:</strong>
+                                <ul>
+                                    <li>Vyberte objekt kliknutím.</li>
+                                    <li><kbd>+</kbd> / <kbd>-</kbd> : Zvětšit / Zmenšit</li>
+                                    <li><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> : Posunout</li>
+                                    <li><kbd>5</kbd> : Vystředit</li>
+                                    <li><kbd>Delete</kbd> : Smazat</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="stamp-preview-wrapper">
-                    <p class="text-xs text-center text-gray-400 mb-2">Přibližná reálná velikost (při 96 DPI)</p>
-                    <div class="flex items-center justify-center gap-4 w-full">
-                        <canvas id="stamp-canvas"></canvas>
-                        <div class="flex flex-col items-center gap-2 zoom-controls">
-                            <button id="zoom-in-btn" title="Zvětšit písmo">+</button>
-                            <button id="zoom-out-btn" title="Zmenšit písmo">-</button>
-                        </div>
-                        <p id="stamp-model-name" class="text-lg font-bold text-gray-400 w-16 text-left"></p>
-                    </div>
-                </div>
                 <div class="button-group">
                     <button id="download-btn">Stáhnout (PNG)</button>
-                    <button id="share-btn" style="display: none;">Sdílet</button>
+                    <button id="share-btn">Odeslat objednávku</button>
                 </div>
             </div>
         </main>
         
         <div id="footer-placeholder"></div>
+
+        <!-- Modální okno pro symboly -->
+        <div id="symbol-modal" class="fixed inset-0 z-50 items-center justify-center p-4 modal" style="display: none;">
+             <div class="absolute inset-0"></div>
+             <div class="relative w-full max-w-lg">
+                <div id="symbol-library-modal" class="modal-content">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3>Vybrat symbol</h3>
+                        <button id="close-symbol-modal" class="text-2xl text-gray-600 hover:text-black">&times;</button>
+                    </div>
+                    <div id="symbol-container-modal"></div>
+                </div>
+            </div>
+        </div>
+        
+         <!-- Modální okno pro odeslání objednávky -->
+        <div id="share-modal" class="fixed inset-0 z-50 items-center justify-center p-4 modal" style="display: none;">
+             <div class="absolute inset-0"></div>
+             <div id="share-dialog" class="relative w-full max-w-xs modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h3>Odeslat návrh</h3>
+                    <button id="close-share-modal" class="text-2xl text-gray-600 hover:text-black">&times;</button>
+                </div>
+                <p class="text-sm mb-4">Vyberte preferovaný způsob kontaktu.</p>
+                <div class="flex flex-col gap-3">
+                    <button id="share-native-btn" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-md">Sdílet obrázek (doporučeno)</button>
+                    <button id="copy-email-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md">Kopírovat E-mail obchodu</button>
+                    <button id="copy-whatsapp-btn" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md">Kopírovat WhatsApp</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const sizeSelect = document.getElementById('size-select');
-            const fontSelect = document.getElementById('font-select');
-            const borderStyleSelect = document.getElementById('border-style-select');
-            const borderShapeSelect = document.getElementById('border-shape-select');
-            const borderThicknessSelect = document.getElementById('border-thickness-select');
-            const downloadBtn = document.getElementById('download-btn');
-            const shareBtn = document.getElementById('share-btn');
-            const stampModelName = document.getElementById('stamp-model-name');
-            const zoomInBtn = document.getElementById('zoom-in-btn');
-            const zoomOutBtn = document.getElementById('zoom-out-btn');
-            let currentFontSize = 14;
-            let fabricCanvas;
+            // --- Element definitions ---
+            const elements = {
+                sizeSelect: document.getElementById('size-select'), 
+                borderStyleSelect: document.getElementById('border-style-select'), 
+                borderShapeSelect: document.getElementById('border-shape-select'), 
+                borderThicknessSelect: document.getElementById('border-thickness-select'),
+                downloadBtn: document.getElementById('download-btn'), 
+                shareBtn: document.getElementById('share-btn'),
+                symbolContainerModal: document.getElementById('symbol-container-modal'),
+                addSymbolBtn: document.getElementById('add-symbol-btn'),
+                addFrameBtn: document.getElementById('add-frame-btn'),
+                symbolModal: document.getElementById('symbol-modal'),
+                closeSymbolModal: document.getElementById('close-symbol-modal'),
+                shareModal: document.getElementById('share-modal'),
+                closeShareModal: document.getElementById('close-share-modal'),
+                shareNativeBtn: document.getElementById('share-native-btn'),
+                copyEmailBtn: document.getElementById('copy-email-btn'),
+                copyWhatsappBtn: document.getElementById('copy-whatsapp-btn'),
+                toolbar: document.getElementById('editor-toolbar'),
+                toolbarFontSelect: document.getElementById('toolbar-font-select'),
+                toolbarFontsizeInput: document.getElementById('toolbar-fontsize-input'),
+                toolbarBoldBtn: document.getElementById('toolbar-bold-btn'),
+                toolbarItalicBtn: document.getElementById('toolbar-italic-btn'),
+                toolbarUnderlineBtn: document.getElementById('toolbar-underline-btn'),
+                toolbarAlignLeftBtn: document.getElementById('toolbar-align-left-btn'),
+                toolbarAlignCenterBtn: document.getElementById('toolbar-align-center-btn'),
+                toolbarAlignRightBtn: document.getElementById('toolbar-align-right-btn'),
+                mainTextInput: document.getElementById('main-text-input'),
+            };
+            
+            // --- State variables ---
+            let stage, layer, tr;
+            let backgroundNode, borderNode, mainTextNode;
+
+            // --- Data ---
             const MM_TO_PX = 96 / 25.4;
-            
             const stampSizes = {
-                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-                'Q05 (60x4mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 4 * MM_TO_PX },
-                'Q10 (40x11mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 11 * MM_TO_PX },
-                'Q11 (48x16mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 16 * MM_TO_PX },
-                'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
-                'Q13 (49x13mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 13 * MM_TO_PX },
-                'Q14 (60x14mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 14 * MM_TO_PX },
-                'Q16 (61x36mm)': { pxWidth: 61 * MM_TO_PX, pxHeight: 36 * MM_TO_PX },
-                'Q18 (69x22mm)': { pxWidth: 69 * MM_TO_PX, pxHeight: 22 * MM_TO_PX },
-                'Q24 (78x28mm)': { pxWidth: 78 * MM_TO_PX, pxHeight: 28 * MM_TO_PX },
-                'Q26 (83x16mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }
+                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX }, 'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX }, 'Q13 (49x13mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 13 * MM_TO_PX }, 'Q14 (60x14mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 14 * MM_TO_PX }, 'Q16 (61x36mm)': { pxWidth: 61 * MM_TO_PX, pxHeight: 36 * MM_TO_PX }, 'Q18 (69x22mm)': { pxWidth: 69 * MM_TO_PX, pxHeight: 22 * MM_TO_PX }, 'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX }, 'Q25 (83x16mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }, 'Q26 (83x24mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
             };
-
-            const fontGroups = {
-                "Hebrejské": [ { name: "David Libre", value: "David Libre" }, { name: "Noto Sans Hebrew", value: "Noto Sans Hebrew" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, ],"Latinkové / Anglické": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Roboto Slab", value: "Roboto Slab" }, ],"Ruské (Cyrilice)": [ { name: "Noto Sans", value: "Noto Sans" }, { name: "Roboto", value: "Roboto" }, { name: "Merriweather", value: "Merriweather" }, { name: "Playfair Display", value: "Playfair Display" }, { name: "Source Sans Pro", value: "Source Sans Pro" }, ],"Arabské": [ { name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Noto Sans Arabic", value: "Noto Sans Arabic" }, { name: "Lalezar", value: "Lalezar" }, { name: "Markazi Text", value: "Markazi Text" }, ],
+             const fontGroups = {"Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],};
+            const symbols = {
+                "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "far fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "far fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "far fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
+                "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "far fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
+                "Geometrie": [{ shape: 'Rect' }, { shape: 'Circle' }, { shape: 'Wedge' } ],
+                "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }, { class: "far fa-envelope", char: "\uf0e0" }],
+                "Sociální sítě": [{ class: "fab fa-whatsapp", char: "\uf232" }, { class: "fab fa-facebook-f", char: "\uf39e" }, { class: "fab fa-instagram", char: "\uf16d" }, { class: "fab fa-twitter", char: "\uf099" }, { class: "fab fa-linkedin-in", char: "\uf0e1" }],
+                "Náboženské symboly": [{ class: "fas fa-cross", char: "\uf654" }, { class: "fas fa-star-of-david", char: "\uf69a" }, { class: "fas fa-hamsa", char: "\uf665" }, { class: "fas fa-star-and-crescent", char: "\uf699" }, { class: "fas fa-om", char: "\uf679" }]
             };
             
-            const quill = new Quill('#editor', { 
-                theme: 'snow', 
-                modules: { 
-                    toolbar: '#quill-toolbar'
-                } 
-            });
+            // --- Functions ---
+            function populateSelect(select, data, isFont = false) {
+                if(isFont) {
+                     for (const g in data) { const o = document.createElement('optgroup'); o.label = g; data[g].forEach(f => { const op = document.createElement('option'); op.value = f.value; op.textContent = f.name; o.appendChild(op); }); select.appendChild(o); }
+                } else {
+                     Object.keys(data).forEach(k => select.add(new Option(k,k)));
+                }
+            }
+            
+            function populateSymbols(container) {
+                container.innerHTML = '';
+                for(const category in symbols) {
+                    const categoryDiv = document.createElement('div'); categoryDiv.className = 'symbol-category';
+                    const title = document.createElement('h4'); title.className = 'symbol-category-title'; title.textContent = category;
+                    categoryDiv.appendChild(title);
+                    const grid = document.createElement('div'); grid.className = 'symbol-grid';
+                    symbols[category].forEach(symbol => {
+                        const icon = document.createElement('i'); icon.className = symbol.class || `fas fa-${symbol.shape.toLowerCase()}`;
+                         if (symbol.rotation) { icon.style.transform = `rotate(${symbol.rotation}deg)`; }
+                        icon.addEventListener('click', () => { 
+                            if(symbol.shape) addShapeToCanvas(symbol.shape);
+                            else addSymbolToCanvas(symbol); 
+                            elements.symbolModal.style.display = 'none'; 
+                        });
+                        grid.appendChild(icon);
+                    });
+                    categoryDiv.appendChild(grid);
+                    container.appendChild(categoryDiv);
+                }
+            }
 
-            function populateFontSelect() { for (const groupName in fontGroups) { const optgroup = document.createElement('optgroup'); optgroup.label = groupName; fontGroups[groupName].forEach(font => { const option = document.createElement('option'); option.value = font.value; option.textContent = font.name; optgroup.appendChild(option); }); fontSelect.appendChild(optgroup); } }
-            function handleBorderStyleChange() { const isBordered = borderStyleSelect.value !== 'none'; borderShapeSelect.disabled = !isBordered; borderThicknessSelect.disabled = !isBordered; updateCanvas(); }
-            function getQuillAlignment() { try { const format = quill.getFormat(quill.getSelection(true) || 0); return format.align || 'center'; } catch(e) { return 'center'; } }
-            function updateCanvas() { if (!fabricCanvas) return; fabricCanvas.clear(); fabricCanvas.backgroundColor = '#ffffff'; const selectedSizeKey = sizeSelect.value; const selectedSize = stampSizes[selectedSizeKey]; if (!selectedSize) return; fabricCanvas.setWidth(selectedSize.pxWidth); fabricCanvas.setHeight(selectedSize.pxHeight); stampModelName.textContent = selectedSizeKey.split(' ')[0]; const borderStyle = borderStyleSelect.value; if (borderStyle !== 'none') { const thickness = parseInt(borderThicknessSelect.value, 10); const shape = borderShapeSelect.value; const width = selectedSize.pxWidth - thickness; const height = selectedSize.pxHeight - thickness; let border; if (shape === 'oval') { border = new fabric.Ellipse({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, rx: width / 2, ry: height / 2, originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } else { border = new fabric.Rect({ left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: width, height: height, rx: parseInt(shape, 10), ry: parseInt(shape, 10), originX: 'center', originY: 'center', fill: 'transparent', stroke: 'black', strokeWidth: thickness, }); } if (borderStyle === 'dashed') border.strokeDashArray = [5, 5]; if (borderStyle === 'dotted') border.strokeDashArray = [2, 2]; fabricCanvas.add(border); } const textContent = quill.getText(0, quill.getLength() - 1); const text = new fabric.Textbox(textContent, { left: selectedSize.pxWidth / 2, top: selectedSize.pxHeight / 2, width: selectedSize.pxWidth * 0.9, fontSize: currentFontSize, fontFamily: fontSelect.value, textAlign: getQuillAlignment(), originX: 'center', originY: 'center', fill: 'black', lineHeight: 0.9 }); fabricCanvas.add(text); fabricCanvas.renderAll(); }
-            async function getDataUrl(multiplier = 1) { return fabricCanvas.toDataURL({ format: 'png', multiplier: multiplier }); }
-            async function downloadImage() { const dataUrl = await getDataUrl(4); const link = document.createElement('a'); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; link.download = `${filename}.png`; link.href = dataUrl; link.click(); }
-            async function shareImage() { shareBtn.disabled = true; shareBtn.textContent = 'Generuji...'; try { const dataUrl = await getDataUrl(2); const blob = await (await fetch(dataUrl)).blob(); const filename = sizeSelect.value.split(' ')[0] || 'razitko'; const file = new File([blob], `${filename}.png`, { type: 'image/png' }); const shareData = { files: [file], title: 'Návrh razítka' }; if (navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); } else { alert('Váš prohlížeč nepodporuje sdílení souborů.'); } } catch (err) { console.error("Chyba při sdílení:", err); } finally { shareBtn.disabled = false; shareBtn.textContent = 'Sdílet'; } }
-            function changeFontSize(delta) { currentFontSize += delta; if (currentFontSize < 4) currentFontSize = 4; updateCanvas(); }
-            Object.keys(stampSizes).forEach(key => sizeSelect.add(new Option(key, key)));
-            populateFontSelect();
-            fabricCanvas = new fabric.Canvas('stamp-canvas');
-            quill.formatLine(0, quill.getLength(), 'align', 'center');
-            quill.on('text-change', updateCanvas);
-            sizeSelect.addEventListener('change', updateCanvas);
-            fontSelect.addEventListener('change', updateCanvas);
-            borderStyleSelect.addEventListener('change', handleBorderStyleChange);
-            borderShapeSelect.addEventListener('change', updateCanvas);
-            borderThicknessSelect.addEventListener('change', updateCanvas);
-            downloadBtn.addEventListener('click', downloadImage);
-            zoomInBtn.addEventListener('click', () => changeFontSize(1));
-            zoomOutBtn.addEventListener('click', () => changeFontSize(-1));
-            if (navigator.share) { shareBtn.style.display = 'block'; shareBtn.addEventListener('click', shareImage); }
-            handleBorderStyleChange();
-            updateCanvas();
+            function addDraggableText(text, options = {}) {
+                const size = stampSizes[elements.sizeSelect.value];
+                const node = new Konva.Text({
+                    text: text, fontSize: size.pxHeight/3, fontFamily: 'Roboto', fill: 'black',
+                    draggable: true, x: size.pxWidth/2, y: size.pxHeight/2, name: 'editable-text',
+                    ...options
+                });
+                layer.add(node);
+                return node;
+            }
+            
+            function addShapeToCanvas(shapeType) {
+                const size = stampSizes[elements.sizeSelect.value];
+                let shape;
+                const commonProps = {
+                    x: size.pxWidth / 2, y: size.pxHeight / 2,
+                    stroke: 'black', strokeWidth: 1,
+                    draggable: true, name: 'draggable-item'
+                };
+                if(shapeType === 'Rect') {
+                    shape = new Konva.Rect({ ...commonProps, width: size.pxWidth/2, height: size.pxHeight/2 });
+                } else if (shapeType === 'Circle') {
+                    shape = new Konva.Circle({ ...commonProps, radius: Math.min(size.pxWidth, size.pxHeight) / 4 });
+                } else if (shapeType === 'Wedge') { // Triangle
+                    shape = new Konva.Wedge({ ...commonProps, radius: Math.min(size.pxWidth, size.pxHeight) / 3, angle: 180, rotation: -90 });
+                }
+                if (shape) layer.add(shape);
+            }
+
+            function addSymbolToCanvas(symbol) {
+                const size = stampSizes[elements.sizeSelect.value];
+                const fontFamily = symbol.class.includes('fab') ? '"Font Awesome 5 Brands"' : (symbol.class.includes('far') ? '"Font Awesome 5 Free"' : '"Font Awesome 5 Free"');
+                const fontWeight = symbol.class.includes('far') ? '400' : '900';
+                const symbolNode = new Konva.Text({
+                    text: symbol.char, fontSize: Math.min(size.pxWidth, size.pxHeight)/2, fontFamily: fontFamily,
+                    fontStyle: fontWeight,
+                    fill: 'black', draggable: true, x: size.pxWidth/2, y: size.pxHeight/2, name: 'draggable-item'
+                });
+                layer.add(symbolNode);
+            }
+            
+            function updateToolbar(node) {
+                 if (node) {
+                    elements.toolbar.classList.add('visible');
+                    
+                    const isText = node instanceof Konva.Text;
+                    [elements.toolbarFontSelect, elements.toolbarFontsizeInput, elements.toolbarBoldBtn, elements.toolbarItalicBtn, elements.toolbarUnderlineBtn].forEach(el => el.style.display = isText ? 'inline-block' : 'none');
+
+                    if(isText) {
+                        elements.toolbarFontSelect.value = node.fontFamily();
+                        elements.toolbarFontsizeInput.value = Math.round(node.fontSize());
+                        elements.toolbarBoldBtn.classList.toggle('active', node.fontStyle().includes('bold'));
+                        elements.toolbarItalicBtn.classList.toggle('active', node.fontStyle().includes('italic'));
+                        elements.toolbarUnderlineBtn.classList.toggle('active', node.textDecoration().includes('underline'));
+                    }
+
+                    [elements.toolbarAlignLeftBtn, elements.toolbarAlignCenterBtn, elements.toolbarAlignRightBtn].forEach(btn => btn.style.display = isText ? 'inline-flex' : 'none');
+                    if (isText) {
+                         elements.toolbarAlignLeftBtn.classList.toggle('active', node.align() === 'left');
+                         elements.toolbarAlignCenterBtn.classList.toggle('active', node.align() === 'center');
+                         elements.toolbarAlignRightBtn.classList.toggle('active', node.align() === 'right');
+                    }
+                } else {
+                    elements.toolbar.classList.remove('visible');
+                }
+            }
+            
+            function updateAll() {
+                 const size = stampSizes[elements.sizeSelect.value]; 
+                 const t = parseInt(elements.borderThicknessSelect.value, 10);
+
+                backgroundNode.width(size.pxWidth).height(size.pxHeight);
+                const bs = elements.borderStyleSelect.value;
+                borderNode.visible(bs !== 'none').width(size.pxWidth).height(size.pxHeight).strokeWidth(t).dash(bs === 'dashed' ? [5, 5] : (bs === 'dotted' ? [2, 2] : [])).cornerRadius(parseInt(elements.borderShapeSelect.value, 10));
+                
+                layer.batchDraw();
+            }
+
+            function fullRedraw() {
+                const size = stampSizes[elements.sizeSelect.value];
+                stage.width(size.pxWidth).height(size.pxHeight);
+                updateAll();
+            }
+            
+            function downloadImage() { 
+                tr.nodes([]);
+                backgroundNode.visible(false); layer.draw(); 
+                const dataUrl = stage.toDataURL({ pixelRatio: 4 }); 
+                backgroundNode.visible(true); layer.draw();
+                const link = document.createElement('a'); link.download = `${elements.sizeSelect.value.split(' ')[0] || 'razitko'}.png`; link.href = dataUrl; link.click(); 
+            }
+            
+            function copyToClipboard(text, button) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-9999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const originalText = button.textContent;
+                    button.textContent = 'Zkopírováno!';
+                    setTimeout(() => { button.textContent = originalText; }, 2000);
+                } catch (err) {
+                    console.error('Chyba při kopírování:', err);
+                }
+                document.body.removeChild(textArea);
+            }
+            
+             async function shareNative() {
+                elements.shareNativeBtn.disabled = true; elements.shareNativeBtn.textContent = 'Generuji...';
+                try {
+                    tr.nodes([]);
+                    backgroundNode.visible(false); layer.draw();
+                    const dataUrl = stage.toDataURL({ pixelRatio: 2 });
+                    backgroundNode.visible(true); layer.draw();
+                    
+                    const blob = await (await fetch(dataUrl)).blob();
+                    const filename = elements.sizeSelect.value.split(' ')[0] || 'razitko-kulate';
+                    const file = new File([blob], `${filename}.png`, { type: 'image/png' });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                         await navigator.share({
+                            files: [file],
+                            title: 'Návrh razítka',
+                            text: 'Posílám návrh razítka.',
+                        });
+                    } else {
+                       alert('Váš prohlížeč nepodporuje přímé sdílení souborů. Obrázek bude stažen, prosím, přiložte ho ručně.');
+                       downloadImage();
+                    }
+                } catch (err) { 
+                    console.error("Chyba při sdílení:", err); 
+                    alert('Došlo k chybě při sdílení.');
+                } finally { 
+                    elements.shareNativeBtn.disabled = false; elements.shareNativeBtn.textContent = 'Sdílet obrázek (doporučeno)'; 
+                }
+            }
+            
+            function initialize() {
+                populateSelect(elements.sizeSelect, stampSizes);
+                populateSelect(elements.toolbarFontSelect, fontGroups, true);
+                populateSymbols(elements.symbolContainerModal);
+
+                const initSize = stampSizes[Object.keys(stampSizes)[0]];
+                stage = new Konva.Stage({ container: 'stamp-canvas-container', width: initSize.pxWidth, height: initSize.pxHeight });
+                layer = new Konva.Layer(); stage.add(layer);
+                
+                backgroundNode = new Konva.Rect({ fill: 'white', name: 'background' });
+                borderNode = new Konva.Rect({ stroke: 'black', name: 'border' });
+                layer.add(backgroundNode, borderNode);
+                
+                mainTextNode = addDraggableText(elements.mainTextInput.value);
+                
+                tr = new Konva.Transformer({ nodes: [], keepRatio: true, centeredScaling: true, rotationSnaps: [0, 90, 180, 270], anchorStroke: '#007bff', anchorFill: '#fff', borderStroke: '#007bff'});
+                layer.add(tr);
+
+                stage.on('click tap', function(e) {
+                    if (e.target === stage || e.target.name() === 'border' || e.target.name() === 'background') { tr.nodes([]); updateToolbar(null); return; }
+                    tr.nodes([e.target]);
+                    updateToolbar(e.target);
+                });
+                
+                const container = stage.container();
+                container.tabIndex = 1;
+                container.focus();
+                container.addEventListener('keydown', (e) => {
+                     if (tr.nodes().length === 0) { return; }
+                     const node = tr.nodes()[0];
+                     const moveStep = 1; const scaleBy = 1.02;
+                    switch (e.key) {
+                        case '+': case '=': node.scaleX(node.scaleX() * scaleBy); node.scaleY(node.scaleY() * scaleBy); break;
+                        case '-': node.scaleX(node.scaleX() / scaleBy); node.scaleY(node.scaleY() / scaleBy); break;
+                        case 'ArrowUp': node.y(node.y() - moveStep); break;
+                        case 'ArrowDown': node.y(node.y() + moveStep); break;
+                        case 'ArrowLeft': node.x(node.x() - moveStep); break;
+                        case 'ArrowRight': node.x(node.x() + moveStep); break;
+                        case '5': 
+                             node.position({ x: stage.width()/2, y: stage.height()/2 }); 
+                             break;
+                        case 'Delete': case 'Backspace': 
+                            tr.nodes().forEach(n => n.destroy());
+                            tr.nodes([]); 
+                            updateToolbar(null);
+                            break;
+                        default: return;
+                    }
+                    e.preventDefault();
+                });
+
+                // Listenery pro hlavní ovládací prvky
+                 elements.mainTextInput.addEventListener('input', (e) => {
+                    if (!mainTextNode || mainTextNode.isDestroyed()) {
+                         mainTextNode = addDraggableText(e.target.value);
+                    }
+                    mainTextNode.text(e.target.value);
+                });
+                ['change'].forEach(evt => {
+                    elements.sizeSelect.addEventListener(evt, fullRedraw);
+                    elements.borderStyleSelect.addEventListener(evt, updateAll);
+                    elements.borderShapeSelect.addEventListener(evt, updateAll);
+                    elements.borderThicknessSelect.addEventListener(evt, updateAll);
+                });
+
+
+                 // Listenery pro plovoucí lištu
+                ['input', 'change'].forEach(evt => {
+                    elements.toolbarFontSelect.addEventListener(evt, (e) => {
+                        if (tr.nodes().length > 0) { tr.nodes()[0].fontFamily(e.target.value); }
+                    });
+                     elements.toolbarFontsizeInput.addEventListener(evt, (e) => {
+                        if (tr.nodes().length > 0) { tr.nodes()[0].fontSize(parseInt(e.target.value, 10)); }
+                    });
+                });
+                elements.toolbarBoldBtn.addEventListener('click', () => {
+                     if (tr.nodes().length > 0) {
+                        const node = tr.nodes()[0];
+                        const isBold = node.fontStyle().includes('bold');
+                        node.fontStyle(isBold ? node.fontStyle().replace('bold', '').trim() : `bold ${node.fontStyle()}`.trim());
+                        elements.toolbarBoldBtn.classList.toggle('active', !isBold);
+                     }
+                });
+                 elements.toolbarItalicBtn.addEventListener('click', () => {
+                     if (tr.nodes().length > 0) {
+                        const node = tr.nodes()[0];
+                        const isItalic = node.fontStyle().includes('italic');
+                        node.fontStyle(isItalic ? node.fontStyle().replace('italic', '').trim() : `italic ${node.fontStyle()}`.trim());
+                         elements.toolbarItalicBtn.classList.toggle('active', !isItalic);
+                     }
+                });
+                elements.toolbarUnderlineBtn.addEventListener('click', () => {
+                     if (tr.nodes().length > 0) {
+                        const node = tr.nodes()[0];
+                        const isUnderline = node.textDecoration().includes('underline');
+                        node.textDecoration(isUnderline ? '' : 'underline');
+                         elements.toolbarUnderlineBtn.classList.toggle('active', !isUnderline);
+                     }
+                });
+                 ['left', 'center', 'right'].forEach(align => {
+                    document.getElementById(`toolbar-align-${align}-btn`).addEventListener('click', () => {
+                        if (tr.nodes().length > 0) {
+                             tr.nodes()[0].align(align);
+                             updateToolbar(tr.nodes()[0]);
+                        }
+                    });
+                });
+                
+                // Listenery pro modální okna
+                elements.addSymbolBtn.addEventListener('click', () => elements.symbolModal.style.display = 'flex');
+                elements.closeSymbolModal.addEventListener('click', () => elements.symbolModal.style.display = 'none');
+                elements.shareBtn.addEventListener('click', () => elements.shareModal.style.display = 'flex');
+                elements.closeShareModal.addEventListener('click', () => elements.shareModal.style.display = 'none');
+                elements.shareNativeBtn.addEventListener('click', shareNative);
+                elements.copyEmailBtn.addEventListener('click', (e) => copyToClipboard('haifa@gimo.co.il', e.target));
+                elements.copyWhatsappBtn.addEventListener('click', (e) => copyToClipboard('97248650507', e.target));
+                
+                elements.addFrameBtn.addEventListener('click', () => {
+                    const size = stampSizes[elements.sizeSelect.value];
+                    const newFrame = new Konva.Rect({
+                        x: size.pxWidth / 2, y: size.pxHeight / 2,
+                        width: size.pxWidth / 2, height: size.pxHeight / 2,
+                        stroke: 'black', strokeWidth: 1,
+                        draggable: true, name: 'draggable-item'
+                    });
+                    layer.add(newFrame);
+                });
+
+
+                elements.downloadBtn.addEventListener('click', downloadImage);
+                
+                fullRedraw();
+            }
+
+            initialize();
         });
     </script>
     
     <script>
+        // --- UNIVERZÁLNÍ SKRIPT PRO ALPINE.JS A PATIČKU ---
         function generateFooter() {
             const footerHTML = `
             <footer class="w-full p-2 text-center text-gray-400 mt-4">
@@ -334,19 +637,13 @@
                 },
                 init() {
                     this.automateNav();
-                    if (typeof this.pageInit === 'function') {
-                        this.pageInit();
-                    }
                 }
             };
         }
 
         document.addEventListener('alpine:init', () => {
              const pageSpecificLogic = {
-                title: 'Generátor klasických razítek',
-                pageInit() {
-                    console.log('Logika generátoru razítek byla inicializována.');
-                }
+                title: 'Generátor klasických razítek'
             };
             Alpine.data('app', () => createApp(pageSpecificLogic));
         });

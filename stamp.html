@@ -354,7 +354,7 @@
                 const shape = elements.borderShapeSelect.value;
                 borderNode.visible(bs !== 'none').width(size.pxWidth).height(size.pxHeight).strokeWidth(t).dash(bs === 'dashed' ? [5, 5] : (bs === 'dotted' ? [2, 2] : [])).cornerRadius(shape === 'oval' ? Math.min(size.pxWidth, size.pxHeight) / 2 : parseInt(shape, 10));
                 
-                mainTextNode.width(size.pxWidth - (2*t) - 10);
+                mainTextNode.width(null);
                 mainTextNode.position({ x: size.pxWidth / 2, y: size.pxHeight / 2 });
                 mainTextNode.offsetX(mainTextNode.width() / 2);
                 mainTextNode.offsetY(mainTextNode.height() / 2);
@@ -462,9 +462,11 @@
                         case 'ArrowDown': node.y(node.y() + moveStep); break;
                         case 'ArrowLeft': node.x(node.x() - moveStep); break;
                         case 'ArrowRight': node.x(node.x() + moveStep); break;
-                        case '5': 
-                             node.position({ x: stage.width()/2, y: stage.height()/2 }); 
-                             break;
+                        case '5':
+                            node.offsetX(node.width() / 2);
+                            node.offsetY(node.height() / 2);
+                            node.position({ x: stage.width()/2, y: stage.height()/2 }); 
+                            break;
                         case 'Delete': case 'Backspace': 
                             if(node !== mainTextNode) {
                                 tr.nodes().forEach(n => n.destroy());
@@ -483,6 +485,7 @@
                          mainTextNode = addDraggableText(e.target.value, {align: 'center'});
                     }
                     mainTextNode.text(e.target.value);
+                    updateAll();
                 });
                 ['change'].forEach(evt => {
                     elements.sizeSelect.addEventListener(evt, fullRedraw);
@@ -490,7 +493,7 @@
                     elements.borderShapeSelect.addEventListener(evt, updateAll);
                     elements.borderThicknessSelect.addEventListener(evt, updateAll);
                 });
-
+                
 
                  // Listenery pro plovoucí lištu
                 ['input', 'change'].forEach(evt => {

@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display&family=David+Libre&family=Frank+Ruhl+Libre&family=Heebo&family=Miriam+Libre&family=Suez+One&family=Cairo&family=Almarai&family=Tajawal&family=Markazi+Text&family=Lalezar&family=Rubik&family=PT+Serif&family=Lobster&family=Georgia&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
     <!-- Knihovna pro náhled -->
@@ -130,7 +130,7 @@
                         </div>
                         <div class="control-group">
                            <label>Rámeček:</label>
-                           <select id="border-style-select" title="Styl rámečku"><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option><option value="none">Žádný</option></select>
+                           <select id="border-style-select" title="Styl rámečku"><option value="none">Žádný</option><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option></select>
                            <select id="border-shape-select" title="Tvar rámečku"><option value="0">Hranatý</option><option value="15">Zaoblený</option><option value="oval">Oválný</option></select>
                            <select id="border-thickness-select" title="Tloušťka rámečku"><option value="1">Tenký</option><option value="2">Střední</option><option value="3">Silný</option><option value="4">Extra</option></select>
                         </div>
@@ -140,7 +140,6 @@
                         <div id="stamp-canvas-container"></div>
                          <div class="flex flex-col gap-4">
                             <button id="add-symbol-btn" class="w-full bg-blue-500 hover:bg-blue-600 text-white text-sm py-2 px-3 rounded-md">Vložit symbol</button>
-                            <button id="add-frame-btn" class="w-full bg-gray-500 hover:bg-gray-600 text-white text-sm py-2 px-3 rounded-md">Vložit rámeček</button>
                             <div id="keyboard-help">
                                 <strong>Ovládání klávesnicí:</strong>
                                 <ul>
@@ -235,13 +234,19 @@
             // --- Data ---
             const MM_TO_PX = 96 / 25.4;
             const stampSizes = {
-                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX }, 'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX }, 'Q13 (49x13mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 13 * MM_TO_PX }, 'Q14 (60x14mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 14 * MM_TO_PX }, 'Q16 (61x36mm)': { pxWidth: 61 * MM_TO_PX, pxHeight: 36 * MM_TO_PX }, 'Q18 (69x22mm)': { pxWidth: 69 * MM_TO_PX, pxHeight: 22 * MM_TO_PX }, 'Q24 (75x28mm)': { pxWidth: 75 * MM_TO_PX, pxHeight: 28 * MM_TO_PX }, 'Q25 (83x16mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }, 'Q26 (83x24mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
+                'Q04 (25x11mm)': { pxWidth: 25 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q05 (40x4mm)': { pxWidth: 40 * MM_TO_PX, pxHeight: 4 * MM_TO_PX }, 'Q10 (48x11mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 11 * MM_TO_PX }, 'Q11 (48x16mm)': { pxWidth: 48 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }, 'Q12 (49x24mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 24 * MM_TO_PX }, 'Q13 (49x13mm)': { pxWidth: 49 * MM_TO_PX, pxHeight: 13 * MM_TO_PX }, 'Q14 (60x14mm)': { pxWidth: 60 * MM_TO_PX, pxHeight: 14 * MM_TO_PX }, 'Q16 (61x36mm)': { pxWidth: 61 * MM_TO_PX, pxHeight: 36 * MM_TO_PX }, 'Q18 (69x22mm)': { pxWidth: 69 * MM_TO_PX, pxHeight: 22 * MM_TO_PX }, 'Q24 (78x28mm)': { pxWidth: 78 * MM_TO_PX, pxHeight: 28 * MM_TO_PX }, 'Q25 (83x16mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 16 * MM_TO_PX }, 'Q26 (83x24mm)': { pxWidth: 83 * MM_TO_PX, pxHeight: 24 * MM_TO_PX },
             };
-             const fontGroups = {"Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],};
+             const fontGroups = {
+                "Čeština": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Playfair Display", value: "Playfair Display" }],
+                "English": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Georgia", value: "Georgia" }],
+                "עברית (Hebrew)": [{ name: "David Libre", value: "David Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Suez One", value: "Suez One" }],
+                "العربية (Arabic)": [{ name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Tajawal", value: "Tajawal" }, { name: "Markazi Text", value: "Markazi Text" }, { name: "Lalezar", value: "Lalezar" }],
+                "Русский (Russian)": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "PT Serif", value: "PT Serif" }, { name: "Rubik", value: "Rubik" }]
+            };
             const symbols = {
                 "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "far fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "far fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "far fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
                 "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "far fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
-                "Geometrie": [{ shape: 'Rect' }, { shape: 'Circle' }, { shape: 'Wedge' } ],
+                "Geometrie": [{ class: "fas fa-square", char: "\uf0c8" }, { class: "far fa-square", char: "\uf0c8" }, { class: "fas fa-circle", char: "\uf111" }, { class: "far fa-circle", char: "\uf111" }, { class: "fas fa-play", char: "\uf04b", rotation: -90, note: "Trojúhelník" }],
                 "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }, { class: "far fa-envelope", char: "\uf0e0" }],
                 "Sociální sítě": [{ class: "fab fa-whatsapp", char: "\uf232" }, { class: "fab fa-facebook-f", char: "\uf39e" }, { class: "fab fa-instagram", char: "\uf16d" }, { class: "fab fa-twitter", char: "\uf099" }, { class: "fab fa-linkedin-in", char: "\uf0e1" }],
                 "Náboženské symboly": [{ class: "fas fa-cross", char: "\uf654" }, { class: "fas fa-star-of-david", char: "\uf69a" }, { class: "fas fa-hamsa", char: "\uf665" }, { class: "fas fa-star-and-crescent", char: "\uf699" }, { class: "fas fa-om", char: "\uf679" }]
@@ -462,11 +467,11 @@
                         case 'ArrowDown': node.y(node.y() + moveStep); break;
                         case 'ArrowLeft': node.x(node.x() - moveStep); break;
                         case 'ArrowRight': node.x(node.x() + moveStep); break;
-                        case '5':
+                        case '5': 
                             node.offsetX(node.width() / 2);
                             node.offsetY(node.height() / 2);
-                            node.position({ x: stage.width()/2, y: stage.height()/2 }); 
-                            break;
+                             node.position({ x: stage.width()/2, y: stage.height()/2 }); 
+                             break;
                         case 'Delete': case 'Backspace': 
                             if(node !== mainTextNode) {
                                 tr.nodes().forEach(n => n.destroy());
@@ -546,16 +551,18 @@
                 elements.copyEmailBtn.addEventListener('click', (e) => copyToClipboard('haifa@gimo.co.il', e.target));
                 elements.copyWhatsappBtn.addEventListener('click', (e) => copyToClipboard('97248650507', e.target));
                 
-                elements.addFrameBtn.addEventListener('click', () => {
-                    const size = stampSizes[elements.sizeSelect.value];
-                    const newFrame = new Konva.Rect({
-                        x: size.pxWidth / 2, y: size.pxHeight / 2,
-                        width: size.pxWidth / 2, height: size.pxHeight / 2,
-                        stroke: 'black', strokeWidth: 1,
-                        draggable: true, name: 'draggable-item'
+                if(elements.addFrameBtn) {
+                    elements.addFrameBtn.addEventListener('click', () => {
+                        const size = stampSizes[elements.sizeSelect.value];
+                        const newFrame = new Konva.Rect({
+                            x: size.pxWidth / 2, y: size.pxHeight / 2,
+                            width: size.pxWidth / 2, height: size.pxHeight / 2,
+                            stroke: 'black', strokeWidth: 1,
+                            draggable: true, name: 'draggable-item'
+                        });
+                        layer.add(newFrame);
                     });
-                    layer.add(newFrame);
-                });
+                }
 
 
                 elements.downloadBtn.addEventListener('click', downloadImage);

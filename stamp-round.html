@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Playfair+Display&family=David+Libre&family=Frank+Ruhl+Libre&family=Heebo&family=Miriam+Libre&family=Suez+One&family=Cairo&family=Almarai&family=Tajawal&family=Markazi+Text&family=Lalezar&family=Rubik&family=PT+Serif&family=Lobster&family=Georgia&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
-    <!-- Knihovny pro náhled a editor -->
+    <!-- Knihovna pro náhled -->
     <script src="https://unpkg.com/konva@9/konva.min.js"></script>
 
     <style>
@@ -131,7 +131,7 @@
                         </div>
                         <div class="control-group">
                            <label>Rámeček:</label>
-                           <select id="border-style-select" title="Styl rámečku"><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option><option value="none">Žádný</option></select>
+                           <select id="border-style-select" title="Styl rámečku"><option value="none">Žádný</option><option value="solid">Plný</option><option value="dashed">Čárkovaný</option><option value="dotted">Tečkovaný</option></select>
                            <select id="border-thickness-select" title="Tloušťka rámečku"><option value="1">Tenký</option><option value="2">Střední</option><option value="3">Silný</option><option value="4">Extra</option></select>
                         </div>
                     </div>
@@ -238,11 +238,17 @@
                 'Q34 (20mm ø)': { diameter: 20 * MM_TO_PX },'Q38 (24mm ø)': { diameter: 24 * MM_TO_PX },
                 'Q53 (38mm ø)': { diameter: 38 * MM_TO_PX },'Q63 (45mm ø)': { diameter: 45 * MM_TO_PX },
             };
-             const fontGroups = {"Standardní": [ { name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }],};
+             const fontGroups = {
+                "Čeština": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Playfair Display", value: "Playfair Display" }],
+                "English": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "Montserrat", value: "Montserrat" }, { name: "Georgia", value: "Georgia" }],
+                "עברית (Hebrew)": [{ name: "David Libre", value: "David Libre" }, { name: "Frank Ruhl Libre", value: "Frank Ruhl Libre" }, { name: "Heebo", value: "Heebo" }, { name: "Miriam Libre", value: "Miriam Libre" }, { name: "Suez One", value: "Suez One" }],
+                "العربية (Arabic)": [{ name: "Cairo", value: "Cairo" }, { name: "Almarai", value: "Almarai" }, { name: "Tajawal", value: "Tajawal" }, { name: "Markazi Text", value: "Markazi Text" }, { name: "Lalezar", value: "Lalezar" }],
+                "Русский (Russian)": [{ name: "Roboto", value: "Roboto" }, { name: "Open Sans", value: "Open Sans" }, { name: "Lato", value: "Lato" }, { name: "PT Serif", value: "PT Serif" }, { name: "Rubik", value: "Rubik" }]
+            };
             const symbols = {
                 "Dětské motivy": [{ class: "fas fa-star", char: "\uf005" }, { class: "far fa-star", char: "\uf005" }, { class: "fas fa-heart", char: "\uf004" }, { class: "far fa-heart", char: "\uf004" }, { class: "fas fa-smile", char: "\uf118" }, { class: "far fa-smile", char: "\uf118" }, { class: "fas fa-gamepad", char: "\uf11b" }, { class: "fas fa-paw", char: "\uf1b0" }],
                 "Profese a úřady": [{ class: "fas fa-balance-scale", char: "\uf24e" }, { class: "fas fa-gavel", char: "\uf0e3" }, { class: "fas fa-briefcase", char: "\uf0b1" }, { class: "fas fa-building", char: "\uf1ad" }, { class: "far fa-building", char: "\uf1ad" }, { class: "fas fa-book", char: "\uf02d" }],
-                "Geometrie": [{ shape: 'Rect' }, { shape: 'Circle' }, { shape: 'Wedge' } ],
+                "Geometrie": [{ class: "fas fa-square", char: "\uf0c8" }, { class: "far fa-square", char: "\uf0c8" }, { class: "fas fa-circle", char: "\uf111" }, { class: "far fa-circle", char: "\uf111" }, { class: "fas fa-play", char: "\uf04b", rotation: -90, note: "Trojúhelník" }],
                 "Technika a web": [{ class: "fas fa-at", char: "\uf1fa" }, { class: "fas fa-globe", char: "\uf0ac" }, { class: "fas fa-wifi", char: "\uf1eb" }, { class: "fas fa-code", char: "\uf121" }, { class: "fas fa-envelope", char: "\uf0e0" }, { class: "far fa-envelope", char: "\uf0e0" }],
                 "Sociální sítě": [{ class: "fab fa-whatsapp", char: "\uf232" }, { class: "fab fa-facebook-f", char: "\uf39e" }, { class: "fab fa-instagram", char: "\uf16d" }, { class: "fab fa-twitter", char: "\uf099" }, { class: "fab fa-linkedin-in", char: "\uf0e1" }],
                 "Náboženské symboly": [{ class: "fas fa-cross", char: "\uf654" }, { class: "fas fa-star-of-david", char: "\uf69a" }, { class: "fas fa-hamsa", char: "\uf665" }, { class: "fas fa-star-and-crescent", char: "\uf699" }, { class: "fas fa-om", char: "\uf679" }]
@@ -284,15 +290,15 @@
                 let shape;
                 const commonProps = {
                     x: diameter / 2, y: diameter / 2,
-                    stroke: 'black', strokeWidth: 2,
+                    stroke: 'black', strokeWidth: 1,
                     draggable: true, name: 'draggable-item'
                 };
                 if(shapeType === 'Rect') {
-                    shape = new Konva.Rect({ ...commonProps, width: diameter/2, height: diameter/2 });
+                    shape = new Konva.Rect({ ...commonProps, width: diameter/2, height: diameter/2, offsetX: diameter/4, offsetY: diameter/4 });
                 } else if (shapeType === 'Circle') {
-                    shape = new Konva.Circle({ ...commonProps, radius: diameter/4 });
+                    shape = new Konva.Circle({ ...commonProps, radius: diameter / 4 });
                 } else if (shapeType === 'Wedge') { // Triangle
-                    shape = new Konva.Wedge({ ...commonProps, radius: diameter/3, angle: 180, rotation: -90, stroke: 'black', strokeWidth: 2 });
+                    shape = new Konva.Wedge({ ...commonProps, radius: diameter/3, angle: 180, rotation: -90 });
                 }
                 if (shape) layer.add(shape);
             }
@@ -313,7 +319,7 @@
                  if (node) {
                     elements.toolbar.classList.add('visible');
                     
-                    const isText = node instanceof Konva.Text;
+                    const isText = node instanceof Konva.Text || node instanceof Konva.TextPath;
                     [elements.toolbarFontSelect, elements.toolbarFontsizeInput, elements.toolbarBoldBtn, elements.toolbarItalicBtn].forEach(el => el.style.display = isText ? 'inline-block' : 'none');
 
                     if(isText) {
@@ -352,7 +358,10 @@
                 bottomTextNode.data(bottomPath);
 
                 middleTextNode.width(null);
-                middleTextNode.position({ x: c.x - middleTextNode.width()/2, y: c.y - middleTextNode.height()/2 });
+                middleTextNode.position({ x: c.x, y: c.y });
+                middleTextNode.offsetX(middleTextNode.width()/2);
+                middleTextNode.offsetY(middleTextNode.height()/2);
+
 
                 layer.batchDraw();
             }
@@ -468,13 +477,13 @@
                         case 'ArrowDown': node.y(node.y() + moveStep); break;
                         case 'ArrowLeft': node.x(node.x() - moveStep); break;
                         case 'ArrowRight': node.x(node.x() + moveStep); break;
-                        case '5': 
-                             if (node instanceof Konva.Circle) {
-                                node.position({ x: stage.width() / 2, y: stage.height() / 2 });
-                            } else {
-                                const box = node.getClientRect({skipTransform: true});
-                                node.position({ x: stage.width()/2 - box.width / 2, y: stage.height()/2 - box.height / 2 }); 
-                            }
+                        case '5':
+                            node.offsetX(node.width() / 2);
+                            node.offsetY(node.height() / 2);
+                            node.position({
+                                x: stage.width() / 2,
+                                y: stage.height() / 2
+                            });
                             break;
                         case 'Delete': case 'Backspace': 
                             if(node !== middleTextNode && node !== topTextNode && node !== bottomTextNode) {

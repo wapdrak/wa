@@ -1,9 +1,9 @@
-// Tento soubor obsahuje společnou logiku pro všechny stránky.
+// Tento soubor obsahuje veškerou společnou logiku pro všechny stránky.
 
 // HLAVNÍ ALPINE.JS KOMPONENTA
-document.addEventListener('alpine:init', () => {
-    Alpine.data('app', () => ({
-        isMenuOpen: false, // Pro mobilní menu
+function app() {
+    return {
+        isMenuOpen: false,
         isShareModalOpen: false,
         deferredPrompt: null,
         canInstall: false,
@@ -53,5 +53,76 @@ document.addEventListener('alpine:init', () => {
             });
             this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
         }
-    }));
+    };
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Generování Navigace a Patičky
+    if (typeof generateNav === 'function') {
+        generateNav();
+    }
+    
+    function createFooterHTML() {
+        return `
+        <div class="w-full p-4 text-center text-gray-400 mt-8">
+            <div class="flex justify-center items-center mb-4">
+                <button @click="$dispatch('open-share-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center" title="Sdílet tuto stránku">
+                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                </button>
+            </div>
+            <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+        </div>`;
+    }
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+    if (footerPlaceholder) footerPlaceholder.innerHTML = createFooterHTML();
+
+    const grid = document.getElementById('main-content-grid');
+    if(grid && typeof navLinks !== 'undefined') {
+        const toolLinks = navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
+        grid.innerHTML = toolLinks;
+    }
+
+    // PWA MANIFEST A SERVICE WORKER
+    if ('serviceWorker' in navigator) {
+        const manifest = {
+            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
+            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2937",
+            "description": "Sada bezplatných online nástrojů.", "icons": [
+                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
+                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+        const serviceWorkerCode = `
+            const CACHE_NAME = 'wapdrak-nastroje-v3';
+            const urlsToCache = [
+                'https://kidum.top/', 'https://kidum.top/index.html', 'https://kidum.top/send.html',
+                'https://kidum.top/hesla.html', 'https://kidum.top/decoder.html', 'https://kidum.top/notes.html',
+                'https://kidum.top/txt.html', 'https://kidum.top/calc.html', 'https://kidum.top/qr.html',
+                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html', 
+                'https://kidum.top/js/nav.js',
+                'https://kidum.top/js/app.js'
+            ];
+            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+            self.addEventListener('activate', event => {
+                const cacheWhitelist = [CACHE_NAME];
+                event.waitUntil(
+                    caches.keys().then(cacheNames => Promise.all(
+                        cacheNames.map(cacheName => {
+                            if (cacheWhitelist.indexOf(cacheName) === -1) {
+                                return caches.delete(cacheName);
+                            }
+                        })
+                    ))
+                );
+            });
+        `;
+        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+            .then(reg => console.log('ServiceWorker registrován:', reg))
+            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
+    }
 });
+

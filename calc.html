@@ -1,48 +1,56 @@
 <!DOCTYPE html>
-<html lang="cs" dir="ltr">
+<html lang="cs" dir="ltr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kalkulačky</title>
-    
-    <!-- Společné styly a skripty -->
+    <title>WapDrak | Kalkulačky </title>
+    <meta name="description" content="Jednoduchá kalkulačka, procentuální kalkulačka a kalkulačka DPH">
+
+    <!-- Knihovny a styly -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#111827">
-    <link rel="icon" type="image/jpg" href="img/gimologo2.jpg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- PWA Konfigurace -->
+    <meta name="theme-color" content="#1f2937">
+    <link rel="apple-touch-icon" href="https://kidum.top/img/wa.jpg"> 
+    <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
+    <link rel="manifest" id="manifest">
+    
+    <!-- Alpine.js (s atributem defer, aby se načetl PŘED naší logikou, ale spustil se AŽ po ní) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 
+    <!-- SKRIPT POUZE PRO NAVIGACI -->
+    <script src="https://kidum.top/js/nav.js" defer></script>
+    
+    <!-- Vlastní písmo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        .border-groove { border-style: groove; }
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
-        .history-panel::-webkit-scrollbar { width: 8px; }
-        .history-panel::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
-        .history-panel::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
-        .history-panel::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
     </style>
-</head>
-<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
-    <div class="flex flex-col min-h-screen" x-data="app">
+    <!-- SEO Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "WapDrak nástroje",
+      "url": "https://kidum.top/",
+      "description": "Sada bezplatných online nástrojů pro každodenní použití."
+    }
+    </script>
+</head>
+
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <!-- Hlavní kontejner aplikace s Alpine.js -->
+    <div class="flex flex-col min-h-screen" x-data="app" x-init="init()">
         
-        <!-- NAVIGACE (stejná pro všechny stránky) -->
-        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4">
-                <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
-                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
-                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
-                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
-                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
-                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
-                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
-                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
-                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
-                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
-                </ul>
-            </div>
-        </nav>
+        <!-- Zde se automaticky vloží navigace z nav.js -->
+        <div id="nav-placeholder"></div>
 
         <!-- OBSAH STRÁNKY -->
         <header class="w-full p-4 text-center">

@@ -1,8 +1,149 @@
-// Tento soubor obsahuje veškerou společnou logiku pro všechny stránky.
+// Tento soubor obsahuje veškerou logiku webu.
 
-// HLAVNÍ ALPINE.JS KOMPONENTA
-function app() {
-    return {
+// Data pro navigaci
+const navLinks = [
+    { href: "https://kidum.top/index.html", text: "Domů", title: "Přejít na domovskou stránku" },
+    { href: "https://kidum.top/send.html", text: "Odesílač zpráv", title: "Přejít na nástroj pro odesílání zpráv" },
+    { href: "https://kidum.top/hesla.html", text: "Generátor hesel", title: "Přejít na generátor hesel" },
+    { href: "https://kidum.top/decoder.html", text: "Dekodér textů", title: "Přejít na dekodér textů" },
+    { href: "https://kidum.top/notes.html", text: "Poznámkový blok", title: "Přejít na poznámkový blok" },
+    { href: "https://kidum.top/txt.html", text: "Textové editory", title: "Přejít na textové editory" },
+    { href: "https://kidum.top/calc.html", text: "Kalkulačka", title: "Přejít na kalkulačky" },
+    { href: "https://kidum.top/qr.html", text: "Generátor kódů", title: "Přejít na generátor kódů" },
+    { href: "https://kidum.top/radio.html", text: "Online Rádio", title: "Přejít na online rádio" },
+    { href: "https://kidum.top/stamp.html", text: "Generátor razítek", title: "Přejít na generátor razítek" },
+];
+
+// Funkce pro generování navigace
+function generateNav() {
+    const navPlaceholder = document.getElementById('nav-placeholder');
+    if (!navPlaceholder) return;
+    const currentPage = window.location.pathname.split("/").pop() || 'index.html';
+    const desktopLinks = navLinks.slice(0, 5).map(link => {
+        const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
+        const classes = isCurrent ? 'text-white font-bold' : 'text-gray-300 hover:text-white transition-colors';
+        return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
+    }).join('');
+    const moreLinks = navLinks.slice(5).map(link => {
+        const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
+        const classes = isCurrent ? 'block px-4 py-2 text-white bg-gray-700' : 'block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white';
+        return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
+    }).join('');
+    const navHTML = `
+    <nav class="sticky top-0 z-50 bg-gray-900 bg-opacity-70 backdrop-blur-sm border-b border-gray-700 shadow-lg" @click.away="isMenuOpen = false">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <a href="https://kidum.top/index.html" class="flex-shrink-0" title="Domů">
+                        <img class="h-10 w-10 rounded-full" src="https://kidum.top/img/wa.jpg" alt="WapDrak Logo">
+                    </a>
+                    <div class="hidden md:block">
+                        <ul class="ml-10 flex items-baseline space-x-4">
+                            ${desktopLinks}
+                            ${navLinks.length > 5 ? `
+                            <li class="relative" x-data="{ open: false }">
+                                <button @click="open = !open" @keydown.escape.window="open = false" class="text-gray-300 hover:text-white transition-colors flex items-center">
+                                    Více <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                                </button>
+                                <ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-20">
+                                    ${moreLinks}
+                                </ul>
+                            </li>` : ''}
+                        </ul>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button @click="isMenuOpen = !isMenuOpen" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Otevřít hlavní menu</span>
+                        <i class="fas fa-bars" :class="{'hidden': isMenuOpen, 'block': !isMenuOpen}"></i>
+                        <i class="fas fa-times" :class="{'block': isMenuOpen, 'hidden': !isMenuOpen}"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div x-show="isMenuOpen" x-transition class="md:hidden" id="mobile-menu">
+            <ul class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                ${navLinks.map(link => {
+                    const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
+                    const classes = isCurrent ? 'block px-3 py-2 rounded-md text-base font-bold text-white bg-gray-700' : 'block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700';
+                    return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
+                }).join('')}
+            </ul>
+        </div>
+    </nav>`;
+    navPlaceholder.outerHTML = navHTML;
+}
+
+// Funkce pro generování patičky
+function generateFooter() {
+    const footerPlaceholder = document.getElementById('footer-placeholder');
+    if (!footerPlaceholder) return;
+    footerPlaceholder.innerHTML = `
+    <div class="w-full p-4 text-center text-gray-400 mt-8">
+        <div class="flex justify-center items-center mb-4">
+            <button @click="$dispatch('open-share-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center" title="Sdílet tuto stránku">
+                <i class="fas fa-share-alt mr-2"></i> Sdílet
+            </button>
+        </div>
+        <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+    </div>`;
+}
+
+// Funkce pro generování obsahu hlavní stránky
+function generateIndexGrid() {
+    const grid = document.getElementById('main-content-grid');
+    if(grid && typeof navLinks !== 'undefined') {
+        const toolLinks = navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
+        grid.innerHTML = toolLinks;
+    }
+}
+
+// Logika pro PWA
+function setupPWA() {
+    if ('serviceWorker' in navigator) {
+        const manifest = {
+            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
+            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2937",
+            "description": "Sada bezplatných online nástrojů.", "icons": [
+                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
+                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+        const serviceWorkerCode = `
+            const CACHE_NAME = 'wapdrak-nastroje-v4';
+            const urlsToCache = [
+                'https://kidum.top/', 'https://kidum.top/index.html', 'https://kidum.top/send.html',
+                'https://kidum.top/hesla.html', 'https://kidum.top/decoder.html', 'https://kidum.top/notes.html',
+                'https://kidum.top/txt.html', 'https://kidum.top/calc.html', 'https://kidum.top/qr.html',
+                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html', 
+                'https://kidum.top/js/main.js'
+            ];
+            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+            self.addEventListener('activate', event => {
+                const cacheWhitelist = [CACHE_NAME];
+                event.waitUntil(
+                    caches.keys().then(cacheNames => Promise.all(
+                        cacheNames.map(cacheName => {
+                            if (cacheWhitelist.indexOf(cacheName) === -1) return caches.delete(cacheName);
+                        })
+                    ))
+                );
+            });
+        `;
+        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+            .then(reg => console.log('ServiceWorker registrován:', reg))
+            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
+    }
+}
+
+
+// Správný způsob definice Alpine.js komponenty z externího souboru
+document.addEventListener('alpine:init', () => {
+    Alpine.data('app', () => ({
         isMenuOpen: false,
         isShareModalOpen: false,
         deferredPrompt: null,
@@ -46,6 +187,12 @@ function app() {
             this.deferredPrompt = null; this.canInstall = false; this.isShareModalOpen = false;
         },
         init() {
+            // Generování dynamického obsahu až po inicializaci Alpine
+            generateNav();
+            generateFooter();
+            generateIndexGrid(); // Toto se spustí na všech stránkách, ale obsah vygeneruje jen pokud najde správné ID
+            setupPWA();
+
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 this.deferredPrompt = e;
@@ -53,76 +200,6 @@ function app() {
             });
             this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
         }
-    };
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Generování Navigace a Patičky
-    if (typeof generateNav === 'function') {
-        generateNav();
-    }
-    
-    function createFooterHTML() {
-        return `
-        <div class="w-full p-4 text-center text-gray-400 mt-8">
-            <div class="flex justify-center items-center mb-4">
-                <button @click="$dispatch('open-share-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center" title="Sdílet tuto stránku">
-                    <i class="fas fa-share-alt mr-2"></i> Sdílet
-                </button>
-            </div>
-            <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
-        </div>`;
-    }
-    const footerPlaceholder = document.getElementById('footer-placeholder');
-    if (footerPlaceholder) footerPlaceholder.innerHTML = createFooterHTML();
-
-    const grid = document.getElementById('main-content-grid');
-    if(grid && typeof navLinks !== 'undefined') {
-        const toolLinks = navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
-        grid.innerHTML = toolLinks;
-    }
-
-    // PWA MANIFEST A SERVICE WORKER
-    if ('serviceWorker' in navigator) {
-        const manifest = {
-            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
-            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2937",
-            "description": "Sada bezplatných online nástrojů.", "icons": [
-                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
-                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
-            ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
-        const serviceWorkerCode = `
-            const CACHE_NAME = 'wapdrak-nastroje-v3';
-            const urlsToCache = [
-                'https://kidum.top/', 'https://kidum.top/index.html', 'https://kidum.top/send.html',
-                'https://kidum.top/hesla.html', 'https://kidum.top/decoder.html', 'https://kidum.top/notes.html',
-                'https://kidum.top/txt.html', 'https://kidum.top/calc.html', 'https://kidum.top/qr.html',
-                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html', 
-                'https://kidum.top/js/nav.js',
-                'https://kidum.top/js/app.js'
-            ];
-            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
-            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-            self.addEventListener('activate', event => {
-                const cacheWhitelist = [CACHE_NAME];
-                event.waitUntil(
-                    caches.keys().then(cacheNames => Promise.all(
-                        cacheNames.map(cacheName => {
-                            if (cacheWhitelist.indexOf(cacheName) === -1) {
-                                return caches.delete(cacheName);
-                            }
-                        })
-                    ))
-                );
-            });
-        `;
-        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-            .then(reg => console.log('ServiceWorker registrován:', reg))
-            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
-    }
+    }));
 });
 

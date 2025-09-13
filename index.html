@@ -16,6 +16,9 @@
     <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
     <link rel="manifest" id="manifest">
     
+    <!-- Alpine.js (defer je klíčový pro správné načtení) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
     <!-- Vlastní písmo -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,9 +39,6 @@
       "description": "Sada bezplatných online nástrojů pro každodenní použití."
     }
     </script>
-    
-    <!-- Alpine.js -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 
 <body class="bg-gray-900 text-gray-200 antialiased">
@@ -71,10 +71,6 @@
 
         <footer id="footer-placeholder"></footer>
 
-        <!-- ======================================================= -->
-        <!--                  MODÁLNÍ OKNA A PALETA                  -->
-        <!-- ======================================================= -->
-
         <!-- Modální okno pro sdílení -->
         <div x-show="isShareModalOpen" @keydown.escape.window="isShareModalOpen = false" x-transition.opacity class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
             <div @click.away="isShareModalOpen = false" x-show="isShareModalOpen" x-transition.origin.bottom class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
@@ -94,62 +90,16 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Příkazová paleta -->
-        <div x-show="isPaletteOpen" @keydown.escape.window="isPaletteOpen = false" x-transition.opacity class="fixed inset-0 bg-black bg-opacity-75 flex justify-center z-50 p-4 pt-[10vh]">
-            <div @click.away="isPaletteOpen = false" x-show="isPaletteOpen" x-transition class="bg-gray-800 rounded-xl border border-gray-700 shadow-xl w-full max-w-xl h-fit">
-                <div class="p-4 border-b border-gray-700">
-                    <input type="text" x-model="paletteQuery" x-ref="paletteInput" @keydown.enter="if(paletteResults.length > 0) window.location.href = paletteResults[0].href"
-                        class="w-full bg-gray-800 text-white placeholder-gray-500 border-0 focus:ring-0 text-lg" 
-                        placeholder="Napište název nástroje...">
-                </div>
-                <ul class="max-h-80 overflow-y-auto">
-                    <template x-for="(link, index) in paletteResults" :key="link.href">
-                        <li>
-                            <a :href="link.href" class="block p-4 hover:bg-gray-700 transition-colors"
-                               :class="{ 'bg-gray-700': index === 0 }">
-                                <span x-text="link.text"></span>
-                                <span class="text-xs text-gray-500 ml-2" x-text="link.title"></span>
-                            </a>
-                        </li>
-                    </template>
-                    <template x-if="paletteResults.length === 0">
-                        <li class="p-4 text-center text-gray-500">Žádné výsledky</li>
-                    </template>
-                </ul>
-            </div>
-        </div>
-
     </div>
     
-    <!-- VEŠKERÁ LOGIKA STRÁNKY -->
+    <!-- VEŠKERÁ LOGIKA (kromě navigace) -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({
                 isMenuOpen: false,
                 isShareModalOpen: false,
-                isPaletteOpen: false,
-                paletteQuery: '',
                 deferredPrompt: null,
                 canInstall: false,
-                navLinks: [
-                    { href: "https://kidum.top/index.html", text: "Domů", title: "Přejít na domovskou stránku" },
-                    { href: "https://kidum.top/send.html", text: "Odesílač zpráv", title: "Přejít na nástroj pro odesílání zpráv" },
-                    { href: "https://kidum.top/hesla.html", text: "Generátor hesel", title: "Přejít na generátor hesel" },
-                    { href: "https://kidum.top/decoder.html", text: "Dekodér textů", title: "Přejít na dekodér textů" },
-                    { href: "https://kidum.top/notes.html", text: "Poznámkový blok", title: "Přejít na poznámkový blok" },
-                    { href: "https://kidum.top/txt.html", text: "Textové editory", title: "Přejít na textové editory" },
-                    { href: "https://kidum.top/calc.html", text: "Kalkulačka", title: "Přejít na kalkulačky" },
-                    { href: "https://kidum.top/qr.html", text: "Generátor kódů", title: "Přejít na generátor kódů" },
-                    { href: "https://kidum.top/radio.html", text: "Online Rádio", title: "Přejít na online rádio" },
-                    { href: "https://kidum.top/stamp.html", text: "Generátor razítek", title: "Přejít na generátor razítek" },
-                ],
-                get paletteResults() {
-                    if (!this.paletteQuery) return this.navLinks;
-                    return this.navLinks.filter(link => 
-                        link.text.toLowerCase().includes(this.paletteQuery.toLowerCase())
-                    );
-                },
                 sharePlatforms: [
                     { name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-sky-400', label: 'Instalovat' },
                     { name: 'system', title: 'Sdílet přes systém', icon: 'fas fa-share-alt', color: 'text-purple-400', label: 'Sdílet...' },
@@ -165,92 +115,17 @@
                 ],
                 
                 init() {
-                    this.generateNav();
                     this.generateFooter();
-                    this.generateIndexGrid();
                     this.setupPWA();
 
-                    window.addEventListener('keydown', (e) => {
-                        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
-                            e.preventDefault();
-                            this.isPaletteOpen = true;
-                            this.$nextTick(() => { this.$refs.paletteInput.focus(); });
-                        }
-                    });
                     window.addEventListener('beforeinstallprompt', (e) => {
                         e.preventDefault();
                         this.deferredPrompt = e;
                         this.canInstall = true;
                     });
                     this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
-                    this.$root.addEventListener('open-palette', () => { 
-                        this.isPaletteOpen = true; 
-                        this.$nextTick(() => { this.$refs.paletteInput.focus(); });
-                    });
                 },
 
-                generateNav() {
-                    const navPlaceholder = document.getElementById('nav-placeholder');
-                    if (!navPlaceholder) return;
-                    const currentPage = window.location.pathname.split("/").pop() || 'index.html';
-                    const desktopLinks = this.navLinks.slice(0, 5).map(link => {
-                        const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
-                        const classes = isCurrent ? 'text-white font-bold' : 'text-gray-300 hover:text-white transition-colors';
-                        return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
-                    }).join('');
-                    const moreLinks = this.navLinks.slice(5).map(link => {
-                        const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
-                        const classes = isCurrent ? 'block px-4 py-2 text-white bg-gray-700' : 'block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white';
-                        return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
-                    }).join('');
-                    navPlaceholder.outerHTML = `
-                    <nav class="sticky top-0 z-50 bg-gray-900 bg-opacity-70 backdrop-blur-sm border-b border-gray-700 shadow-lg" @click.away="isMenuOpen = false">
-                        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            <div class="flex items-center justify-between h-16">
-                                <div class="flex items-center">
-                                    <a href="https://kidum.top/index.html" class="flex-shrink-0" title="Domů">
-                                        <img class="h-10 w-10 rounded-full" src="https://kidum.top/img/wa.jpg" alt="WapDrak Logo">
-                                    </a>
-                                    <div class="hidden md:block">
-                                        <ul class="ml-10 flex items-baseline space-x-4">
-                                            ${desktopLinks}
-                                            ${this.navLinks.length > 5 ? `
-                                            <li class="relative" x-data="{ open: false }">
-                                                <button @click="open = !open" @keydown.escape.window="open = false" class="text-gray-300 hover:text-white transition-colors flex items-center">
-                                                    Více <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                                                </button>
-                                                <ul x-show="open" @click.away="open = false" x-transition class="absolute left-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-20">
-                                                    ${moreLinks}
-                                                </ul>
-                                            </li>` : ''}
-                                        </ul>
-                                    </div>
-                                </div>
-                                <div class="hidden md:block">
-                                    <button @click="$dispatch('open-palette')" class="px-3 py-2 text-sm text-gray-400 border border-gray-600 rounded-md hover:text-white hover:border-gray-400 transition-colors flex items-center">
-                                        Hledat... <span class="ml-4 text-xs border border-gray-500 rounded px-1 py-0.5">Ctrl+Shift+P</span>
-                                    </button>
-                                </div>
-                                <div class="-mr-2 flex md:hidden">
-                                    <button @click="isMenuOpen = !isMenuOpen" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none" aria-controls="mobile-menu" aria-expanded="false">
-                                        <span class="sr-only">Otevřít hlavní menu</span>
-                                        <i class="fas fa-bars" :class="{'hidden': isMenuOpen, 'block': !isMenuOpen}"></i>
-                                        <i class="fas fa-times" :class="{'block': isMenuOpen, 'hidden': !isMenuOpen}"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div x-show="isMenuOpen" x-transition class="md:hidden" id="mobile-menu">
-                            <ul class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                                ${this.navLinks.map(link => {
-                                    const isCurrent = (link.href.split("/").pop() || 'index.html') === currentPage;
-                                    const classes = isCurrent ? 'block px-3 py-2 rounded-md text-base font-bold text-white bg-gray-700' : 'block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700';
-                                    return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
-                                }).join('')}
-                            </ul>
-                        </div>
-                    </nav>`;
-                },
                 generateFooter() {
                     const footerPlaceholder = document.getElementById('footer-placeholder');
                     if (footerPlaceholder) {
@@ -263,13 +138,6 @@
                             </div>
                             <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
                         </div>`;
-                    }
-                },
-                generateIndexGrid() {
-                    const grid = document.getElementById('main-content-grid');
-                    if(grid && this.navLinks) {
-                        const toolLinks = this.navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
-                        grid.innerHTML = toolLinks;
                     }
                 },
                 setupPWA() {
@@ -285,12 +153,13 @@
                         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
                         document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
                         const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v7';
+                            const CACHE_NAME = 'wapdrak-nastroje-v10'; // Zvýšená verze cache
                             const urlsToCache = [
                                 'https://kidum.top/', 'https://kidum.top/index.html', 'https://kidum.top/send.html',
                                 'https://kidum.top/hesla.html', 'https://kidum.top/decoder.html', 'https://kidum.top/notes.html',
                                 'https://kidum.top/txt.html', 'https://kidum.top/calc.html', 'https://kidum.top/qr.html',
-                                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html'
+                                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html',
+                                'https://kidum.top/js/nav.js' 
                             ];
                             self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
                             self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
@@ -338,8 +207,25 @@
                 },
             }));
         });
+        
+        // Spuštění generování navigace a obsahu PO načtení DOMu
+        document.addEventListener('DOMContentLoaded', () => {
+            // Generování navigace
+            if (typeof generateNav === 'function') {
+                generateNav();
+            }
+
+            // Generování mřížky s nástroji (pouze pro index.html)
+            const grid = document.getElementById('main-content-grid');
+            if(grid && typeof navLinks !== 'undefined') {
+                const toolLinks = navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
+                grid.innerHTML = toolLinks;
+            }
+        });
     </script>
     
+    <!-- SKRIPT POUZE PRO NAVIGACI -->
+    <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
 

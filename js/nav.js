@@ -2,7 +2,6 @@
 
 const navLinks = [
     { href: "https://kidum.top/index.html", text: "Domů", title: "Přejít na domovskou stránku" },
-    { href: "https://kidum.top/o-nas.html", text: "O nás", title: "Přejít na stránku O nás"},
     { href: "https://kidum.top/send.html", text: "Odesílač zpráv", title: "Přejít na nástroj pro odesílání zpráv" },
     { href: "https://kidum.top/hesla.html", text: "Generátor hesel", title: "Přejít na generátor hesel" },
     { href: "https://kidum.top/decoder.html", text: "Dekodér textů", title: "Přejít na dekodér textů" },
@@ -10,34 +9,37 @@ const navLinks = [
     { href: "https://kidum.top/txt.html", text: "Textové editory", title: "Přejít na textové editory" },
     { href: "https://kidum.top/calc.html", text: "Kalkulačka", title: "Přejít na kalkulačky" },
     { href: "https://kidum.top/qr.html", text: "Generátor kódů", title: "Přejít na generátor kódů" },
-    { href: "https://kidum.top/radio.html", text: "Online Rádio", title: "Přejít na online rádio" },
     { href: "https://kidum.top/citaty.html", text: "Generátor citátů", title: "Přejít na generátor citátů"},
+    { href: "https://kidum.top/radio.html", text: "Online Rádio", title: "Přejít na online rádio" },
     { href: "https://kidum.top/stamp.html", text: "Klasická razítka", title: "Přejít na generátor klasických razítek" },
     { href: "https://kidum.top/stamp-round.html", text: "Kulatá razítka", title: "Přejít na generátor kulatých razítek" },
+    { href: "https://kidum.top/o-nas.html", text: "O nás", title: "Přejít na stránku O nás"},
+    { href: "https://kidum.top/kontakt.html", text: "Kontakt", title: "Přejít na kontaktní stránku"},
 ];
 
 // Funkce pro generování navigace
 function generateNav() {
     const navPlaceholder = document.getElementById('nav-placeholder');
     if (!navPlaceholder) return;
-    const currentPageUrl = window.location.href;
     
+    const currentPageUrl = window.location.href.split('?')[0];
+
     // Generování odkazů pro desktop (prvních 5 + "Více")
     const desktopLinks = navLinks.slice(0, 5).map(link => {
-        const isCurrent = currentPageUrl.includes(link.href.split('/').pop());
+        const isCurrent = link.href === currentPageUrl;
         const classes = isCurrent ? 'text-white font-bold' : 'text-gray-300 hover:text-white transition-colors';
         return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
     }).join('');
 
     const moreLinks = navLinks.slice(5).map(link => {
-        const isCurrent = currentPageUrl.includes(link.href.split('/').pop());
+        const isCurrent = link.href === currentPageUrl;
         const classes = isCurrent ? 'block px-4 py-2 text-white bg-gray-700' : 'block px-4 py-2 text-gray-300 hover:bg-gray-700 hover:text-white';
         return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
     }).join('');
 
     // Generování odkazů pro mobilní menu (všechny)
     const mobileLinks = navLinks.map(link => {
-        const isCurrent = currentPageUrl.includes(link.href.split('/').pop());
+        const isCurrent = link.href === currentPageUrl;
         const classes = isCurrent ? 'block px-3 py-2 rounded-md text-base font-bold text-white bg-gray-700' : 'block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700';
         return `<li><a href="${link.href}" class="${classes}" title="${link.title}">${link.text}</a></li>`;
     }).join('');
@@ -81,5 +83,8 @@ function generateNav() {
         </div>
     </nav>`;
     navPlaceholder.outerHTML = navHTML;
+
+    // Po úspěšném vygenerování navigace vyšleme signál
+    window.dispatchEvent(new CustomEvent('post-nav-load-setup'));
 }
 

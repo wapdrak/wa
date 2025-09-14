@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     
     <!-- PWA Konfigurace -->
-    <meta name="theme-color" content="#1f2937">
+    <meta name="theme-color" content="#1f2d37">
     <link rel="apple-touch-icon" href="https://kidum.top/img/wa.jpg"> 
     <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
     <link rel="manifest" id="manifest">
@@ -116,14 +116,17 @@
                 
                 init() {
                     this.generateFooter();
-                    this.setupPWA();
-
                     window.addEventListener('beforeinstallprompt', (e) => {
                         e.preventDefault();
                         this.deferredPrompt = e;
                         this.canInstall = true;
                     });
                     this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
+                    
+                    // Přidán listener pro spolehlivé spuštění PWA logiky
+                    window.addEventListener('post-nav-load-setup', () => {
+                        this.setupPWA();
+                    });
                 },
 
                 generateFooter() {
@@ -141,10 +144,10 @@
                     }
                 },
                 setupPWA() {
-                    if ('serviceWorker' in navigator) {
+                    if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
                         const manifest = {
                             "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
-                            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2937",
+                            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
                             "description": "Sada bezplatných online nástrojů.", "icons": [
                                 { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
                                 { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
@@ -152,15 +155,13 @@
                         };
                         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
                         document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+                        
+                        const urlsToCache = navLinks.map(link => link.href);
+                        urlsToCache.push('https://kidum.top/js/nav.js');
+
                         const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v10'; // Zvýšená verze cache
-                            const urlsToCache = [
-                                'https://kidum.top/', 'https://kidum.top/index.html', 'https://kidum.top/send.html',
-                                'https://kidum.top/hesla.html', 'https://kidum.top/decoder.html', 'https://kidum.top/notes.html',
-                                'https://kidum.top/txt.html', 'https://kidum.top/calc.html', 'https://kidum.top/qr.html',
-                                'https://kidum.top/radio.html', 'https://kidum.top/stamp.html',
-                                'https://kidum.top/js/nav.js' 
-                            ];
+                            const CACHE_NAME = 'wapdrak-nastroje-v15';
+                            const urlsToCache = ${JSON.stringify(urlsToCache)};
                             self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
                             self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
                             self.addEventListener('activate', event => {
@@ -215,6 +216,9 @@
                 generateNav();
             }
 
+            // Spolehlivé spuštění PWA logiky po načtení navigace
+            window.dispatchEvent(new CustomEvent('post-nav-load-setup'));
+
             // Generování mřížky s nástroji (pouze pro index.html)
             const grid = document.getElementById('main-content-grid');
             if(grid && typeof navLinks !== 'undefined') {
@@ -224,7 +228,7 @@
         });
     </script>
     
-    <!-- SKRIPT POUZE PRO NAVIGACI -->
+    <!-- SKRIPT POUZE PRO NAVIGACI (načte se a spustí jako jeden z prvních) -->
     <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WapDrak | Kalkulačky </title>
     <meta name="description" content="Jednoduchá kalkulačka, procentuální kalkulačka a kalkulačka DPH">
+    <meta name="keywords" content="kalkulačka, online kalkulačka, výpočet procent, dph kalkulačka, procenta, výpočet dph">
+    <meta name="author" content="WapDrak">
 
     <!-- Knihovny a styly -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,9 +18,9 @@
     <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
     <link rel="manifest" id="manifest">
     
-    <!-- Alpine.js (s atributem defer, aby se načetl PŘED naší logikou, ale spustil se AŽ po ní) -->
+    <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
+    
     <!-- Vlastní písmo -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,6 +30,23 @@
         body { font-family: 'Inter', sans-serif; }
         [x-cloak] { display: none !important; }
     </style>
+
+    <!-- SEO Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Kalkulačky | WapDrak",
+      "url": "https://kidum.top/calc.html",
+      "description": "Sada online kalkulaček: jednoduchá, procentuální a DPH kalkulačka.",
+      "keywords": "kalkulačka, online kalkulačka, výpočet procent, dph kalkulačka, procenta, výpočet dph",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "WapDrak nástroje",
+        "url": "https://kidum.top/"
+      }
+    }
+    </script>
 </head>
 
 <body class="bg-gray-900 text-gray-200 antialiased">
@@ -159,10 +178,11 @@
         </div>
     </div>
     
-    <!-- VEŠKERÁ LOGIKA -->
+    <!-- UNIVERZÁLNÍ LOGIKA PRO VŠECHNY STRÁNKY -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({
+                // --- UNIVERZÁLNÍ VLASTNOSTI ---
                 isMenuOpen: false,
                 isShareModalOpen: false,
                 deferredPrompt: null,
@@ -180,7 +200,8 @@
                     { name: 'print', title: 'Vytisknout stránku', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
                     { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
-                // Specifická logika pro Kalkulačku
+                
+                // --- VLASTNOSTI SPECIFICKÉ PRO TUTO STRÁNKU (KALKULAČKA) ---
                 activeTab: 'simple',
                 titles: { simple: 'Jednoduchá kalkulačka', vat: 'Kalkulačka DPH', percentage: 'Procentní kalkulačka' },
                 activeTitle: 'Jednoduchá kalkulačka',
@@ -188,23 +209,14 @@
                 vat: { priceWithout: null, priceWith: null, RATE: 0.21, status: 'idle' },
                 perc: { calc1: { percent: null, total: null, result: '' }, calc2: { part: null, total: null, result: '' } },
 
+                // --- UNIVERZÁLNÍ METODY ---
                 init() {
-                    this.pageInit();
                     this.generateFooter();
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        this.deferredPrompt = e;
-                        this.canInstall = true;
-                    });
+                    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); this.deferredPrompt = e; this.canInstall = true; });
                     this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
-                    window.addEventListener('post-nav-load-setup', () => this.setupPWA());
+                    window.addEventListener('post-nav-load-setup', () => { this.setupPWA(); });
+                    if (typeof this.pageInit === 'function') { this.pageInit(); }
                 },
-                
-                pageInit() {
-                    this.setActiveTab('simple');
-                    this.fetchVatRate();
-                },
-
                 generateFooter() {
                     const footerPlaceholder = document.getElementById('footer-placeholder');
                     if (footerPlaceholder) {
@@ -221,40 +233,14 @@
                 },
                 setupPWA() {
                     if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
-                        const manifest = {
-                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
-                            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
-                            "description": "Sada bezplatných online nástrojů.", "icons": [
-                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
-                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
-                            ]
-                        };
-                        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                        const manifest = {"name": "WapDrak Nástroje","short_name": "WapDrak","start_url": ".","display": "standalone","background_color": "#111827","theme_color": "#1f2d37","description": "Sada bezplatných online nástrojů.","icons": [{"src": "https://kidum.top/img/wa.jpg","sizes": "192x192","type": "image/jpeg"},{"src": "https://kidum.top/img/wa.jpg","sizes": "512x512","type": "image/jpeg"}]};
+                        const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
                         document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
-                        
                         const urlsToCache = navLinks.map(link => link.href);
-                        urlsToCache.push('https://kidum.top/js/nav.js');
-
-                        const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v15';
-                            const urlsToCache = ${JSON.stringify(urlsToCache)};
-                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
-                            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
-                            self.addEventListener('activate', event => {
-                                const cacheWhitelist = [CACHE_NAME];
-                                event.waitUntil(
-                                    caches.keys().then(cacheNames => Promise.all(
-                                        cacheNames.map(cacheName => {
-                                            if (cacheWhitelist.indexOf(cacheName) === -1) return caches.delete(cacheName);
-                                        })
-                                    ))
-                                );
-                            });
-                        `;
-                        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
-                        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
-                            .then(reg => console.log('ServiceWorker registrován:', reg))
-                            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
+                        urlsToCache.push('js/nav.js');
+                        const serviceWorkerCode = `const CACHE_NAME = 'wapdrak-nastroje-v16'; const urlsToCache = ${JSON.stringify(urlsToCache)}; self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'})))))); self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)))); self.addEventListener('activate', e => { const c=[CACHE_NAME]; e.waitUntil(caches.keys().then(n => Promise.all(n.map(n => {-1===c.indexOf(n)&&caches.delete(n)})))); });`;
+                        const swBlob = new Blob([serviceWorkerCode], {type: 'application/javascript'});
+                        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).then(r => console.log('ServiceWorker registrován:', r)).catch(e => console.log('Registrace ServiceWorker selhala:', e));
                     }
                 },
                 async share(platform) {
@@ -283,7 +269,11 @@
                     this.deferredPrompt = null; this.canInstall = false; this.isShareModalOpen = false;
                 },
                 
-                // --- Specifické funkce pro kalkulačku ---
+                // --- METODY SPECIFICKÉ PRO TUTO STRÁNKU (KALKULAČKA) ---
+                pageInit() {
+                    this.setActiveTab('simple');
+                    this.fetchVatRate();
+                },
                 async fetchVatRate() {
                     this.vat.status = 'loading';
                     const apiUrl = 'https://raw.githubusercontent.com/valeriansaliou/vat-rates/master/vat-rates.json';
@@ -366,12 +356,11 @@
             }));
         });
 
-        // Spuštění generování navigace a obsahu PO načtení DOMu
+        // Spuštění generování navigace
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof generateNav === 'function') {
                 generateNav();
             }
-            window.dispatchEvent(new CustomEvent('post-nav-load-setup'));
         });
     </script>
     
@@ -379,4 +368,7 @@
     <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
+
+
+
 

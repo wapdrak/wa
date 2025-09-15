@@ -1,19 +1,34 @@
 <!DOCTYPE html>
-<html lang="cs" dir="ltr">
+<html lang="cs" dir="ltr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Rádio</title>
-    
-    <!-- Společné styly a skripty -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#111827">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📻</text></svg>">
+    <title>WapDrak | Online Rádio</title>
+    <meta name="description" content="Poslouchejte online rádia z celého světa. Rychlý a jednoduchý přehrávač internetových rádií.">
+    <meta name="keywords" content="online rádio, internetové rádio, rádio přehrávač, poslouchat rádio, rádio online">
+    <meta name="author" content="WapDrak">
 
+    <!-- Knihovny a styly -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- PWA Konfigurace -->
+    <meta name="theme-color" content="#1f2d37">
+    <link rel="apple-touch-icon" href="https://kidum.top/img/wa.jpg"> 
+    <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
+    <link rel="manifest" id="manifest">
+    
+    <!-- Alpine.js (defer je klíčový pro správné načtení) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Vlastní písmo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        .border-groove { border-style: groove; }
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
         .station-list::-webkit-scrollbar { width: 8px; }
         .station-list::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
         .station-list::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
@@ -21,35 +36,40 @@
         @keyframes blink { 0%, 100% { color: white; } 25% { color: lightgreen; } 50% { color: lightblue; } 75% { color: limegreen; } }
         .blink-radio { animation: blink 10s infinite; }
     </style>
+
+    <!-- SEO Schema.org -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Online Rádio | WapDrak",
+      "url": "https://kidum.top/radio.html",
+      "description": "Poslouchejte online rádia z celého světa. Rychlý a jednoduchý přehrávač internetových rádií.",
+      "keywords": "online rádio, internetové rádio, rádio přehrávač, poslouchat rádio, rádio online",
+      "isPartOf": {
+        "@type": "WebSite",
+        "name": "WapDrak nástroje",
+        "url": "https://kidum.top/"
+      }
+    }
+    </script>
 </head>
-<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
-    <div class="flex flex-col min-h-screen" x-data="app">
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <!-- Hlavní kontejner aplikace s Alpine.js -->
+    <div class="flex flex-col min-h-screen" x-data="app" x-init="init()" x-cloak>
         
-        <!-- NAVIGACE (stejná pro všechny stránky) -->
-        <nav class="z-50 bg-black bg-opacity-50 backdrop-blur-sm border-b border-gray-700 shadow-lg">
-            <div class="max-w-7xl mx-auto px-4">
-                <ul id="main-nav" class="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-sm sm:text-base py-2">
-                    <li><a href="index.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na domovskou stránku">Domů</a></li>
-                    <li><a href="send.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na nástroj pro odesílání zpráv">Odesílač zpráv</a></li>
-                    <li><a href="hesla.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor hesel">Generátor hesel</a></li>
-                    <li><a href="decoder.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na dekodér textů">Dekodér textů</a></li>
-                    <li><a href="notes.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na poznámkový blok">Poznámkový blok</a></li>
-                    <li><a href="txt.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na textové editory">Textové editory</a></li>
-                    <li><a href="calc.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na kalkulačky">Kalkulačka</a></li>
-                    <li><a href="qr.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na generátor kódů">Generátor kódů</a></li>
-                    <li><a href="radio.html" class="text-gray-300 hover:text-white transition-colors" title="Přejít na online rádio">Online Rádio</a></li>
-                </ul>
-            </div>
-        </nav>
+        <header id="nav-placeholder"></header>
 
-        <!-- OBSAH STRÁNKY -->
-        <header class="w-full p-4 text-center">
-            <h1 class="text-2xl sm:text-4xl font-bold blink-radio">♬ Online Rádio 📻</h1>
-        </header>
-
+        <!-- ======================================================= -->
+        <!--             OBSAH KONKRÉTNÍ STRÁNKY ZAČÍNÁ ZDE          -->
+        <!-- ======================================================= -->
         <main class="w-full max-w-4xl mx-auto flex-grow p-1 sm:p-2">
-            <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
+            <header class="w-full p-4 text-center">
+                <h1 class="text-2xl sm:text-4xl font-bold blink-radio">♬ Online Rádio 📻</h1>
+            </header>
+            <div class="text-center border-4 border-gray-700 rounded-3xl p-4 sm:p-6 bg-black bg-opacity-50 text-white">
                 <div class="mb-6">
                     <input type="text" x-model.debounce.300ms="searchQuery" placeholder="Hledat stanici..."
                            class="w-full max-w-md mx-auto bg-gray-800 border-2 border-gray-600 text-white rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" aria-label="Vyhledat rádiovou stanici">
@@ -181,45 +201,45 @@
                        crossorigin="anonymous"></audio>
             </div>
         </div>
+        <!-- ======================================================= -->
+        <!--              OBSAH KONKRÉTNÍ STRÁNKY KONČÍ ZDE          -->
+        <!-- ======================================================= -->
 
-        <!-- PATIČKA (stejná pro všechny stránky) -->
-        <footer class="w-full p-2 text-center text-gray-400 mt-4">
-            <div class="flex justify-center items-center mb-2">
-                <button @click="isShareModalOpen = true" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg transition-colors flex items-center text-sm" title="Sdílet tuto stránku">
-                    <i class="fas fa-share-alt mr-2"></i> Sdílet
-                </button>
-            </div>
-            <p class="text-sm">&copy; 2024 <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
-        </footer>
+        <footer id="footer-placeholder"></footer>
 
-        <!-- MODÁLNÍ OKNO PRO SDÍLENÍ (stejné pro všechny stránky) -->
-        <div x-show="isShareModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-            <div @click.away="isShareModalOpen = false" class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
+        <!-- Modální okno pro sdílení -->
+        <div x-show="isShareModalOpen" @keydown.escape.window="isShareModalOpen = false" x-transition.opacity class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div @click.away="isShareModalOpen = false" x-show="isShareModalOpen" x-transition.origin.bottom class="bg-gray-800 rounded-2xl p-6 border border-gray-700 shadow-xl w-full max-w-lg">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold">Sdílet stránku</h3>
-                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white" title="Zavřít">&times;</button>
+                    <button @click="isShareModalOpen = false" class="text-gray-400 hover:text-white text-2xl" title="Zavřít">&times;</button>
                 </div>
-                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
                     <template x-for="platform in sharePlatforms" :key="platform.name">
-                        <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors">
-                            <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
-                            <span class="text-xs" x-text="platform.label"></span>
-                        </button>
+                        <div x-show="platform.name !== 'install' || canInstall">
+                             <button @click="share(platform.name)" :title="platform.title" class="flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-700 transition-colors w-full">
+                                <i :class="platform.icon + ' ' + platform.color" class="text-3xl mb-1"></i>
+                                <span class="text-xs" x-text="platform.label"></span>
+                            </button>
+                        </div>
                     </template>
                 </div>
             </div>
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-    <!-- UNIVERZÁLNÍ SKRIPT -->
+    <!-- UNIVERZÁLNÍ LOGIKA PRO VŠECHNY STRÁNKY -->
     <script>
-        function createApp(pageSpecificLogic = {}) {
-            return {
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('app', () => ({
+                // --- Start: Společná část pro všechny stránky ---
+                isMenuOpen: false,
                 isShareModalOpen: false,
+                deferredPrompt: null,
+                canInstall: false,
                 sharePlatforms: [
-                    { name: 'system', title: 'Sdílení systému', icon: 'fas fa-external-link-alt', color: 'text-purple-400', label: 'Systém' },
+                    { name: 'install', title: 'Instalovat aplikaci', icon: 'fas fa-download', color: 'text-sky-400', label: 'Instalovat' },
+                    { name: 'system', title: 'Sdílet přes systém', icon: 'fas fa-share-alt', color: 'text-purple-400', label: 'Sdílet...' },
                     { name: 'whatsapp', title: 'Sdílet na WhatsApp', icon: 'fab fa-whatsapp', color: 'text-green-500', label: 'WhatsApp' },
                     { name: 'facebook', title: 'Sdílet na Facebooku', icon: 'fab fa-facebook-f', color: 'text-blue-600', label: 'Facebook' },
                     { name: 'twitter', title: 'Sdílet na Twitteru', icon: 'fab fa-twitter', color: 'text-blue-400', label: 'Twitter' },
@@ -227,24 +247,77 @@
                     { name: 'linkedin', title: 'Sdílet na LinkedIn', icon: 'fab fa-linkedin-in', color: 'text-blue-700', label: 'LinkedIn' },
                     { name: 'email', title: 'Sdílet e-mailem', icon: 'fas fa-envelope', color: 'text-gray-400', label: 'E-mail' },
                     { name: 'sms', title: 'Sdílet pomocí SMS', icon: 'fas fa-sms', color: 'text-yellow-500', label: 'SMS' },
-                    { name: 'print', title: 'Tisk', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
+                    { name: 'print', title: 'Vytisknout stránku', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
                     { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
-                ...pageSpecificLogic,
-                automateNav() {
-                    const currentPage = window.location.pathname.split("/").pop();
-                    const navLinks = document.querySelectorAll('#main-nav a');
-                    navLinks.forEach(link => {
-                        const linkPage = link.getAttribute('href').split("/").pop();
-                        if (linkPage === currentPage) {
-                            link.classList.remove('text-gray-300', 'hover:text-white');
-                            link.classList.add('text-white', 'font-bold');
-                        }
+                
+                init() {
+                    this.generateFooter();
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                        this.canInstall = true;
                     });
+                    this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
+                    window.addEventListener('post-nav-load-setup', () => this.setupPWA());
+                    if (typeof this.pageInit === 'function') this.pageInit();
+                },
+
+                generateFooter() {
+                    const footerPlaceholder = document.getElementById('footer-placeholder');
+                    if (footerPlaceholder) {
+                        footerPlaceholder.innerHTML = `
+                        <div class="w-full p-4 text-center text-gray-400 mt-8">
+                            <div class="flex justify-center items-center mb-4">
+                                <button @click="$dispatch('open-share-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center" title="Sdílet tuto stránku">
+                                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                                </button>
+                            </div>
+                            <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+                        </div>`;
+                    }
+                },
+                setupPWA() {
+                    if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
+                        const manifest = {
+                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": ".",
+                            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
+                            "description": "Sada bezplatných online nástrojů.", "icons": [
+                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
+                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
+                            ]
+                        };
+                        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+                        const urlsToCache = navLinks.map(link => link.href);
+                        urlsToCache.push('js/nav.js');
+                        const serviceWorkerCode = `
+                            const CACHE_NAME = 'wapdrak-nastroje-v16';
+                            const urlsToCache = ${JSON.stringify(urlsToCache)};
+                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'}))))));
+                            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                            self.addEventListener('activate', event => {
+                                const cacheWhitelist = [CACHE_NAME];
+                                event.waitUntil(
+                                    caches.keys().then(cacheNames => Promise.all(
+                                        cacheNames.map(cacheName => {
+                                            if (cacheWhitelist.indexOf(cacheName) === -1) return caches.delete(cacheName);
+                                        })
+                                    ))
+                                );
+                            });
+                        `;
+                        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+                        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+                            .then(reg => console.log('ServiceWorker registrován:', reg))
+                            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
+                    }
                 },
                 async share(platform) {
                     const url = window.location.href;
                     const title = document.title;
+                    if (platform === 'install') { this.installPWA(); return; }
+                    if (platform === 'system' && navigator.share) { try { await navigator.share({ title, url }); return; } catch (err) { console.error('Chyba při systémovém sdílení:', err); } }
                     let shareUrl = '';
                     switch (platform) {
                         case 'whatsapp': shareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
@@ -255,31 +328,19 @@
                         case 'email': shareUrl = `mailto:?subject=${encodeURIComponent(title)}&body=Doporučuji:%0A%0A${encodeURIComponent(url)}`; break;
                         case 'sms': shareUrl = `sms:?&body=${encodeURIComponent(title)}%0A${encodeURIComponent(url)}`; break;
                         case 'print': window.print(); return;
-                        case 'copy': this.copyShareLink(); return;
+                        case 'copy': navigator.clipboard.writeText(url).then(() => alert('Odkaz zkopírován do schránky!')); return;
                     }
-                    window.open(shareUrl, '_blank', 'width=600,height=400');
+                    if (shareUrl) { window.open(shareUrl, '_blank', 'width=600,height=400'); }
                 },
-                copyShareLink() {
-                    const textToCopy = window.location.href;
-                    const textArea = document.createElement('textarea');
-                    textArea.value = textToCopy;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try { document.execCommand('copy'); } 
-                    catch (err) { console.error('Oops, unable to copy', err); }
-                    document.body.removeChild(textArea);
+                async installPWA() {
+                    if (!this.deferredPrompt) { alert('Aplikaci nelze momentálně nainstalovat.'); return; }
+                    this.deferredPrompt.prompt();
+                    await this.deferredPrompt.userChoice;
+                    this.deferredPrompt = null; this.canInstall = false; this.isShareModalOpen = false;
                 },
-                init() {
-                    this.automateNav();
-                    if (typeof this.pageInit === 'function') {
-                        this.pageInit();
-                    }
-                }
-            };
-        }
+                // --- Konec: Společná část pro všechny stránky ---
 
-        document.addEventListener('alpine:init', () => {
-            const pageSpecificLogic = {
+                // --- Start: Specifická část pro tuto stránku ---
                 genres: [],
                 selectedGenre: null,
                 currentStation: null,
@@ -288,6 +349,7 @@
                 volume: 1,
                 isMuted: false,
                 searchQuery: '',
+
                 pageInit() {
                     this.genres = this.getStationsData();
                     const savedVolume = localStorage.getItem('radioPlayerVolume');
@@ -301,7 +363,7 @@
                     });
                 },
                 getStationsData() {
-                    const stations = [
+                     const stations = [
                         { name: 'Galgalatz', url: 'https://glzwizzlv.bynetcdn.com/glglz_mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Kan 88', url: 'https://29053.live.streamtheworld.com/KAN_88.mp3', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'MP3', bitrate: '128kbps' },
                         { name: 'Radio Tel Aviv', url: 'https://cdn88.mediacast.co.il/102fm-tlv/102fm_mp3/icecast.audio', genre: 'Izraelské stanice', language: 'Hebrejština', format: 'Audio', bitrate: '128kbps' },
@@ -382,16 +444,12 @@
                         const playPromise = this.$refs.audioPlayer.play();
                         if (playPromise !== undefined) {
                             playPromise.catch(error => {
-                                if (error.name !== 'AbortError') {
-                                    this.handleError();
-                                }
+                                if (error.name !== 'AbortError') this.handleError();
                             });
                         }
                     }
                     this.loadingTimeout = setTimeout(() => {
-                        if (this.playerStatus === 'loading') {
-                            this.handleError();
-                        }
+                        if (this.playerStatus === 'loading') this.handleError();
                     }, 15000);
                 },
                 togglePlayPause() {
@@ -401,9 +459,7 @@
                         const playPromise = this.$refs.audioPlayer.play();
                         if (playPromise !== undefined) {
                              playPromise.catch(error => {
-                                if (error.name !== 'AbortError') {
-                                    this.handleError();
-                                }
+                                if (error.name !== 'AbortError') this.handleError();
                             });
                         }
                     }
@@ -442,9 +498,23 @@
                         default: return 'Vyberte stanici';
                     }
                 },
-            };
-            Alpine.data('app', () => createApp(pageSpecificLogic));
+                // --- Konec: Specifická část pro tuto stránku ---
+            }));
+        });
+
+        // Spuštění generování navigace po načtení DOMu
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof generateNav === 'function') {
+                generateNav();
+            }
         });
     </script>
+
+    <!-- SKRIPT POUZE PRO NAVIGACI -->
+    <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
+
+
+
+

@@ -168,14 +168,7 @@
 
                 init() {
                     this.pageInit();
-                    this.generateFooter();
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        this.deferredPrompt = e;
-                        this.canInstall = true;
-                    });
-                    this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
-                    window.addEventListener('post-nav-load-setup', () => this.setupPWA());
+                    // Volání generateFooter a setupPWA bude provedeno až po načtení nav.js
                 },
                 
                 pageInit() {
@@ -187,6 +180,7 @@
                         separateDialCode: true,
                         utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/js/utils.js",
                     });
+
                     this.phoneInput.promise.then(() => {
                         this.isUtilsLoaded = true;
                         
@@ -211,15 +205,59 @@
                         this.contactPickerSupported = true;
                     }
                 },
-                
-                generateFooter() {
-                    // Tato funkce je nyní součástí hlavního skriptu, ale pro přehlednost může zůstat
-                },
-                
-                setupPWA() {
-                    // Stejně jako footer, tato logika je nyní součástí hlavního skriptu
-                },
 
+                generateFooter() {
+                    const footerPlaceholder = document.getElementById('footer-placeholder');
+                    if (footerPlaceholder) {
+                        footerPlaceholder.innerHTML = `
+                        <div class="w-full p-4 text-center text-gray-400 mt-8">
+                            <div class="flex justify-center items-center mb-4">
+                                <button @click="$dispatch('open-share-modal')" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center" title="Sdílet tuto stránku">
+                                    <i class="fas fa-share-alt mr-2"></i> Sdílet
+                                </button>
+                            </div>
+                            <p class="text-sm">&copy; ${new Date().getFullYear()} <a href="https://github.com/wapdrak" target="_blank" rel="noopener noreferrer" class="underline hover:text-white" title="Přejít na WapDrak na GitHubu">WapDrak</a>. Všechna práva vyhrazena.</p>
+                        </div>`;
+                    }
+                },
+                setupPWA() {
+                    if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
+                        const manifest = {
+                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
+                            "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
+                            "description": "Sada bezplatných online nástrojů.", "icons": [
+                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
+                                { "src": "https://kidum.top/img/wa.jpg", "sizes": "512x512", "type": "image/jpeg" }
+                            ]
+                        };
+                        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+                        
+                        const urlsToCache = navLinks.map(link => link.href);
+                        urlsToCache.push('https://kidum.top/js/nav.js');
+
+                        const serviceWorkerCode = `
+                            const CACHE_NAME = 'wapdrak-nastroje-v15';
+                            const urlsToCache = ${JSON.stringify(urlsToCache)};
+                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+                            self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                            self.addEventListener('activate', event => {
+                                const cacheWhitelist = [CACHE_NAME];
+                                event.waitUntil(
+                                    caches.keys().then(cacheNames => Promise.all(
+                                        cacheNames.map(cacheName => {
+                                            if (cacheWhitelist.indexOf(cacheName) === -1) return caches.delete(cacheName);
+                                        })
+                                    ))
+                                );
+                            });
+                        `;
+                        const swBlob = new Blob([serviceWorkerCode], { type: 'application/javascript' });
+                        navigator.serviceWorker.register(URL.createObjectURL(swBlob))
+                            .then(reg => console.log('ServiceWorker registrován:', reg))
+                            .catch(err => console.log('Registrace ServiceWorker selhala:', err));
+                    }
+                },
                 async share(platform) {
                     const url = window.location.href;
                     const title = document.title;
@@ -248,23 +286,19 @@
                 },
 
                 isNumberValid() {
+                    if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
                     const countryData = this.phoneInput.getSelectedCountryData();
-                    if (countryData.iso2 === 'il' && this.isUtilsLoaded) {
+                    if (countryData.iso2 === 'il') {
                         const numberType = this.phoneInput.getNumberType();
                         const number = this.phoneEl.value.replace(/[\s-]/g, '');
 
                         if (numberType === intlTelInputUtils.numberType.MOBILE) {
-                            // Mobilní: přesně 10 s '0' nebo přesně 9 bez '0'
-                            return /^05\d{8}$/.test(number) || /^5\d{8}$/.test(number);
+                            return (/^05\d{8}$/.test(number) || /^5\d{8}$/.test(number));
                         } else if (numberType === intlTelInputUtils.numberType.FIXED_LINE) {
-                            // Pevná linka: přesně 9 s '0' nebo přesně 8 bez '0'
-                            return /^0[1-9]\d{7}$/.test(number) || /^[1-9]\d{7}$/.test(number);
-                        } else {
-                            // Pro ostatní typy čísel v Izraeli (pokud existují) se spolehneme na obecnou validaci
-                            return this.phoneInput.isValidNumber();
+                            return (/^0[2-4,8,9]\d{7}$/.test(number) || /^[2-4,8,9]\d{7}$/.test(number));
                         }
+                        return this.phoneInput.isValidNumber();
                     } else {
-                        if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
                         return this.phoneInput.isValidNumber();
                     }
                 },
@@ -299,7 +333,7 @@
                 },
                 handleAction(type) {
                     const isNumberGood = this.isNumberValid();
-                    this.validateNumber(); // Znovu validuje pro vizuální zpětnou vazbu
+                    this.validateNumber();
                     if (!isNumberGood && (type !== 'telegram' && type !== 'messenger' && type !== 'signal-user')) {
                          this.phoneEl.focus();
                          return;
@@ -311,7 +345,6 @@
                         case 'whatsapp': case 'sms': case 'tel': case 'signal': case 'viber':
                             if (isNumberGood) {
                                 let fullNumber = this.phoneInput.getNumber();
-                                // Speciální ošetření pro izraelská lokální čísla
                                 const countryData = this.phoneInput.getSelectedCountryData();
                                 if (countryData.iso2 === 'il' && fullNumber.startsWith('+9720')) {
                                     fullNumber = '+972' + fullNumber.substring(5);
@@ -322,7 +355,7 @@
                                 if (type === 'tel') url = `tel:${fullNumber}`;
                                 if (type === 'signal') url = `https://signal.me/#p/${fullNumber}`;
                                 if (type === 'viber') url = `viber://chat?number=${fullNumber.substring(1)}`;
-                            } else { this.phoneEl.focus(); }
+                            }
                             break;
                         case 'telegram': case 'messenger': case 'signal-user':
                             if (this.username.trim()) {
@@ -348,8 +381,25 @@
             if (typeof generateNav === 'function') {
                 generateNav();
             }
+            
+            // Spouštění globálních funkcí po načtení navigace
+             window.addEventListener('post-nav-load-setup', () => {
+                const app = Alpine.store('app'); // Předpokládá se, že `app` je registrováno
+                if (app) {
+                    app.generateFooter();
+                    app.setupPWA();
+                } else {
+                    // Fallback, pokud Alpine není připraven
+                    document.addEventListener('alpine:initialized', () => {
+                        const app = Alpine.data(document.querySelector('[x-data]'));
+                        app.generateFooter();
+                        app.setupPWA();
+                    });
+                }
+            });
         });
     </script>
+    <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
 

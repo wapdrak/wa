@@ -168,7 +168,14 @@
 
                 init() {
                     this.pageInit();
-                    // Volání generateFooter a setupPWA bude provedeno až po načtení nav.js
+                    this.generateFooter();
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                        this.canInstall = true;
+                    });
+                    this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
+                    window.addEventListener('post-nav-load-setup', () => this.setupPWA());
                 },
                 
                 pageInit() {
@@ -231,13 +238,14 @@
                             ]
                         };
                         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-                        document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
+                        const manifestLink = document.getElementById('manifest');
+                        if(manifestLink) manifestLink.href = URL.createObjectURL(manifestBlob);
                         
                         const urlsToCache = navLinks.map(link => link.href);
                         urlsToCache.push('https://kidum.top/js/nav.js');
 
                         const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v15';
+                            const CACHE_NAME = 'wapdrak-nastroje-v16';
                             const urlsToCache = ${JSON.stringify(urlsToCache)};
                             self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
                             self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
@@ -381,22 +389,7 @@
             if (typeof generateNav === 'function') {
                 generateNav();
             }
-            
-            // Spouštění globálních funkcí po načtení navigace
-             window.addEventListener('post-nav-load-setup', () => {
-                const app = Alpine.store('app'); // Předpokládá se, že `app` je registrováno
-                if (app) {
-                    app.generateFooter();
-                    app.setupPWA();
-                } else {
-                    // Fallback, pokud Alpine není připraven
-                    document.addEventListener('alpine:initialized', () => {
-                        const app = Alpine.data(document.querySelector('[x-data]'));
-                        app.generateFooter();
-                        app.setupPWA();
-                    });
-                }
-            });
+            window.dispatchEvent(new CustomEvent('post-nav-load-setup'));
         });
     </script>
     <script src="https://kidum.top/js/nav.js" defer></script>

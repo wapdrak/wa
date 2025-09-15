@@ -1,116 +1,76 @@
 <!DOCTYPE html>
-<html lang="cs" dir="ltr">
+<html lang="cs" dir="ltr" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>&#128488; Univerzální odesílač zpráv</title>
-    
-    <!-- Společné styly a skripty -->
-    <script src="https://kit.fontawesome.com/f4aaf3b4dc.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <meta name="theme-color" content="#111827">
-    <link rel="icon" type="image/jpg" href="img/gimologo2.jpg">
+    <title>WapDrak | Moderní webové nástroje</title>
+    <meta name="description" content="Sada bezplatných a užitečných online nástrojů – od generátoru hesel po odesílač zpráv a QR kódů. Vše na jednom místě.">
+    <meta name="keywords" content="webové nástroje, online nástroje, generátor hesel, qr kód, kalkulačka, odesílač zpráv, wapdrak">
     <meta name="author" content="WapDrak">
-    <meta name="keywords" content="odesílač zpráv, WhatsApp bez uložení, Viber, Telegram, SMS, kontakt, WapDrak, online nástroj">
+
+    <!-- Knihovny a styly -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <!-- PWA Konfigurace -->
+    <meta name="theme-color" content="#1f2d37">
+    <link rel="apple-touch-icon" href="https://kidum.top/img/wa.jpg"> 
+    <link rel="icon" type="image/jpeg" href="https://kidum.top/img/wa.jpg">
+    <link rel="manifest" id="manifest">
+    
+    <!-- Alpine.js (defer je klíčový pro správné načtení) -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    <!-- Vlastní písmo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [x-cloak] { display: none !important; }
+    </style>
 
     <!-- SEO Schema.org -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": "Univerzální odesílač zpráv | WapDrak",
-      "url": "https://kidum.top/send.html",
-      "description": "Pošlete zprávu přes WhatsApp, Viber, Telegram nebo SMS na jakékoliv číslo bez nutnosti ukládání kontaktu.",
-      "keywords": "WhatsApp bez kontaktu, odeslat zprávu, online nástroj, Viber, Telegram, SMS",
-      "isPartOf": {
-        "@type": "WebSite",
-        "name": "WapDrak nástroje",
-        "url": "https://kidum.top/"
-      }
+      "@type": "WebSite",
+      "name": "WapDrak nástroje",
+      "url": "https://kidum.top/",
+      "description": "Sada bezplatných online nástrojů pro každodenní použití.",
+      "keywords": "webové nástroje, online nástroje, generátor hesel, qr kód, kalkulačka, odesílač zpráv, wapdrak"
     }
     </script>
-
-    <!-- Styly jen pro tuto stránku -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/css/intlTelInput.css" />
-    <style>
-        .border-groove { border-style: groove; }
-        .iti { direction: ltr; width: 100%; }
-        #phone { text-align: left; }
-        .iti__country-list { background-color: #1f2937; border-color: #4b5563; }
-        .iti__country, .iti__search-input { direction: ltr; text-align: left; }
-        .iti__country { color: #d1d5db; }
-        .iti__country:hover { background-color: #374151; }
-        .iti__dial-code { color: #9ca3af; }
-        .iti__search-input { background-color: #374151; color: #d1d5db; border-color: #4b5563; }
-        .iti--invalid .iti__tel-input { border-color: red !important; }
-        .iti--valid .iti__tel-input { border-color: limegreen !important; }
-        .validation-icon-container { direction: ltr; }
-        .validation-icon-container.invalid:after { content: "✘"; color: red; font-size: 1.5rem; vertical-align: middle; }
-        .validation-icon-container.valid:after { content: "✔"; color: limegreen; font-size: 1.5rem; vertical-align: middle; }
-        #phone, #username { font-size: 16px; }
-        @media (min-width: 640px) { #phone, #username { font-size: 1.5rem; } }
-    </style>
 </head>
-<body class="bg-gray-900 text-gray-200 flex flex-col min-h-screen">
 
-    <div class="flex flex-col min-h-screen" x-data="app">
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+    <!-- Hlavní kontejner aplikace s Alpine.js -->
+    <div class="flex flex-col min-h-screen" x-data="app" x-init="init()" x-cloak>
         
         <header id="nav-placeholder"></header>
 
-        <!-- OBSAH STRÁNKY -->
+        <!-- ======================================================= -->
+        <!--             OBSAH KONKRÉTNÍ STRÁNKY ZAČÍNÁ ZDE          -->
+        <!-- ======================================================= -->
         <main class="flex-grow">
-            <header class="w-full p-4 text-center">
-                <h1 class="text-2xl sm:text-4xl font-bold">
-                    Odesílač zpráv<br>
-                    <i class="fab fa-whatsapp" style="color:limegreen;"></i>
-                    <i class="fab fa-viber" style="color:#7360F2;"></i>
-                    <i class="fab fa-telegram-plane" style="color:#2AABEE;"></i>
-                    <i class="fa-solid fa-comment-sms" style="color:#ffffff;"></i>
-                </h1>
+            <header class="w-full py-8 text-center">
+                <h1 class="text-4xl sm:text-5xl font-bold text-white tracking-tight">WapDrak - web nástroje</h1>
+                <p class="mt-4 text-lg text-gray-400 max-w-2xl mx-auto">Sada jednoduchých, rychlých a užitečných online nástrojů pro každodenní potřeby.</p>
             </header>
 
-            <div class="w-full max-w-2xl mx-auto flex-grow p-1 sm:p-2">
-                <div class="text-center border-4 border-groove border-black rounded-3xl p-4 sm:p-6 bg-black bg-opacity-70 text-white">
-                    <section>
-                        <h2 class="text-base sm:text-lg text-gray-300 mt-2">
-                            Pošlete zprávu na jakékoliv číslo nebo uživatelské jméno bez ukládání do kontaktů.
-                        </h2>
-                        <form id="contact-form" class="m-1" @submit.prevent>
-                            <div class="my-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="flex-grow">
-                                        <input id="phone" type="tel" @input="validateNumber" placeholder="Telefonní číslo" class="bg-black text-yellow-300 rounded-md border-4 border-gray-500 m-0.5 p-2 w-full" title="Zadejte telefonní číslo včetně předvolby">
-                                    </div>
-                                    <span id="validation-icon" class="validation-icon-container" title="Stav platnosti čísla"></span>
-                                </div>
-                                <button type="button" @click="selectContact()" x-show="contactPickerSupported" class="flex items-center justify-center gap-2 mx-auto text-white bg-gray-700 rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg mt-2" title="Vybrat z kontaktů"><i class="fas fa-address-book"></i> Vybrat z kontaktů</button>
-                                <div x-show="contactApiError" x-text="contactApiError" class="text-red-500 bg-black bg-opacity-70 rounded-lg p-2 mt-2 text-sm" x-transition></div>
-                                <textarea name="t" id="text" x-model="message" class="bg-black text-white placeholder-white rounded-2xl m-0.5 p-1 border-4 w-full max-w-md mx-auto mt-4" rows="4" placeholder="    Obsah zprávy..." title="Obsah zprávy (pro WhatsApp, Telegram, SMS)" style="font-size:100%;"></textarea>
-                                <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                    <button type="button" @click="handleAction('whatsapp')" class="flex items-center justify-center gap-2 mx-auto text-lime-500 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes WhatsApp"><i class="fab fa-whatsapp"></i> WhatsApp</button>
-                                    <button type="button" @click="handleAction('viber')" class="flex items-center justify-center gap-2 mx-auto bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" style="color:#7360F2;" title="Otevřít ve Viberu"><i class="fab fa-viber"></i> Viber</button>
-                                    <button type="button" @click="handleAction('signal')" class="flex items-center justify-center gap-2 mx-auto text-blue-600 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Otevřít v Signalu"><i class="fa-brands fa-signal-messenger"></i> Signal</button>
-                                    <button type="button" @click="handleAction('sms')" class="flex items-center justify-center gap-2 mx-auto text-yellow-300 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat jako SMS"><i class="fa-solid fa-comment-sms"></i> Zpráva</button>
-                                    <button type="button" @click="handleAction('tel')" class="flex items-center justify-center gap-2 mx-auto text-yellow-300 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg col-span-2 sm:col-span-1" title="Zavolat"><i class="fas fa-phone"></i> Zavolat</button>
-                                </div>
-                            </div>
-                            <div class="my-6 text-xl sm:text-2xl font-bold text-gray-400">nebo</div>
-                            <div class="my-4">
-                                 <input id="username" type="text" x-model="username" placeholder="Uživatelské jméno..." title="Zadejte uživatelské jméno pro Telegram, Messenger nebo Signal" class="bg-black text-yellow-300 rounded-md border-4 border-gray-500 m-0.5 p-2 text-center w-full">
-                                <div class="mt-4 grid grid-cols-3 gap-2">
-                                    <button type="button" @click="handleAction('telegram')" class="flex items-center justify-center gap-2 mx-auto text-blue-400 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Telegram"><i class="fab fa-telegram-plane"></i> Telegram</button>
-                                    <button type="button" @click="handleAction('messenger')" class="flex items-center justify-center gap-2 mx-auto text-blue-500 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Odeslat přes Messenger"><i class="fab fa-facebook-messenger"></i> Messenger</button>
-                                    <button type="button" @click="handleAction('signal-user')" class="flex items-center justify-center gap-2 mx-auto text-blue-600 bg-black rounded-lg border-4 py-2 px-3 w-full text-base sm:text-lg" title="Otevřít v Signalu"><i class="fa-brands fa-signal-messenger"></i> Signal</button>
-                                </div>
-                            </div>
-                            <hr class="my-6 border-gray-600">
-                            <input type="reset" value="&#xf021; Resetovat" @click="resetForm" class="fa mx-auto text-white bg-black rounded-lg border-4 p-2 cursor-pointer w-full text-xl sm:text-3xl" title="Resetovat formulář" />
-                        </form>
-                    </section>
+            <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
+                <div class="border-4 border-gray-700 rounded-3xl p-6 bg-black bg-opacity-50">
+                    <div id="main-content-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <!-- Obsah (dlaždice s nástroji) se vygeneruje skriptem -->
+                    </div>
                 </div>
             </div>
         </main>
+        <!-- ======================================================= -->
+        <!--              OBSAH KONKRÉTNÍ STRÁNKY KONČÍ ZDE          -->
+        <!-- ======================================================= -->
 
         <footer id="footer-placeholder"></footer>
 
@@ -135,11 +95,7 @@
         </div>
     </div>
     
-    <!-- Skripty jen pro tuto stránku -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/js/intlTelInput.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-    <!-- UNIVERZÁLNÍ SKRIPT -->
+    <!-- UNIVERZÁLNÍ LOGIKA PRO VŠECHNY STRÁNKY -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({
@@ -160,49 +116,24 @@
                     { name: 'print', title: 'Vytisknout stránku', icon: 'fas fa-print', color: 'text-gray-400', label: 'Tisk' },
                     { name: 'copy', title: 'Kopírovat adresu', icon: 'fas fa-copy', color: 'text-gray-400', label: 'Kopírovat' },
                 ],
-                // Specifická logika pro Odesílač zpráv
-                phoneInput: null, message: '', username: '', phoneEl: null,
-                contactPickerSupported: false,
-                contactApiError: '',
-                isUtilsLoaded: false,
-
-                init() {
-                    this.pageInit();
-                    // Volání generateFooter a setupPWA bude provedeno až po načtení nav.js
-                },
                 
-                pageInit() {
-                    this.phoneEl = document.querySelector("#phone");
-                    const savedCountry = localStorage.getItem('selectedCountryIso') || 'cz';
-                    this.phoneInput = window.intlTelInput(this.phoneEl, {
-                        initialCountry: savedCountry,
-                        showSearchBox: true,
-                        separateDialCode: true,
-                        utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/20.3.0/js/utils.js",
+                init() {
+                    this.generateFooter();
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                        this.canInstall = true;
+                    });
+                    this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
+                    
+                    // Po vygenerování navigace se spustí PWA logika
+                    window.addEventListener('post-nav-load-setup', () => {
+                        this.setupPWA();
                     });
 
-                    this.phoneInput.promise.then(() => {
-                        this.isUtilsLoaded = true;
-                        
-                        this.phoneEl.addEventListener('countrychange', () => {
-                            const selectedCountry = this.phoneInput.getSelectedCountryData();
-                            localStorage.setItem('selectedCountryIso', selectedCountry.iso2);
-                            this.validateNumber();
-                        });
-                        
-                        this.phoneEl.addEventListener('input', () => {
-                             let fullNumber = this.phoneInput.getNumber();
-                             if (fullNumber.startsWith('+')) {
-                                 this.phoneInput.setNumber(fullNumber);
-                             }
-                            this.validateNumber();
-                        });
-
-                        this.validateNumber();
-                    }).catch(error => console.error("Chyba při načítání utils scriptu:", error));
-                    
-                    if ('contacts' in navigator && 'select' in navigator.contacts) {
-                        this.contactPickerSupported = true;
+                    // Pokud existuje specifická inicializační funkce pro danou stránku, spustí se
+                    if (typeof this.pageInit === 'function') {
+                        this.pageInit();
                     }
                 },
 
@@ -223,7 +154,7 @@
                 setupPWA() {
                     if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
                         const manifest = {
-                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
+                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": ".",
                             "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
                             "description": "Sada bezplatných online nástrojů.", "icons": [
                                 { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
@@ -233,13 +164,14 @@
                         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
                         document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
                         
+                        // Dynamicky sestavíme seznam URL k cachování z navLinks
                         const urlsToCache = navLinks.map(link => link.href);
-                        urlsToCache.push('https://kidum.top/js/nav.js');
+                        urlsToCache.push('js/nav.js'); // Přidáme i samotný navigační skript
 
                         const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v15';
+                            const CACHE_NAME = 'wapdrak-nastroje-v16'; // Zvýšená verze pro aktualizaci
                             const urlsToCache = ${JSON.stringify(urlsToCache)};
-                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'}))))));
                             self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
                             self.addEventListener('activate', event => {
                                 const cacheWhitelist = [CACHE_NAME];
@@ -277,129 +209,36 @@
                     }
                     if (shareUrl) { window.open(shareUrl, '_blank', 'width=600,height=400'); }
                 },
-
                 async installPWA() {
                     if (!this.deferredPrompt) { alert('Aplikaci nelze momentálně nainstalovat.'); return; }
                     this.deferredPrompt.prompt();
                     await this.deferredPrompt.userChoice;
                     this.deferredPrompt = null; this.canInstall = false; this.isShareModalOpen = false;
                 },
-
-                isNumberValid() {
-                    if (!this.isUtilsLoaded) return this.phoneEl.value.trim().length > 5;
-                    const countryData = this.phoneInput.getSelectedCountryData();
-                    if (countryData.iso2 === 'il') {
-                        const numberType = this.phoneInput.getNumberType();
-                        const number = this.phoneEl.value.replace(/[\s-]/g, '');
-
-                        if (numberType === intlTelInputUtils.numberType.MOBILE) {
-                            return (/^05\d{8}$/.test(number) || /^5\d{8}$/.test(number));
-                        } else if (numberType === intlTelInputUtils.numberType.FIXED_LINE) {
-                            return (/^0[2-4,8,9]\d{7}$/.test(number) || /^[2-4,8,9]\d{7}$/.test(number));
-                        }
-                        return this.phoneInput.isValidNumber();
-                    } else {
-                        return this.phoneInput.isValidNumber();
-                    }
-                },
-
-                validateNumber() {
-                    const itiElement = this.phoneInput.a.parentElement;
-                    const iconElement = document.querySelector("#validation-icon");
-                    itiElement.classList.remove('iti--valid', 'iti--invalid');
-                    iconElement.classList.remove('valid', 'invalid');
-                    if (this.phoneEl.value.trim()) {
-                        if (this.isNumberValid()) {
-                            itiElement.classList.add('iti--valid');
-                            iconElement.classList.add('valid');
-                        } else {
-                            itiElement.classList.add('iti--invalid');
-                            iconElement.classList.add('invalid');
-                        }
-                    }
-                },
-                async selectContact() {
-                    this.contactApiError = '';
-                    try {
-                        const contacts = await navigator.contacts.select(['tel'], {multiple: false});
-                        if (contacts.length > 0 && contacts[0].tel.length > 0) {
-                            this.phoneInput.setNumber(contacts[0].tel[0]);
-                            this.validateNumber();
-                        }
-                    } catch (ex) {
-                        this.contactApiError = 'Výběr kontaktů není v tomto náhledu podporován.';
-                        setTimeout(() => { this.contactApiError = ''; }, 5000);
-                    }
-                },
-                handleAction(type) {
-                    const isNumberGood = this.isNumberValid();
-                    this.validateNumber();
-                    if (!isNumberGood && (type !== 'telegram' && type !== 'messenger' && type !== 'signal-user')) {
-                         this.phoneEl.focus();
-                         return;
-                    }
-                    
-                    const encodedMessage = encodeURIComponent(this.message.trim());
-                    let url = '';
-                    switch(type) {
-                        case 'whatsapp': case 'sms': case 'tel': case 'signal': case 'viber':
-                            if (isNumberGood) {
-                                let fullNumber = this.phoneInput.getNumber();
-                                const countryData = this.phoneInput.getSelectedCountryData();
-                                if (countryData.iso2 === 'il' && fullNumber.startsWith('+9720')) {
-                                    fullNumber = '+972' + fullNumber.substring(5);
-                                }
-                                
-                                if (type === 'whatsapp') url = `https://api.whatsapp.com/send?phone=${fullNumber.substring(1)}&text=${encodedMessage}`;
-                                if (type === 'sms') url = `sms:${fullNumber}?body=${encodedMessage}`;
-                                if (type === 'tel') url = `tel:${fullNumber}`;
-                                if (type === 'signal') url = `https://signal.me/#p/${fullNumber}`;
-                                if (type === 'viber') url = `viber://chat?number=${fullNumber.substring(1)}`;
-                            }
-                            break;
-                        case 'telegram': case 'messenger': case 'signal-user':
-                            if (this.username.trim()) {
-                                const cleanUsername = this.username.trim().replace('@', '');
-                                if (type === 'telegram') url = `https://t.me/${cleanUsername}?text=${encodedMessage}`;
-                                if (type === 'messenger') url = `https://m.me/${cleanUsername}`;
-                                if (type === 'signal-user') url = `https://signal.me/#p/${cleanUsername}`;
-                            } else { document.querySelector("#username").focus(); }
-                            break;
-                    }
-                    if(url) window.open(url, '_blank');
-                },
-                resetForm() {
-                    this.phoneInput.setNumber(''); 
-                    this.message = ''; 
-                    this.username = '';
-                    this.validateNumber();
-                }
             }));
         });
         
+        // Spuštění generování navigace a obsahu PO načtení DOMu
         document.addEventListener('DOMContentLoaded', () => {
+            // Generování navigace
             if (typeof generateNav === 'function') {
                 generateNav();
             }
-            
-            // Spouštění globálních funkcí po načtení navigace
-             window.addEventListener('post-nav-load-setup', () => {
-                const app = Alpine.store('app'); // Předpokládá se, že `app` je registrováno
-                if (app) {
-                    app.generateFooter();
-                    app.setupPWA();
-                } else {
-                    // Fallback, pokud Alpine není připraven
-                    document.addEventListener('alpine:initialized', () => {
-                        const app = Alpine.data(document.querySelector('[x-data]'));
-                        app.generateFooter();
-                        app.setupPWA();
-                    });
-                }
-            });
+
+            // Generování mřížky s nástroji (specifické pouze pro index.html)
+            const grid = document.getElementById('main-content-grid');
+            if(grid && typeof navLinks !== 'undefined') {
+                const toolLinks = navLinks.filter(link => link.href !== 'index.html' && link.href !== 'o-nas.html' && link.href !== 'kontakt.html')
+                                          .map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
+                grid.innerHTML = toolLinks;
+            }
         });
     </script>
+    
+    <!-- SKRIPT POUZE PRO NAVIGACI (načte se a spustí jako jeden z prvních) -->
     <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
+
+
 

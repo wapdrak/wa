@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WapDrak | Moderní webové nástroje</title>
     <meta name="description" content="Sada bezplatných a užitečných online nástrojů – od generátoru hesel po odesílač zpráv a QR kódů. Vše na jednom místě.">
+    <meta name="keywords" content="webové nástroje, online nástroje, generátor hesel, qr kód, kalkulačka, odesílač zpráv, wapdrak">
+    <meta name="author" content="WapDrak">
 
     <!-- Knihovny a styly -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -36,7 +38,8 @@
       "@type": "WebSite",
       "name": "WapDrak nástroje",
       "url": "https://kidum.top/",
-      "description": "Sada bezplatných online nástrojů pro každodenní použití."
+      "description": "Sada bezplatných online nástrojů pro každodenní použití.",
+      "keywords": "webové nástroje, online nástroje, generátor hesel, qr kód, kalkulačka, odesílač zpráv, wapdrak"
     }
     </script>
 </head>
@@ -60,7 +63,7 @@
             <div class="w-full max-w-4xl mx-auto p-4 sm:p-6">
                 <div class="border-4 border-gray-700 rounded-3xl p-6 bg-black bg-opacity-50">
                     <div id="main-content-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        <!-- Obsah se vygeneruje skriptem -->
+                        <!-- Obsah (dlaždice s nástroji) se vygeneruje skriptem -->
                     </div>
                 </div>
             </div>
@@ -92,7 +95,7 @@
         </div>
     </div>
     
-    <!-- VEŠKERÁ LOGIKA (kromě navigace) -->
+    <!-- UNIVERZÁLNÍ LOGIKA PRO VŠECHNY STRÁNKY -->
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('app', () => ({
@@ -123,10 +126,15 @@
                     });
                     this.$root.addEventListener('open-share-modal', () => { this.isShareModalOpen = true; });
                     
-                    // Přidán listener pro spolehlivé spuštění PWA logiky
+                    // Po vygenerování navigace se spustí PWA logika
                     window.addEventListener('post-nav-load-setup', () => {
                         this.setupPWA();
                     });
+
+                    // Pokud existuje specifická inicializační funkce pro danou stránku, spustí se
+                    if (typeof this.pageInit === 'function') {
+                        this.pageInit();
+                    }
                 },
 
                 generateFooter() {
@@ -146,7 +154,7 @@
                 setupPWA() {
                     if ('serviceWorker' in navigator && typeof navLinks !== 'undefined') {
                         const manifest = {
-                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": "https://kidum.top/",
+                            "name": "WapDrak Nástroje", "short_name": "WapDrak", "start_url": ".",
                             "display": "standalone", "background_color": "#111827", "theme_color": "#1f2d37",
                             "description": "Sada bezplatných online nástrojů.", "icons": [
                                 { "src": "https://kidum.top/img/wa.jpg", "sizes": "192x192", "type": "image/jpeg" },
@@ -156,13 +164,14 @@
                         const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
                         document.getElementById('manifest').href = URL.createObjectURL(manifestBlob);
                         
+                        // Dynamicky sestavíme seznam URL k cachování z navLinks
                         const urlsToCache = navLinks.map(link => link.href);
-                        urlsToCache.push('https://kidum.top/js/nav.js');
+                        urlsToCache.push('js/nav.js'); // Přidáme i samotný navigační skript
 
                         const serviceWorkerCode = `
-                            const CACHE_NAME = 'wapdrak-nastroje-v15';
+                            const CACHE_NAME = 'wapdrak-nastroje-v16'; // Zvýšená verze pro aktualizaci
                             const urlsToCache = ${JSON.stringify(urlsToCache)};
-                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
+                            self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache.map(url => new Request(url, {cache: 'reload'}))))));
                             self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
                             self.addEventListener('activate', event => {
                                 const cacheWhitelist = [CACHE_NAME];
@@ -216,13 +225,11 @@
                 generateNav();
             }
 
-            // Spolehlivé spuštění PWA logiky po načtení navigace
-            window.dispatchEvent(new CustomEvent('post-nav-load-setup'));
-
-            // Generování mřížky s nástroji (pouze pro index.html)
+            // Generování mřížky s nástroji (specifické pouze pro index.html)
             const grid = document.getElementById('main-content-grid');
             if(grid && typeof navLinks !== 'undefined') {
-                const toolLinks = navLinks.slice(1).map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
+                const toolLinks = navLinks.filter(link => link.href !== 'index.html' && link.href !== 'o-nas.html' && link.href !== 'kontakt.html')
+                                          .map(link => `<a href="${link.href}" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-4 rounded-lg transition-colors flex items-center justify-center text-center" title="${link.title.replace('Přejít na ', '')}">${link.text}</a>`).join('');
                 grid.innerHTML = toolLinks;
             }
         });
@@ -232,4 +239,6 @@
     <script src="https://kidum.top/js/nav.js" defer></script>
 </body>
 </html>
+
+
 

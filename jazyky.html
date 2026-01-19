@@ -3,28 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISO Language Picker - Copy for MacroDroid</title>
+    <title>Světové jazyky - Vyhledávání a kopírování</title>
     <style>
         :root {
             --bg-color: #121212;
+            --card-bg: #1e1e1e;
             --text-color: #e0e0e0;
-            --accent-color: #FFD700;
+            --accent-color: #FFD700; /* Zlatá */
             --item-height: 60px;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             height: 100vh;
             margin: 0;
+            padding-top: 20px;
             overflow: hidden;
         }
 
+        /* Vyhledávací pole */
+        .search-container {
+            width: 90%;
+            max-width: 320px;
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 25px;
+            border: 1px solid #444;
+            background: var(--card-bg);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Kontejner pro karusel */
         .picker-container {
             position: relative;
             height: calc(var(--item-height) * 5);
@@ -81,48 +108,44 @@
 
         /* Panel pro kopírování */
         .info-panel {
-            margin-top: 40px;
+            margin-top: 20px;
             text-align: center;
-            padding: 20px;
+            padding: 15px;
             border: 2px dashed #444;
             border-radius: 15px;
-            background: #1e1e1e;
-            width: 80%;
-            max-width: 400px;
+            background: var(--card-bg);
+            width: 85%;
+            max-width: 320px;
             cursor: pointer;
             position: relative;
-            transition: background 0.2s, border-color 0.2s;
         }
 
-        .info-panel:hover {
-            background: #252525;
-            border-color: var(--accent-color);
-        }
+        .info-panel h2 { margin: 0; color: var(--accent-color); font-size: 1.3rem; }
+        .hint { font-size: 0.7rem; color: #666; margin-top: 8px; text-transform: uppercase; }
 
-        .info-panel h2 { margin: 0; color: var(--accent-color); font-size: 1.5rem; }
-        .info-panel p { margin: 5px 0 0; color: #888; }
-        .hint { font-size: 0.7rem; color: #555; margin-top: 10px; text-transform: uppercase; }
-
-        /* Potvrzení kopírování */
         .toast {
             position: absolute;
-            top: -50px;
+            top: -40px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--accent-color);
             color: #000;
-            padding: 5px 15px;
-            border-radius: 20px;
+            padding: 4px 12px;
+            border-radius: 15px;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             opacity: 0;
-            transition: opacity 0.3s, top 0.3s;
+            transition: 0.3s;
         }
 
-        .toast.show { opacity: 1; top: -60px; }
+        .toast.show { opacity: 1; top: -50px; }
     </style>
 </head>
 <body>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Hledat jazyk nebo kód...">
+    </div>
 
     <div class="picker-container">
         <div class="selection-overlay"></div>
@@ -133,13 +156,13 @@
 
     <div class="info-panel" id="copyPanel">
         <div id="toast" class="toast">Zkopírováno!</div>
-        <h2 id="display-name">Čeština</h2>
-        <p>Kód: <span id="display-code">cs</span></p>
-        <div class="hint">Kliknutím zkopíruješ kód</div>
+        <h2 id="display-name">---</h2>
+        <p>Kód: <span id="display-code">--</span></p>
+        <div class="hint">Klepnutím zkopíruješ kód</div>
     </div>
 
     <script>
-        const languages = [
+        const allLanguages = [
             { code: 'af', name: 'Afrikánština' }, { code: 'sq', name: 'Albánština' }, { code: 'am', name: 'Amharština' },
             { code: 'en', name: 'Angličtina' }, { code: 'ar', name: 'Arabština' }, { code: 'hy', name: 'Arménština' },
             { code: 'az', name: 'Ázerbájdžánština' }, { code: 'bn', name: 'Bengálština' }, { code: 'be', name: 'Běloruština' },
@@ -168,26 +191,33 @@
 
         const wheelContent = document.getElementById('wheelContent');
         const wheel = document.getElementById('languageWheel');
+        const searchInput = document.getElementById('searchInput');
         const displayName = document.getElementById('display-name');
         const displayCode = document.getElementById('display-code');
         const copyPanel = document.getElementById('copyPanel');
         const toast = document.getElementById('toast');
 
         const itemHeight = 60;
-        let currentCode = 'cs';
+        let currentCode = '';
 
-        // Generování prvků
-        languages.forEach(lang => {
-            const div = document.createElement('div');
-            div.className = 'language-item';
-            div.innerHTML = `<span class="lang-name">${lang.name}</span><span class="lang-code">${lang.code}</span>`;
-            div.setAttribute('data-code', lang.code);
-            div.setAttribute('data-name', lang.name);
-            wheelContent.appendChild(div);
-        });
+        // Funkce pro vykreslení seznamu
+        function renderList(list) {
+            wheelContent.innerHTML = '';
+            list.forEach(lang => {
+                const div = document.createElement('div');
+                div.className = 'language-item';
+                div.innerHTML = `<span class="lang-name">${lang.name}</span><span class="lang-code">${lang.code}</span>`;
+                div.setAttribute('data-code', lang.code);
+                div.setAttribute('data-name', lang.name);
+                wheelContent.appendChild(div);
+            });
+            // Reset pozice po vyhledávání
+            wheel.scrollTop = 0;
+            updateSelection();
+        }
 
-        // Detekce skrolování
-        wheel.addEventListener('scroll', () => {
+        // Aktualizace výběru na středu
+        function updateSelection() {
             const index = Math.round(wheel.scrollTop / itemHeight);
             const items = document.querySelectorAll('.language-item');
             
@@ -201,19 +231,34 @@
                     item.classList.remove('active');
                 }
             });
+        }
+
+        // Event: Skrolování
+        wheel.addEventListener('scroll', updateSelection);
+
+        // Event: Vyhledávání
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allLanguages.filter(l => 
+                l.name.toLowerCase().includes(term) || 
+                l.code.toLowerCase().includes(term)
+            );
+            renderList(filtered);
         });
 
-        // Funkce pro kopírování
+        // Event: Kopírování
         copyPanel.addEventListener('click', () => {
+            if (!currentCode) return;
             navigator.clipboard.writeText(currentCode).then(() => {
                 toast.classList.add('show');
                 setTimeout(() => toast.classList.remove('show'), 2000);
             });
         });
 
-        // Nastavení na výchozí jazyk (Čeština)
+        // Start na češtině
         window.onload = () => {
-            const csIndex = languages.findIndex(l => l.code === 'cs');
+            renderList(allLanguages);
+            const csIndex = allLanguages.findIndex(l => l.code === 'cs');
             wheel.scrollTop = csIndex * itemHeight;
         };
     </script>

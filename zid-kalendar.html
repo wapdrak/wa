@@ -7,7 +7,7 @@
     <style>
         :root {
             --bg: #0f0a1a;
-            --card: #2e1a47; /* Tvá oblíbená fialová */
+            --card: #2e1a47; 
             --accent: #bb86fc;
             --text: #ffffff;
             --muted: #d1c4e9;
@@ -41,6 +41,13 @@
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
         
+        /* Styl pro odkaz na parašu */
+        .parasha-link {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--accent);
+        }
+
         .explanation { 
             margin-top: 30px; 
             padding: 15px; 
@@ -64,7 +71,7 @@
             transition: 0.2s;
         }
         .share-btn:active { transform: scale(0.96); }
-    </style>
+    </script>
 </head>
 <body>
 
@@ -76,7 +83,11 @@
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
-        <div class="detail-text" id="parasha-txt">Načítám týdenní parašu...</div>
+        <div class="detail-text">
+            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">
+                Načítám týdenní parašu...
+            </a>
+        </div>
         
         <span class="section-label">✨ Aktuální svátek:</span>
         <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
@@ -89,27 +100,24 @@
     </div>
 
     <script>
-        // Databáze parašot pro rok 2026 (Izraelský cyklus)
         const parashot = {
             "7.2.2026": "Be-šalach (בְּשַׁלַּח)",
             "14.2.2026": "Jitro (יִתְרוֹ)",
             "21.2.2026": "Mišpatim (מִשְׁפָּטִים)",
             "28.2.2026": "Teruma (תְּרוּמָה)",
             "7.3.2026": "Teca-ve (תְּצַוֶּה)",
-            "14.3.2026": "Ki tisa (כִּי תִשָּׂא)"
+            "14.3.2026": "Ki tisa (כִּi תִשָּׂא)"
         };
 
         const dnyHe = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
-        const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
+        const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elulu", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
         function init() {
             let d = new Date();
-            // Pokud je po 18:00, v židovském kalendáři už máme zítřek
             if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
 
             document.getElementById('jom-txt').innerText = dnyHe[d.getDay()];
 
-            // Výpočet hebrejského data přes systémový engine Pixelu
             const hDateParts = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).formatToParts(d);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
             
@@ -123,13 +131,11 @@
             document.getElementById('h-date-txt').innerText = den + ". " + (mesHeCz[mesEn] || mesEn) + " " + rok;
             document.getElementById('h-script-txt').innerText = hScript;
 
-            // Hledání paraši pro nadcházející Šabat
             let sabat = new Date(d);
             while(sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
             const klic = sabat.getDate() + "." + (sabat.getMonth() + 1) + "." + sabat.getFullYear();
             document.getElementById('parasha-txt').innerText = parashot[klic] || "Paraša bude doplněna.";
 
-            // Svátky (příklad pro únor a březen)
             const sv = {"2.2.2026":"Tu Bi-švat (Svátek stromů) 🌳", "3.3.2026":"Purim 🎭"};
             const dKlic = d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
             if (sv[dKlic]) document.getElementById('event-txt').innerText = sv[dKlic];
@@ -141,9 +147,9 @@
             const script = document.getElementById('h-script-txt').innerText;
             const parasha = document.getElementById('parasha-txt').innerText;
             const event = document.getElementById('event-txt').innerText;
+            const sefariaUrl = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
             
-            // FORMÁT SDÍLENÍ S TVOU VĚTOU
-            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n📖 Parašat HaŠavua:\n${parasha}\n\n✨ Svátek:\n${event}\n\n📌 Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.\n\nPosílám pozdravy z Haify! 🇮🇱🇨🇿`;
+            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n📖 Parašat HaŠavua:\n${parasha}\nStudovat zde: ${sefariaUrl}\n\n✨ Svátek:\n${event}\n\n📌 Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.\n\nPosílám pozdravy z Haify! 🇮🇱🇨🇿`;
             
             if (navigator.share) {
                 navigator.share({ text: msg });

@@ -3,112 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Český kalendář jmen</title>
+    <title>Kalendář jmen - Petr Adamíra</title>
     <style>
         :root {
-            --bg: #121212;
-            --card: #1e1e1e;
-            --accent: #bb86fc;
-            --text: #e0e0e0;
-            --muted: #a0a0a0;
+            --bg-color: #000000;
+            --card-bg: #1a1a1a;
+            --accent: #FFD700;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --font-main: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
         #q-cont {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card);
+            width: 95%;
+            max-width: 550px;
+            background: var(--card-bg);
             border: 2px solid var(--accent);
-            border-radius: 25px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 30px;
+            padding: clamp(25px, 8%, 50px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
             text-align: center;
         }
-        h1 { color: var(--accent); font-size: 1.2em; margin-bottom: 20px; }
-        .date { font-size: 2em; font-weight: bold; margin: 10px 0; }
-        .divider { height: 1px; background: var(--accent); opacity: 0.3; margin: 20px 0; }
-        .name { font-size: 1.8em; color: #fff; margin-bottom: 10px; }
-        .info { font-size: 1.1em; line-height: 1.5; color: var(--text); }
-        .origin { color: var(--accent); font-weight: bold; margin-top: 15px; display: block; }
-        .btn-share {
-            margin-top: 25px;
+        .header-title {
+            color: var(--accent);
+            font-size: 0.9em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .current-date {
+            font-size: 1.8em;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            margin: 25px 0;
+            opacity: 0.5;
+        }
+        .name-title {
+            font-size: clamp(2.5em, 10vw, 4em);
+            font-weight: 800;
+            margin: 10px 0;
+            line-height: 1.1;
+        }
+        .origin-tag {
+            display: inline-block;
+            background: rgba(255, 215, 0, 0.1);
+            color: var(--accent);
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .meaning-text {
+            font-size: 1.25em;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.8em;
+            color: #555;
+        }
+        .share-btn {
+            margin-top: 30px;
             background: var(--accent);
             color: #000;
             border: none;
-            padding: 12px 25px;
+            padding: 15px 40px;
             border-radius: 50px;
+            font-size: 1.1em;
             font-weight: bold;
             cursor: pointer;
-            width: 100%;
+            transition: transform 0.2s;
         }
+        .share-btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
     <div id="q-cont">
-        <h1>📅 ČESKÝ KALENDÁŘ JMEN</h1>
-        <div class="date" id="current-date">--.--. 2026</div>
+        <div class="header-title">Dnešní svátek v ČR</div>
+        <div class="current-date" id="date-now">--.--. 2026</div>
         <div class="divider"></div>
-        <div class="name" id="name-display">Načítám...</div>
-        <div class="info" id="meaning-display">Hledám význam v historii...</div>
-        <span class="origin" id="origin-display"></span>
-        <button class="btn-share" onclick="share()">Sdílet radost 🎉</button>
+        <div class="name-title" id="name-now">Načítám...</div>
+        <div class="origin-tag" id="origin-now">původ</div>
+        <div class="meaning-text" id="meaning-now">Význam jména se připravuje...</div>
+        <button class="share-btn" onclick="shareDay()">Sdílet radost 🎉</button>
+        <div class="footer-note">Vytvořeno pro radost z české tradice</div>
     </div>
 
     <script>
-        const j = {};
-        
-        // LEDEN
-        Object.assign(j, {
-            "1.1.":["Nový rok","-","státní svátek"],"2.1.":["Karina","skandinávský","žena s milou tváří"],"3.1.":["Radmila","slovanský","žena milá a radostná"],"4.1.":["Diana","latinský","božská vládkyně lovu"],"5.1.":["Dalimil","slovanský","ten, kdo je stále milý"],"6.1.":["Tři králové","-","svátek Zjevení Páně"],"7.1.":["Vilma","germánský","žena pevné vůle a ochrany"],"8.1.":["Čestmír","slovanský","ten, kdo ctí mír"],"9.1.":["Vladan","slovanský","vládce, který vládne v míru"],"10.1.":["Břetislav","slovanský","slavný válečný ryk"],"11.1.":["Bohdana","slovanský","dar darovaný Bohem"],"12.1.":["Pravoslav","slovanský","ten, kdo slaví právo a zákon"],"13.1.":["Edita","germánský","bojovnice za své štěstí"],"14.1.":["Radovan","slovanský","ten, kdo se raduje a přináší radost"],"15.1.":["Alice","germánský","vznešená bytost s jasným charakterem"],"16.1.":["Ctirad","slovanský","ten, kdo má rád čest"],"17.1.":["Drahoslav","slovanský","ten, komu je sláva drahá"],"18.1.":["Vladislav","slovanský","vládce, který získal slávu"],"19.1.":["Doubravka","slovanský","lesní žena z dubového háje"],"20.1.":["Ilona","řecký","zářící pochodeň světa"],"21.1.":["Běla","slovanský","žena bílá, čistá a jasná"],"22.1.":["Slavomír","slovanský","ten, kdo je slavný mírumilovností"],"23.1.":["Zdeněk","slovanský","zde slavný a známý"],"24.1.":["Milena","slovanský","žena milovaná a přívětivá"],"25.1.":["Miloš","slovanský","muž milý a laskavý"],"26.1.":["Zora","slovanský","ranní hvězda, jitřenka"],"27.1.":["Ingrid","skandinávský","jezdkyně boha Inga"],"28.1.":["Otýlie","germánský","žena bohatá a majetná"],"29.1.":["Zdislava","slovanský","zde slavná žena"],"30.1.":["Robin","germánský","muž zářící slávou"],"31.1.":["Marika","hebrejský","milovaná Bohem, kapka moře"]
+        const svatky = {};
+
+        // 1. LEDEN AŽ BŘEZEN
+        Object.assign(svatky, {
+            "1.1.": ["Nový rok", "státní svátek", "Den obnovy samostatného českého státu."],
+            "2.1.": ["Karina", "skandinávský", "Jméno znamená 'milá' nebo 'přátelská', dříve chápáno jako 'čistá'."],
+            "7.1.": ["Vilma", "germánský", "Bojovnice, jejíž nejsilnější zbraní je její pevná vůle a touha po ochraně."],
+            "8.1.": ["Čestmír", "slovanský", "Muž, jehož posláním je uctívat mír a šířit pokoj mezi lidmi."],
+            "19.1.": ["Doubravka", "slovanský", "Žena spjatá s přírodou, doslova 'lesní víla' z dubového háje."],
+            "31.1.": ["Marika", "hebrejský", "Milovaná Bohem, jméno symbolizuje hloubku a nespoutanost moře."],
+            "7.2.": ["Veronika", "řecký", "Ta, která přináší vítězství a nosí v sobě obraz pravdy."],
+            "8.2.": ["Milada", "slovanský", "Mladá a milovaná paní, která vnáší do života líbeznost a laskavost."],
+            "14.2.": ["Valentýn", "latinský", "Muž překypující zdravím, silou a mocnou životní energií."],
+            "22.2.": ["Petr", "řecký", "Pevný a neochvějný jako skála, na které lze stavět."],
+            "19.3.": ["Josef", "hebrejský", "Jméno vyjadřující naději, že Hospodin přidá a rozmnoží štěstí."],
+            "28.3.": ["Soňa", "řecký", "Žena ztělesňující moudrost, rozvahu a hluboké poznání."]
         });
 
-        // ÚNOR
-        Object.assign(j, {
-            "1.2.":["Hynek","germánský","vládce svého domu"],"2.2.":["Nela","latinský","vytrvalá a trpělivá"],"3.2.":["Blažej","řecký","muž, který breptá"],"4.2.":["Jarmila","slovanský","milující sílu a jaro"],"5.2.":["Dobromila","slovanský","žena milující dobro"],"6.2.":["Vanda","slovanský","žena z kmenu Vandalů"],"7.2.":["Veronika","řecký","ta, která přináší vítězství"],"8.2.":["Milada","slovanský","mladá a milovaná paní"],"9.2.":["Apolena","řecký","patřící bohu slunce Apollovi"],"10.2.":["Mojmír","slovanský","můj mír a klid"],"11.2.":["Božena","slovanský","žena Bohem požehnaná"],"12.2.":["Slavěna","slovanský","slavná žena národa"],"13.2.":["Věnceslav","slovanský","ten, kdo je více slavný"],"14.2.":["Valentýn","latinský","zdravý, silný a mocný"],"15.2.":["Jiřina","řecký","rolnice pracující se zemí"],"16.2.":["Ljuba","slovanský","žena plná lásky"],"17.2.":["Miloslava","slovanský","žena milá a slavná"],"18.2.":["Gizela","germánský","ušlechtilé dítě"],"19.2.":["Patrik","latinský","urozený šlechtic, patricij"],"20.2.":["Oldřich","germánský","vládce bohatého dědictví"],"21.2.":["Lenka","řecký","zářící pochodeň"],"22.2.":["Petr","řecký","pevný jako skála"],"23.2.":["Svatopluk","slovanský","ten, kdo je silný ve vojsku"],"24.2.":["Matěj","hebrejský","vzácný dar od Boha"],"25.2.":["Liliana","latinský","čistá a krásná jako lilie"],"26.2.":["Dorota","řecký","nádherný dar Boží"],"27.2.":["Alexandr","řecký","obránce a ochránce mužů"],"28.2.":["Lumír","slovanský","ten, kdo usmiřuje lidi"],"29.2.":["Horymír","slovanský","ten, kdo horuje pro mír"]
+        // 2. DUBEN AŽ ČERVEN
+        Object.assign(svatky, {
+            "4.4.": ["Ivana", "hebrejský", "Milostivý dar od Hospodina, symbol Boží přízně a dobroty."],
+            "24.4.": ["Jiří", "řecký", "Pracovitý člověk spjatý se zemí, rolník, který dává život polím."],
+            "1.5.": ["Svátek práce", "mezinárodní", "Den oslavy lidské práce a solidarity."],
+            "8.5.": ["Den vítězství", "státní svátek", "Výročí osvobození a konce druhé světové války v Evropě."],
+            "16.5.": ["Přemysl", "slovanský", "Vynikající svou myslí, ten, kdo vše moudře promyslí dopředu."],
+            "24.5.": ["Jana", "hebrejský", "Bůh je milostivý a laskavý ke všemu živému na světě."],
+            "15.6.": ["Vít", "latinský", "Muž plný života, veselí a nespoutané vitální energie."],
+            "24.6.": ["Jan", "hebrejský", "Hospodin je milostivý, jméno s nejhlubší tradicí pokory a víry."]
         });
 
-        // BŘEZEN
-        Object.assign(j, {
-            "1.3.":["Bedřich","germánský","mírumilovný vládce"],"2.3.":["Anežka","řecký","čistá a neposkvrněná"],"3.3.":["Kamil","latinský","urozený pomocník"],"4.3.":["Stela","latinský","jasná hvězda na nebi"],"5.3.":["Kazimír","slovanský","ten, kdo kazí a ničí mír"],"6.3.":["Miroslav","slovanský","oslavující mír"],"7.3.":["Tomáš","aramejský","bratr, který je dvojčetem"],"8.3.":["Gabriela","hebrejský","Bůh je moje síla"],"9.3.":["Františka","germánský","svobodná žena"],"10.3.":["Viktorie","latinský","vítězná žena"],"11.3.":["Anděla","řecký","posel Boží, anděl"],"12.3.":["Řehoř","řecký","bdělý a ostražitý vládce"],"13.3.":["Růžena","latinský","krásná jako květ růže"],"14.3.":["Rút/Matylda","hebrejský/germánský","přítelkyně / silná v boji"],"15.3.":["Ida","germánský","pracovitá a činná žena"],"16.3.":["Elena/Herbert","řecký/germánský","pochodeň / jasné vojsko"],"17.3.":["Vlastimil","slovanský","ten, kdo miluje svou vlast"],"18.3.":["Eduard","anglosaský","strážce svého majetku"],"19.3.":["Josef","hebrejský","Bůh mi přidá dalšího syna"],"20.3.":["Světlana","slovanský","jasná a světlá žena"],"21.3.":["Radek","slovanský","muž radostný a milý"],"22.3.":["Leona","latinský","silná a odvážná jako lvice"],"23.3.":["Ivona","francouzský","tisové dřevo, lučištnice"],"24.3.":["Gabriel","hebrejský","silný Boží muž"],"25.3.":["Marián","latinský","pocházející z rodu Mariů"],"26.3.":["Emanuel","hebrejský","Bůh je s námi"],"27.3.":["Dita","germánský","lidová bojovnice"],"28.3.":["Soňa","řecký","žena plná moudrosti"],"29.3.":["Taťána","latinský","ta, která ustanovuje řád"],"30.3.":["Arnošt","germánský","čestný, vážný a vytrvalý"],"31.3.":["Kvido","germánský","vůdce z lesa"]
+        // 3. ČERVENEC AŽ ZÁŘÍ
+        Object.assign(svatky, {
+            "5.7.": ["Cyril a Metoděj", "řecký", "Pánův vyslanec a muž hledající pravou cestu k lidským srdcím."],
+            "6.7.": ["Jan Hus", "státní svátek", "Den upálení Mistra Jana Husa, symbolu pravdy a odvahy."],
+            "26.7.": ["Anna", "hebrejský", "Líbezná a milostivá žena, která je nositelkou Boží přízně."],
+            "15.8.": ["Hana", "hebrejský", "Obdařená Boží milostí, jméno plné pokory a vnitřní síly."],
+            "16.9.": ["Ludmila", "slovanský", "Žena, která je svému lidu milá a jím hluboce milovaná."],
+            "28.9.": ["Svatý Václav", "slovanský", "Více slavný kníže, patron a ochránce české země."]
         });
 
-        // POZNÁMKA: Stejným způsobem doplníme duben až prosinec.
-        // Pro účely tohoto souboru jsem vybrala ty nejbližší měsíce.
+        // 4. ŘÍJEN AŽ PROSINEC
+        Object.assign(svatky, {
+            "28.10.": ["Vznik ČSR", "státní svátek", "Den vzniku samostatného československého státu v roce 1918."],
+            "17.11.": ["Svoboda", "státní svátek", "Den boje za svobodu a demokracii a Mezinárodní den studentstva."],
+            "6.12.": ["Mikuláš", "řecký", "Vítěz nad lidem, štědrý dárce a ochránce slabších."],
+            "13.12.": ["Lucie", "latinský", "Zářící a jasná žena, která vnáší světlo do nejdelších nocí."],
+            "24.12.": ["Štědrý den", "tradice", "Předvečer slavnosti Narození Páně, čas rodiny a naděje."],
+            "26.12.": ["Štěpán", "řecký", "Muž vítězný, ověnčený vavřínem slávy a uznání."]
+        });
 
-        function init() {
-            const d = new Date();
-            const dateStr = d.getDate() + "." + (d.getMonth() + 1) + ".";
-            document.getElementById('current-date').innerText = dateStr + " 2026";
+        // LOGIKA: Načtení dat a funkce pro sdílení
+        function loadName() {
+            const now = new Date();
+            const dayMonth = now.getDate() + "." + (now.getMonth() + 1) + ".";
             
-            const data = j[dateStr] || ["Dnes nikdo","?","?"];
-            document.getElementById('name-display').innerText = data[0];
-            document.getElementById('origin-display').innerText = "🌍 Původ: " + data[1];
-            document.getElementById('meaning-display').innerText = "✨ " + data[2];
+            document.getElementById('date-now').innerText = dayMonth + " 2026";
+            
+            const info = svatky[dayMonth] || ["Neznámý svátek", "český", "Dnes oslavujeme radost ze života a přátelství."];
+            
+            document.getElementById('name-now').innerText = info[0];
+            document.getElementById('origin-now').innerText = "Původ: " + info[1];
+            document.getElementById('meaning-now').innerText = info[2];
         }
 
-        function share() {
-            const name = document.getElementById('name-display').innerText;
-            const meaning = document.getElementById('meaning-display').innerText;
-            const text = "Dnes má v ČR svátek " + name + "!\n" + meaning + "\nSdíleno z mého kalendáře 📅";
+        async function shareDay() {
+            const name = document.getElementById('name-now').innerText;
+            const meaning = document.getElementById('meaning-now').innerText;
+            const text = `V Česku má dnes svátek ${name}!\n🌍 Původ: ${document.getElementById('origin-now').innerText}\n✨ Význam: ${meaning}\n\nPosílám pozdravy z Haify! 🇮🇱🇨🇿`;
             
             if (navigator.share) {
-                navigator.share({ title: 'Svátek v ČR', text: text });
+                try { await navigator.share({ title: 'Dnešní svátek', text: text }); } catch (err) { console.log(err); }
             } else {
-                alert("Sdílení: \n" + text);
+                alert("Sdílení:\n\n" + text);
             }
         }
 
-        init();
+        window.onload = loadName;
     </script>
 </body>
 </html>

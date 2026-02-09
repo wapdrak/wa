@@ -4,27 +4,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Židovský kalendář - Haifa Edition</title>
-    </head>
+    <style>
+        :root {
+            --bg: #0f0a1a;
+            --card: #2e1a47; 
+            --accent: #bb86fc;
+            --text: #ffffff;
+            --muted: #d1c4e9;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 15px;
+        }
+        #q-cont {
+            width: 100%;
+            max-width: 550px;
+            background: var(--card);
+            border: 3px solid var(--accent);
+            border-radius: 35px;
+            padding: 35px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+            text-align: center;
+        }
+        .header { font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+        .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; opacity: 0.8; }
+        .hebrew-date { font-size: clamp(2em, 8vw, 2.8em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
+        .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
+        .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
+        .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
+        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
+        .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
+        .msg-label { display: block; margin-top: 25px; font-size: 0.9em; color: var(--accent); text-align: left; margin-left: 10px; }
+        #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; font-family: inherit; font-size: 1em; margin-top: 5px; resize: none; box-sizing: border-box; }
+        .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; }
+    </style>
+</head>
 <body>
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
         <div class="jom-tyden" id="jom-txt">Načítám...</div>
         <div class="hebrew-date" id="h-date-txt">--. -- 5786</div>
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
-        
         <span class="section-label">📖 Parašat HaŠavua:</span>
         <div class="detail-text">
             <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
         </div>
-        
         <span class="section-label">✨ Svátek / Událost:</span>
         <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
-        
-        <div class="explanation" id="expl-txt">Nový den začíná s východem první hvězdy.</div>
-        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱</textarea>
+        <div class="explanation" id="expl-txt">Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.</div>
+        <label class="msg-label">✍️ Tvůj vzkaz k odeslání:</label>
+        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱🇨🇿</textarea>
         <button class="share-btn" onclick="shareJewishDay()">Sdílet datum 🇮🇱</button>
     </div>
-
     <script src="zid-kalendar.js"></script>
 </body>
 </html>

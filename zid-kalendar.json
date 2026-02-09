@@ -1,9 +1,4 @@
 {
-  "info": {
-    "nazev": "Židovský kalendář - Haifa",
-    "verze": "1.0",
-    "posledni_aktualizace": "2026-02-09"
-  },
   "konstanty": {
     "dny_he_cz": ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"],
     "mesice_he_cz": {
@@ -14,11 +9,17 @@
   },
   "data": {
     "parashot": {
+      "7.2.2026": "Be-šalach (בְּשַׁלַּח)",
       "14.2.2026": "Jitro (יִתְרוֹ)",
       "21.2.2026": "Mišpatim (מִשְׁפָּטִים)",
-      "28.2.2026": "Teruma (תְּרוּמָה)"
+      "28.2.2026": "Teruma (תְּרוּמָה)",
+      "7.3.2026": "Teca-ve (תְּצַוֶּה)",
+      "14.3.2026": "Ki tisa (כִּי תִשָּׂא)",
+      "21.3.2026": "Vajakhel-Pekudej (וַיַּקְהֵל-פְקוּדֵי)",
+      "28.3.2026": "Vajikra (וַיִּקְרָא)"
     },
     "svatky": {
+      "2.2.2026": "Tu Bi-švat (Svátek stromů) 🌳",
       "3.3.2026": "Půst Ester",
       "4.3.2026": "Purim 🎭",
       "1.4.2026": "Erev Pesach 🍷"

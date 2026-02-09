@@ -39,7 +39,6 @@
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
-        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
         .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
         .msg-label { display: block; margin-top: 25px; font-size: 0.9em; color: var(--accent); text-align: left; margin-left: 10px; }
         #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; font-family: inherit; font-size: 1em; margin-top: 5px; resize: none; box-sizing: border-box; }
@@ -47,22 +46,73 @@
     </style>
 </head>
 <body>
+
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
         <div class="jom-tyden" id="jom-txt">Načítám...</div>
-        <div class="hebrew-date" id="h-date-txt">--. -- 5786</div>
+        
+        <div class="hebrew-date" id="h-date-txt">--. -- ----</div>
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
+        
         <span class="section-label">📖 Parašat HaŠavua:</span>
-        <div class="detail-text">
-            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
+        <div class="detail-text" id="parasha-txt">Dostupná v mobilních aplikacích.</div>
+        
+        <span class="section-label">✨ Informace:</span>
+        <div class="detail-text">Haifa Edition 🇮🇱</div>
+        
+        <div class="explanation">
+            Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.
         </div>
-        <span class="section-label">✨ Svátek / Událost:</span>
-        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
-        <div class="explanation" id="expl-txt">Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.</div>
+
         <label class="msg-label">✍️ Tvůj vzkaz k odeslání:</label>
         <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱🇨🇿</textarea>
+        
         <button class="share-btn" onclick="shareJewishDay()">Sdílet datum 🇮🇱</button>
     </div>
-    <script src="zid-kalendar.js"></script>
+
+    <script>
+        const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
+        const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
+
+        function init() {
+            let d = new Date();
+            // Haifa logika: po 18:00 už je zítřek [cite: 2026-01-13]
+            if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
+
+            // 1. Den v týdnu
+            document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
+
+            // 2. Výpočet hebrejského data navždy (pomocí Intl)
+            const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
+            const hParts = hFormat.formatToParts(d);
+            const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
+            
+            let den, mesEn, rok;
+            hParts.forEach(p => {
+                if (p.type === 'day') den = p.value;
+                if (p.type === 'month') mesEn = p.value;
+                if (p.type === 'year') rok = p.value;
+            });
+
+            document.getElementById('h-date-txt').innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
+            document.getElementById('h-script-txt').innerText = hScript;
+        }
+
+        function shareJewishDay() {
+            const jom = document.getElementById('jom-txt').innerText;
+            const date = document.getElementById('h-date-txt').innerText;
+            const script = document.getElementById('h-script-txt').innerText;
+            const custom = document.getElementById('custom-msg').value;
+            
+            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n${custom}`;
+            
+            if (navigator.share) {
+                navigator.share({ text: msg });
+            } else {
+                alert(msg);
+            }
+        }
+        window.onload = init;
+    </script>
 </body>
 </html>

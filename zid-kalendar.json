@@ -1,0 +1,27 @@
+{
+  "info": {
+    "nazev": "Židovský kalendář - Haifa",
+    "verze": "1.0",
+    "posledni_aktualizace": "2026-02-09"
+  },
+  "konstanty": {
+    "dny_he_cz": ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"],
+    "mesice_he_cz": {
+      "Shevat": "Švat", "Adar I": "Adar I", "Adar II": "Adar II", "Nisan": "Nisan", 
+      "Iyar": "Ijar", "Sivan": "Sivan", "Tamuz": "Tamuz", "Av": "Av", 
+      "Elul": "Elul", "Tishri": "Tišrej", "Cheshvan": "Chešvan", "Kislev": "Kislev", "Tevet": "Tevet"
+    }
+  },
+  "data": {
+    "parashot": {
+      "14.2.2026": "Jitro (יִתְרוֹ)",
+      "21.2.2026": "Mišpatim (מִשְׁפָּטִים)",
+      "28.2.2026": "Teruma (תְּרוּמָה)"
+    },
+    "svatky": {
+      "3.3.2026": "Půst Ester",
+      "4.3.2026": "Purim 🎭",
+      "1.4.2026": "Erev Pesach 🍷"
+    }
+  }
+}

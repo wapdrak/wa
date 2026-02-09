@@ -1,79 +1,50 @@
-// Konfigurace českých názvů pro tvůj kalendář
-const dny_cz = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
-const mesice_he_cz = {
-    "Shevat": "Švat", "Adar I": "Adar I", "Adar II": "Adar II", "Nisan": "Nisan", 
-    "Iyar": "Ijar", "Sivan": "Sivan", "Tamuz": "Tamuz", "Av": "Av", 
-    "Elul": "Elul", "Tishri": "Tišrej", "Cheshvan": "Chešvan", "Kislev": "Kislev", "Tevet": "Tevet"
-};
-
 async function init() {
     try {
+        // Načtení tvého vlastního API
+        const res = await fetch('zid-kalendar.json');
+        const api = await res.json();
+
         let d = new Date();
-        // Haifa logika: Po 18:00 už je z hlediska kalendáře zítřek [cite: 2026-01-13]
+        // Haifa korekce: po 18:00 už je zítřek [cite: 2026-01-13]
         if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
 
-        const y = d.getFullYear();
-        const m = d.getMonth() + 1;
-        const day = d.getDate();
+        // 1. Den v týdnu
+        document.getElementById('jom-txt').innerText = api.konstanty.dny_he_cz[d.getDay()];
 
-        // 1. Načtení hebrejského data a písma
-        const convRes = await fetch(`https://www.hebcal.com/converter?cfg=json&gy=${y}&gm=${m}&gd=${day}&g2h=1`);
-        const convData = await convRes.json();
-
-        // 2. Načtení svátků a paraši pro Haifu
-        const calRes = await fetch(`https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on&nx=on&year=${y}&month=${m}&ss=on&mf=on&c=on&city=IL-Haifa&lg=s`);
-        const calData = await calRes.json();
-
-        // --- PLNĚNÍ TVÝCH HTML ELEMENTŮ ---
-
-        // Den v týdnu (jom-txt)
-        document.getElementById('jom-txt').innerText = dny_cz[d.getDay()];
-
-        // Hebrejské datum v češtině (h-date-txt)
-        const czechMonth = mesice_he_cz[convData.hm] || convData.hm;
-        document.getElementById('h-date-txt').innerText = `${convData.hd}. ${czechMonth} ${convData.hy}`;
+        // 2. Výpočet hebrejského data (tvoje původní logika)
+        const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
+        const hParts = hFormat.formatToParts(d);
+        const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
         
-        // Hebrejské písmo (h-script-txt)
-        document.getElementById('h-script-txt').innerText = convData.hebrew;
-
-        // Hledání Paraši a Svátku v datech
-        const dateKey = d.toISOString().split('T')[0];
-        let parasha = "Paraša bude doplněna.";
-        let svatek = "Dnes není žádný významný svátek.";
-
-        calData.items.forEach(item => {
-            if (item.date === dateKey) {
-                if (item.category === "parashat") parasha = item.title;
-                if (item.category === "holiday") svatek = item.title;
-            }
+        let den, mesEn, rok;
+        hParts.forEach(p => {
+            if (p.type === 'day') den = p.value;
+            if (p.type === 'month') mesEn = p.value;
+            if (p.type === 'year') rok = p.value;
         });
 
-        document.getElementById('parasha-txt').innerText = parasha;
-        document.getElementById('event-txt').innerText = svatek;
+        document.getElementById('h-date-txt').innerText = `${den}. ${api.konstanty.mesice_he_cz[mesEn] || mesEn} ${rok}`;
+        document.getElementById('h-script-txt').innerText = hScript;
 
-    } catch (error) {
-        console.error("Chyba při načítání dat:", error);
-        document.getElementById('jom-txt').innerText = "Chyba připojení";
+        // 3. Paraša (hledání nejbližší soboty v tvých datech)
+        let sabat = new Date(d);
+        while(sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
+        const klic = `${sabat.getDate()}.${sabat.getMonth() + 1}.${sabat.getFullYear()}`;
+        document.getElementById('parasha-txt').innerText = api.data.parashot[klic] || "Paraša bude doplněna.";
+
+        // 4. Svátek
+        const dKlic = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
+        document.getElementById('event-txt').innerText = api.data.svatky[dKlic] || "Dnes není žádný významný svátek.";
+
+    } catch (e) {
+        console.error("Chyba:", e);
+        document.getElementById('jom-txt').innerText = "Chyba načítání API";
     }
 }
 
-// Funkce pro tlačítko "Sdílet datum"
 function shareJewishDay() {
-    const jom = document.getElementById('jom-txt').innerText;
-    const datum = document.getElementById('h-date-txt').innerText;
-    const pismo = document.getElementById('h-script-txt').innerText;
-    const parasha = document.getElementById('parasha-txt').innerText;
-    const svatek = document.getElementById('event-txt').innerText;
-    const vzkaz = document.getElementById('custom-msg').value;
-
-    const msg = `🇮🇱 Židovský kalendář - Haifa Edition\n\n${jom}\n${datum}\n${pismo}\n\n📖 Paraša: ${parasha}\n✨ Svátek: ${svatek}\n\n💬 ${vzkaz}`;
-
-    if (navigator.share) {
-        navigator.share({ text: msg });
-    } else {
-        alert(msg);
-    }
+    const msg = `🇮🇱 Židovský kalendář\n\n${document.getElementById('jom-txt').innerText}\n${document.getElementById('h-date-txt').innerText}\n${document.getElementById('h-script-txt').innerText}\n\n📖 Parašat HaŠavua:\n${document.getElementById('parasha-txt').innerText}\n\n✨ Svátek:\n${document.getElementById('event-txt').innerText}\n\n${document.getElementById('custom-msg').value}`;
+    if (navigator.share) navigator.share({ text: msg }); else alert(msg);
 }
 
-// Spuštění po načtení stránky
 window.onload = init;

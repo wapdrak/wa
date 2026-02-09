@@ -3,7 +3,6 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,5 +23,5 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add zid-kalendar.json
-          git commit -m "Automatická aktualizace API" || exit 0
+          git commit -m "Aktualizace JSON API" || exit 0
           git push

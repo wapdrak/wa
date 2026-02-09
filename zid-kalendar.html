@@ -37,50 +37,12 @@
         .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; opacity: 0.8; }
         .hebrew-date { font-size: clamp(2em, 8vw, 2.8em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
-        
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
-        
-        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
-
-        .explanation { 
-            margin-top: 30px; 
-            padding: 20px; 
-            border: 1px solid rgba(187, 134, 252, 0.3);
-            border-radius: 20px;
-            color: var(--accent);
-            font-size: 1.1em;
-            line-height: 1.4;
-            background: rgba(0,0,0,0.2);
-        }
-
+        .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
         .msg-label { display: block; margin-top: 25px; font-size: 0.9em; color: var(--accent); text-align: left; margin-left: 10px; }
-        #custom-msg {
-            width: 100%;
-            background: rgba(15, 10, 26, 0.5);
-            border: 1px solid var(--accent);
-            border-radius: 15px;
-            color: white;
-            padding: 12px;
-            font-family: inherit;
-            font-size: 1em;
-            margin-top: 5px;
-            resize: none;
-            box-sizing: border-box;
-        }
-
-        .share-btn {
-            margin-top: 25px;
-            background: var(--accent);
-            color: #0f0a1a;
-            border: none;
-            padding: 20px;
-            border-radius: 50px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-        }
+        #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; font-family: inherit; font-size: 1em; margin-top: 5px; resize: none; box-sizing: border-box; }
+        .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; }
     </style>
 </head>
 <body>
@@ -89,20 +51,16 @@
         <div class="header">Židovský kalendář</div>
         <div class="jom-tyden" id="jom-txt">Načítám...</div>
         
-        <div class="hebrew-date" id="h-date-txt">--. -- 5786</div>
+        <div class="hebrew-date" id="h-date-txt">--. -- ----</div>
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
-        <div class="detail-text">
-            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">
-                Načítám parašu...
-            </a>
-        </div>
+        <div class="detail-text" id="parasha-txt">Dostupná v mobilních aplikacích.</div>
         
-        <span class="section-label">✨ Svátek / Událost:</span>
-        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
+        <span class="section-label">✨ Informace:</span>
+        <div class="detail-text">Haifa Edition 🇮🇱</div>
         
-        <div class="explanation" id="expl-txt">
+        <div class="explanation">
             Nový den začíná s východem první hvězdy a večer tedy začíná již nový den.
         </div>
 
@@ -113,69 +71,40 @@
     </div>
 
     <script>
-        const parashot = {
-            "7.2.2026": "Be-šalach (בְּשַׁלַּח)",
-            "14.2.2026": "Jitro (יִתְרוֹ)",
-            "21.2.2026": "Mišpatim (מִשְׁפָּטִים)",
-            "28.2.2026": "Teruma (תְּרוּMָה)",
-            "7.3.2026": "Teca-ve (תְּצַוֶּה)",
-            "14.3.2026": "Ki tisa (כִּי תִשāא)",
-            "21.3.2026": "Vajakhel-Pekudej (וַיַּקְהֵל-פְקוּדֵי)",
-            "28.3.2026": "Vajikra (וַיִּקְרָא)"
-        };
-
         const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
         function init() {
-            try {
-                let d = new Date();
-                if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
+            let d = new Date();
+            // Haifa logika: po 18:00 už je zítřek [cite: 2026-01-13]
+            if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
 
-                document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
+            // 1. Den v týdnu
+            document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
 
-                // Robustnější získání hebrejského data
-                const options = { day: 'numeric', month: 'long', year: 'numeric' };
-                const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', options);
-                const hDateParts = hFormat.formatToParts(d);
-                
-                const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', options).format(d);
-                
-                let den = "", mesEn = "", rok = "";
-                hDateParts.forEach(p => {
-                    if (p.type === 'day') den = p.value;
-                    if (p.type === 'month') mesEn = p.value;
-                    if (p.type === 'year') rok = p.value;
-                });
+            // 2. Výpočet hebrejského data navždy (pomocí Intl)
+            const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
+            const hParts = hFormat.formatToParts(d);
+            const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
+            
+            let den, mesEn, rok;
+            hParts.forEach(p => {
+                if (p.type === 'day') den = p.value;
+                if (p.type === 'month') mesEn = p.value;
+                if (p.type === 'year') rok = p.value;
+            });
 
-                document.getElementById('h-date-txt').innerText = den + ". " + (mesHeCz[mesEn] || mesEn) + " " + rok;
-                document.getElementById('h-script-txt').innerText = hScript;
-
-                // Paraša
-                let sabat = new Date(d);
-                while(sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
-                const klic = sabat.getDate() + "." + (sabat.getMonth() + 1) + "." + sabat.getFullYear();
-                document.getElementById('parasha-txt').innerText = parashot[klic] || "Paraša bude doplněna.";
-
-                // Svátek
-                const svatky = {"2.2.2026":"Tu Bi-švat (Svátek stromů) 🌳", "3.3.2026":"Půst Ester", "4.3.2026":"Purim 🎭", "1.4.2026":"Erev Pesach 🍷"};
-                const dKlic = d.getDate() + "." + (d.getMonth() + 1) + "." + d.getFullYear();
-                document.getElementById('event-txt').innerText = svatky[dKlic] || "Dnes není žádný významný svátek.";
-            } catch (e) {
-                console.error(e);
-                document.getElementById('jom-txt').innerText = "Chyba načítání";
-            }
+            document.getElementById('h-date-txt').innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
+            document.getElementById('h-script-txt').innerText = hScript;
         }
 
         function shareJewishDay() {
             const jom = document.getElementById('jom-txt').innerText;
             const date = document.getElementById('h-date-txt').innerText;
             const script = document.getElementById('h-script-txt').innerText;
-            const parasha = document.getElementById('parasha-txt').innerText;
-            const event = document.getElementById('event-txt').innerText;
             const custom = document.getElementById('custom-msg').value;
             
-            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n📖 Parašat HaŠavua:\n${parasha}\n\n✨ Svátek:\n${event}\n\n${custom}`;
+            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n${custom}`;
             
             if (navigator.share) {
                 navigator.share({ text: msg });

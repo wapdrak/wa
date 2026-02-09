@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Židovský kalendář - Haifa Edition</title>
     <style>
+        /* Hlavička: Tvůj původní fialový design */
         :root {
             --bg: #0f0a1a;
             --card: #2e1a47; 
@@ -39,6 +40,7 @@
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
+        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
         .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
         #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; margin-top: 5px; resize: none; box-sizing: border-box; }
         .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; }
@@ -53,11 +55,18 @@
         <div class="hebrew-date" id="h-date-txt">--. -- ----</div>
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
         
-        <span class="section-label">📍 Lokalita:</span>
-        <div class="detail-text">Haifa, Izrael 🇮🇱</div>
+        <span class="section-label">📖 Parašat HaŠavua:</span>
+        <div class="detail-text">
+            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">
+                Načítám...
+            </a>
+        </div>
         
-        <div class="explanation">
-            Datum se automaticky mění s východem první hvězdy (Tzeit HaKochavim) v Haifě.
+        <span class="section-label">✨ Svátek / Událost:</span>
+        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
+        
+        <div class="explanation" id="expl-txt">
+            Datum se mění s východem první hvězdy (Tzeit HaKochavim) v Haifě.
         </div>
 
         <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱</textarea>
@@ -65,23 +74,42 @@
     </div>
 
     <script>
+        // Databáze parašot pro rok 2026
+        const parashot = {
+            "7.2.2026": "Be-šalach (בְּשַׁלַּח)",
+            "14.2.2026": "Jitro (יִתְרוֹ)",
+            "21.2.2026": "Mišpatim (מִשְׁפָּטִים)",
+            "28.2.2026": "Teruma (תְּרוּמָה)",
+            "7.3.2026": "Teca-ve (תְּצַוֶּה)",
+            "14.3.2026": "Ki tisa (כִּi תִשָּׂא)",
+            "21.3.2026": "Vajakhel-Pekudej (וַיַּקְהֵל-פְקוּדֵי)",
+            "28.3.2026": "Vajikra (וַיִּקְרָא)"
+        };
+
+        // Databáze svátků
+        const svatky = {
+            "2.2.2026":"Tu Bi-švat (Svátek stromů) 🌳", 
+            "3.3.2026":"Půst Ester", 
+            "4.3.2026":"Purim 🎭", 
+            "1.4.2026":"Erev Pesach 🍷"
+        };
+
         const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
-        // Astronomický výpočet západu slunce pro Haifu (zjednodušený vzorec)
+        // Astronomický vzorec pro výpočet západu slunce v Haifě
         function getTzeitInHaifa(date) {
-            const lat = 32.79, lng = 34.99; // Souřadnice Haify
+            const lat = 32.79, lng = 34.99; // Haifa
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
-            const gamma = 2 * Math.PI / 365 * (dayOfYear - 1 + (date.getHours() - 12) / 24);
-            const eqtime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma) - 0.014615 * Math.cos(2 * gamma) - 0.040849 * Math.sin(2 * gamma));
-            const decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma) - 0.006758 * Math.cos(2 * gamma) + 0.000907 * Math.sin(2 * gamma);
+            const gamma = 2 * Math.PI / 365 * (dayOfYear - 1);
+            const eqtime = 229.18 * (0.000075 + 0.001868 * Math.cos(gamma) - 0.032077 * Math.sin(gamma));
+            const decl = 0.006918 - 0.399912 * Math.cos(gamma) + 0.070257 * Math.sin(gamma);
             const ha = Math.acos(Math.cos(90.833 * Math.PI / 180) / (Math.cos(lat * Math.PI / 180) * Math.cos(decl)) - Math.tan(lat * Math.PI / 180) * Math.tan(decl));
             const sunsetUTC = 720 - 4 * (lng + ha * 180 / Math.PI) - eqtime;
             
             const sunsetDate = new Date(date);
             sunsetDate.setUTCHours(0, sunsetUTC, 0, 0);
-            // Přidáme 35 minut pro Tzeit HaKochavim (východ hvězd)
-            sunsetDate.setMinutes(sunsetDate.getMinutes() + 35);
+            sunsetDate.setMinutes(sunsetDate.getMinutes() + 35); // +35 min pro hvězdy
             return sunsetDate;
         }
 
@@ -89,12 +117,12 @@
             let d = new Date();
             const tzeit = getTzeitInHaifa(d);
 
-            // Pokud je aktuální čas po východu hvězd, posuneme na další židovský den
+            // Dynamický posun dne podle hvězd nad Haifou
             if (d > tzeit) d.setDate(d.getDate() + 1);
 
             document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
 
-            // Věčný výpočet hebrejského data přes engine prohlížeče
+            // Hebrejské datum přes Intl engine (Věčná funkčnost)
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
@@ -108,16 +136,20 @@
 
             document.getElementById('h-date-txt').innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
             document.getElementById('h-script-txt').innerText = hScript;
+
+            // Logika pro Parašu (nejbližší sobota)
+            let sabat = new Date(d);
+            while(sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
+            const klic = `${sabat.getDate()}.${sabat.getMonth() + 1}.${sabat.getFullYear()}`;
+            document.getElementById('parasha-txt').innerText = parashot[klic] || "Paraša bude doplněna.";
+
+            // Logika pro Svátek
+            const dKlic = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
+            document.getElementById('event-txt').innerText = svatky[dKlic] || "Dnes není žádný významný svátek.";
         }
 
         function shareJewishDay() {
             const jom = document.getElementById('jom-txt').innerText;
             const date = document.getElementById('h-date-txt').innerText;
             const script = document.getElementById('h-script-txt').innerText;
-            const msg = `🇮🇱 Židovský kalendář - Haifa Edition\n\n${jom}\n${date}\n${script}\n\n${document.getElementById('custom-msg').value}`;
-            if (navigator.share) navigator.share({ text: msg }); else alert(msg);
-        }
-        window.onload = init;
-    </script>
-</body>
-</html>
+            const parasha = document.getElementById('par

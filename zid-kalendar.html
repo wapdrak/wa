@@ -152,4 +152,12 @@
             const jom = document.getElementById('jom-txt').innerText;
             const date = document.getElementById('h-date-txt').innerText;
             const script = document.getElementById('h-script-txt').innerText;
-            const parasha = document.getElementById('par
+            const parasha = document.getElementById('parasha-txt').innerText;
+            const event = document.getElementById('event-txt').innerText;
+            const msg = `🇮🇱 Židovský kalendář\n\n${jom}\n${date}\n${script}\n\n📖 Paraša: ${parasha}\n✨ Svátek: ${event}\n\n${document.getElementById('custom-msg').value}`;
+            if (navigator.share) navigator.share({ text: msg }); else alert(msg);
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -2,14 +2,16 @@ const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (
 const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
 async function init() {
-    // A. LOKÁLNÍ VÝPOČET (To, co Pixel umí hned)
+    // 1. OKAMŽITÝ VÝPOČET (Nepotřebuje internet)
     let d = new Date();
+    // Haifa logika: po 18:00 už je zítřek [cite: 2026-01-13]
     if (d.getHours() >= 18) d.setDate(d.getDate() + 1);
 
-    // Vložení dne v týdnu
-    document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
+    // Vypsání dne v týdnu
+    const jomElem = document.getElementById('jom-txt');
+    if (jomElem) jomElem.innerText = dnyHeCz[d.getDay()];
 
-    // Výpočet hebrejského data
+    // Výpočet hebrejského data přímo v prohlížeči
     const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
     const hParts = hFormat.formatToParts(d);
     const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
@@ -21,31 +23,37 @@ async function init() {
         if (p.type === 'year') rok = p.value;
     });
 
-    document.getElementById('h-date-txt').innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
-    document.getElementById('h-script-txt').innerText = hScript;
+    const hDateElem = document.getElementById('h-date-txt');
+    if (hDateElem) hDateElem.innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
+    
+    const hScriptElem = document.getElementById('h-script-txt');
+    if (hScriptElem) hScriptElem.innerText = hScript;
 
-    // B. NAČTENÍ TVÉHO API (To, co se může zaseknout)
+    // 2. NAČTENÍ TVÉHO VLASTNÍHO API (Svátky a paraši)
     try {
+        // Používáme timestamp ?v=, aby se obešla mezipaměť GitHubu [cite: 2025-09-11]
         const response = await fetch('zid-kalendar.json?v=' + Date.now());
-        if (!response.ok) throw new Error('JSON nenalezen');
+        if (!response.ok) throw new Error('API JSON nenalezen');
         const api = await response.json();
 
         // Paraša (nejbližší sobota)
         let sabat = new Date(d);
         while(sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
         const klic = `${sabat.getDate()}.${sabat.getMonth() + 1}.${sabat.getFullYear()}`;
-        document.getElementById('parasha-txt').innerText = api.parashot[klic] || "Paraša bude doplněna.";
+        
+        const parashaElem = document.getElementById('parasha-txt');
+        if (parashaElem) parashaElem.innerText = api.parashot[klic] || "Paraša bude doplněna.";
 
         // Svátek
         const dKlic = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
-        if (api.svatky[dKlic]) {
-            document.getElementById('event-txt').innerText = api.svatky[dKlic];
-        } else {
-            document.getElementById('event-txt').innerText = "Dnes není žádný významný svátek.";
+        const eventElem = document.getElementById('event-txt');
+        if (eventElem) {
+            eventElem.innerText = api.svatky[dKlic] || "Dnes není žádný významný svátek.";
         }
     } catch (e) {
-        console.error("API zatím není dostupné:", e);
-        document.getElementById('parasha-txt').innerText = "Data z API nedostupná";
+        console.error("API Error:", e);
+        // Pokud API selže, aspoň přepíšeme načítací texty
+        document.getElementById('parasha-txt').innerText = "Data budou brzy doplněna.";
     }
 }
 

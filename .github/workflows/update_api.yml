@@ -16,13 +16,13 @@ jobs:
         with:
           python-version: '3.x'
       - name: Install dependencies
-        run: pip install -r wa/requirements.txt
+        run: pip install requests
       - name: Run update script
-        run: python wa/zid-kalendar.py
+        run: python zid-kalendar.py
       - name: Commit and Push changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add wa/zid-kalendar.json
-          git commit -m "Aktualizace wa/zid-kalendar.json" || exit 0
+          git add zid-kalendar.json
+          git commit -m "Automatická aktualizace API" || exit 0
           git push

@@ -1,4 +1,4 @@
-name: Update Jewish Calendar API
+name: Update Jewish API
 on:
   schedule:
     - cron: '0 0 * * *'
@@ -14,14 +14,14 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install dependencies
-        run: pip install requests
-      - name: Run update script
-        run: python zid-kalendar.py
-      - name: Commit and Push changes
+      - name: Run script
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          pip install requests
+          python zid-kalendar.py
+      - name: Commit changes
+        run: |
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
           git add zid-kalendar.json
-          git commit -m "Aktualizace JSON API" || exit 0
+          git commit -m "Auto update API" || exit 0
           git push

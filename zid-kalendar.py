@@ -3,10 +3,8 @@ import json
 import os
 from datetime import datetime, timedelta
 
-# Skriptu řekneme, že má pracovat ve složce wa
-BASE_DIR = 'wa'
-FILE_NAME = 'zid-kalendar.json'
-FULL_PATH = os.path.join(BASE_DIR, FILE_NAME)
+# Soubor se uloží přímo do hlavního adresáře repozitáře
+FILE_PATH = 'zid-kalendar.json'
 
 def update_api():
     now = datetime.now()
@@ -16,7 +14,6 @@ def update_api():
     else:
         target_date = now
 
-    # Zdrojová data z Hebcal
     url = f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on&nx=on&year={target_date.year}&month={target_date.month}&ss=on&mf=on&c=on&city=IL-Haifa&lg=s"
     conv_url = f"https://www.hebcal.com/converter?cfg=json&gy={target_date.year}&gm={target_date.month}&gd={target_date.day}&g2h=1"
 
@@ -24,7 +21,6 @@ def update_api():
         raw_data = requests.get(url).json()
         conv_data = requests.get(conv_url).json()
 
-        # Tvůj formát API
         new_api_data = {
             "info": {
                 "nazev": "Židovský kalendář - Haifa",
@@ -48,7 +44,6 @@ def update_api():
             }
         }
 
-        # Mapování dat
         for item in raw_data.get('items', []):
             d_obj = datetime.strptime(item['date'], '%Y-%m-%d')
             klic = f"{d_obj.day}.{d_obj.month}.{d_obj.year}"
@@ -57,12 +52,10 @@ def update_api():
             elif item['category'] == 'holiday':
                 new_api_data["data"]["svatky"][klic] = item['title']
 
-        # Uložení (vytvoří složku wa, pokud by neexistovala)
-        os.makedirs(BASE_DIR, exist_ok=True)
-        with open(FULL_PATH, 'w', encoding='utf-8') as f:
+        with open(FILE_PATH, 'w', encoding='utf-8') as f:
             json.dump(new_api_data, f, ensure_ascii=False, indent=2)
         
-        print(f"Úspěšně uloženo do: {FULL_PATH}")
+        print(f"Data uložena do {FILE_PATH}")
 
     except Exception as e:
         print(f"Chyba: {e}")

@@ -1,10 +1,9 @@
 async function init() {
     try {
-        // 1. Načtení dat z tvého vlastního API
-        // Používáme await, aby skript počkal, dokud se soubor nestáhne
-        const res = await fetch('zid-kalendar.json');
-        if (!res.ok) throw new Error('Soubor zid-kalendar.json nebyl nalezen.');
-        const api = await res.json();
+        // 1. Načtení dat z API (přidáváme časový údaj, aby se obešla mezipaměť prohlížeče)
+        const response = await fetch('zid-kalendar.json?v=' + new Date().getTime());
+        if (!response.ok) throw new Error('Soubor JSON nebyl nalezen.');
+        const api = await response.json();
 
         // 2. Časová logika pro Haifu (po 18:00 už je zítřek)
         let d = new Date();
@@ -12,64 +11,56 @@ async function init() {
             d.setDate(d.getDate() + 1);
         }
 
-        // 3. Den v týdnu - bereme z tvého pole konstant v JSONu
+        // 3. Den v týdnu
         const denIndex = d.getDay(); // 0 = Neděle
-        const jomElement = document.getElementById('jom-txt');
-        if (jomElement) {
-            jomElement.innerText = api.konstanty.dny_he_cz[denIndex];
-        }
+        const jomTxt = document.getElementById('jom-txt');
+        if (jomTxt) jomTxt.innerText = api.konstanty.dny_he_cz[denIndex];
 
-        // 4. Hebrejské datum a písmo (přímo ze sekce "dnes" v tvém API)
-        const hDateElement = document.getElementById('h-date-txt');
-        if (hDateElement) {
-            hDateElement.innerText = api.data.dnes.datum_he;
-        }
+        // 4. Hebrejské datum a písmo (přímo ze sekce "dnes" v API)
+        const dateTxt = document.getElementById('h-date-txt');
+        if (dateTxt) dateTxt.innerText = api.data.dnes.datum_he;
 
-        const hScriptElement = document.getElementById('h-script-txt');
-        if (hScriptElement) {
-            hScriptElement.innerText = api.data.dnes.script_he;
-        }
+        const scriptTxt = document.getElementById('h-script-txt');
+        if (scriptTxt) scriptTxt.innerText = api.data.dnes.script_he;
 
-        // 5. Paraša - najdeme nejbližší sobotu
+        // 5. Paraša - hledáme nejbližší sobotu
         let sabat = new Date(d);
         while (sabat.getDay() !== 6) {
             sabat.setDate(sabat.getDate() + 1);
         }
         const sKlic = `${sabat.getDate()}.${sabat.getMonth() + 1}.${sabat.getFullYear()}`;
-        
-        const parashaElement = document.getElementById('parasha-txt');
-        if (parashaElement) {
-            parashaElement.innerText = api.data.parashot[sKlic] || "Paraša bude doplněna.";
+        const parashaTxt = document.getElementById('parasha-txt');
+        if (parashaTxt) {
+            parashaTxt.innerText = api.data.parashot[sKlic] || "Paraša bude doplněna.";
         }
 
-        // 6. Svátek nebo událost pro dnešní den
+        // 6. Svátek nebo událost
         const dKlic = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
-        const eventElement = document.getElementById('event-txt');
-        if (eventElement) {
+        const eventTxt = document.getElementById('event-txt');
+        if (eventTxt) {
             if (api.data.svatky[dKlic]) {
-                eventElement.innerText = api.data.svatky[dKlic];
+                eventTxt.innerText = api.data.svatky[dKlic];
             } else {
-                eventElement.innerText = "Dnes není žádný významný svátek.";
+                eventTxt.innerText = "Dnes není žádný významný svátek.";
             }
         }
 
     } catch (error) {
         console.error("Chyba v zid-kalendar.js:", error);
-        // Pokud dojde k chybě, informujeme uživatele přímo na stránce
-        document.getElementById('jom-txt').innerText = "Chyba načítání dat";
-        document.getElementById('parasha-txt').innerText = "Zkontrolujte zdrojový JSON";
+        // Pokud dojde k chybě, zobrazíme to uživateli
+        const jomTxt = document.getElementById('jom-txt');
+        if (jomTxt) jomTxt.innerText = "Chyba načítání dat";
     }
 }
 
-// Funkce pro sdílení dat, kterou máš v HTML tlačítku
+// Funkce pro sdílení
 function shareJewishDay() {
-    const jom = document.getElementById('jom-txt').innerText;
-    const date = document.getElementById('h-date-txt').innerText;
-    const script = document.getElementById('h-script-txt').innerText;
-    const parasha = document.getElementById('parasha-txt').innerText;
-    const event = document.getElementById('event-txt').innerText;
-    
-    const msg = `🇮🇱 Židovský kalendář - Haifa\n\n${jom}\n${date}\n${script}\n\n📖 Paraša: ${parasha}\n✨ Svátek: ${event}`;
+    const msg = `🇮🇱 Židovský kalendář - Haifa\n\n` +
+                `${document.getElementById('jom-txt').innerText}\n` +
+                `${document.getElementById('h-date-txt').innerText}\n` +
+                `${document.getElementById('h-script-txt').innerText}\n\n` +
+                `📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n` +
+                `✨ Svátek: ${document.getElementById('event-txt').innerText}`;
     
     if (navigator.share) {
         navigator.share({ text: msg });
@@ -78,5 +69,4 @@ function shareJewishDay() {
     }
 }
 
-// Spuštění po načtení stránky
 window.onload = init;

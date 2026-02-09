@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Židovský kalendář - Haifa Edition</title>
     <style>
-        /* DESIGN: Původní fialové barvy */
+        /* DESIGN: Původní fialové barvy a styl [cite: 2025-09-15] */
         :root {
             --bg: #0f0a1a;
             --card: #2e1a47; 
@@ -57,7 +57,7 @@
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
         <div class="detail-text">
-            <a href="https://www.sefaria.org.il/topics/torah-portions" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
+            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
         </div>
         
         <span class="section-label">✨ Svátek / Událost:</span>
@@ -67,25 +67,25 @@
             Datum se mění s východem první hvězdy (Tzeit HaKochavim) v Haifě, což znamená že nový den začíná již večer.
         </div>
 
-        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱🇨🇿</textarea>
-        <button class="share-btn" onclick="shareJewishDay()">Sdílet datum</button>
+        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱</textarea>
+        <button class="share-btn" onclick="shareJewishDay()">Sdílet datum 🇮🇱</button>
     </div>
 
     <script>
-        // DATA: Svátky a Parašot 2026
+        // Lokální databáze pro rok 2026 [cite: 2025-09-14]
         const svatky = {"2.2.2026":"Tu Bi-švat 🌳", "3.3.2026":"Půst Ester", "4.3.2026":"Purim 🎭", "1.4.2026":"Erev Pesach 🍷"};
         const parashot = {"14.2.2026":"Jitro (יִתְרוֹ)", "21.2.2026":"Mišpatim (מִשְׁפָּטִים)", "28.2.2026":"Teruma (תְּרוּמָה)"};
-        
+        const sefariaUrl = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
+
         const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
-        // LOGIKA: Výpočet západu slunce v Haifě (+35 min pro hvězdy)
+        // Výpočet Tzeit HaKochavim pro Haifu (+35 min po západu) [cite: 2026-01-13]
         function getTzeitMinutes(date) {
             const lat = 32.79, dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
             const sunsetH = 12 + (Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
-            // +120 min pro časové pásmo Haifa, +35 min pro hvězdy
-            return (sunsetH * 60) + 120 + 35;
+            return (sunsetH * 60) + 120 + 35; // +120 Haifa časové pásmo, +35 hvězdy
         }
 
         function init() {
@@ -93,14 +93,14 @@
             const nyniMinuty = (d.getHours() * 60) + d.getMinutes();
             const tzeitMinuty = getTzeitMinutes(d);
 
-            // Oprava: Pokud je VEČER po Tzeit, posuneme na zítřejší hebrejské datum
+            // Logika posunu: Jen pokud je večer po východu hvězd [cite: 2026-01-13]
             if (nyniMinuty >= tzeitMinuty) {
                 d.setDate(d.getDate() + 1);
             }
 
             document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
 
-            // Hebrejské datum přes Intl engine
+            // Hebrejské datum pomocí Intl engine [cite: 2025-10-11, 2025-12-27]
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
@@ -125,7 +125,7 @@
             document.getElementById('event-txt').innerText = svatky[klicDnes] || "Dnes není žádný významný svátek.";
         }
 
-        // FUNKCE: Bohaté sdílení
+        // FUNKCE: Rozšířené sdílení [cite: 2025-12-27]
         function shareJewishDay() {
             const jom = document.getElementById('jom-txt').innerText;
             const datum = document.getElementById('h-date-txt').innerText;
@@ -140,6 +140,7 @@
                          `${datum}\n` +
                          `${pismo}\n\n` +
                          `📖 Paraša: ${parasha}\n` +
+                         `Studovat zde: ${sefariaUrl}\n\n` +
                          `✨ Svátek: ${svatek}\n\n` +
                          `📌 ${vysvetleni}\n\n` +
                          `💬 ${vzkaz}`;

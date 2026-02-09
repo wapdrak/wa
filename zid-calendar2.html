@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Židovský kalendář - Haifa Edition</title>
+    </head>
+<body>
+    <div id="q-cont">
+        <div class="header">Židovský kalendář</div>
+        <div class="jom-tyden" id="jom-txt">Načítám...</div>
+        <div class="hebrew-date" id="h-date-txt">--. -- 5786</div>
+        <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
+        
+        <span class="section-label">📖 Parašat HaŠavua:</span>
+        <div class="detail-text">
+            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
+        </div>
+        
+        <span class="section-label">✨ Svátek / Událost:</span>
+        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
+        
+        <div class="explanation" id="expl-txt">Nový den začíná s východem první hvězdy.</div>
+        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱</textarea>
+        <button class="share-btn" onclick="shareJewishDay()">Sdílet datum 🇮🇱</button>
+    </div>
+
+    <script src="zid-kalendar.js"></script>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigátor: Češi a Slováci v Izraeli</title>
+    <style>
+        /**
+         * DESIGN: Fialový styl s důrazem na přehlednost [cite: 2025-09-15]
+         */
+        :root {
+            --bg: #0f0a1a;
+            --card: #2e1a47; 
+            --accent: #bb86fc;
+            --text: #ffffff;
+            --muted: #d1c4e9;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--accent); margin-bottom: 5px; }
+        .subtitle { color: var(--muted); font-style: italic; }
+
+        /* NAVIGACE: Přepínání sekcí */
+        nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 30px; }
+        .nav-btn { 
+            background: var(--card); border: 1px solid var(--accent); color: var(--accent); 
+            padding: 10px 20px; border-radius: 20px; cursor: pointer; text-decoration: none; font-weight: bold;
+        }
+        .nav-btn:hover, .nav-btn.active { background: var(--accent); color: var(--bg); }
+
+        /* KARTY S OBSAHEM */
+        .info-card {
+            background: var(--card); border-radius: 25px; padding: 25px; width: 100%; max-width: 650px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 20px; border-left: 5px solid var(--accent);
+        }
+        .card-title { font-size: 1.4em; color: var(--accent); margin-bottom: 10px; display: block; }
+        .card-desc { color: var(--muted); line-height: 1.6; margin-bottom: 15px; }
+        .card-link { 
+            color: var(--accent); text-decoration: none; font-weight: bold; border: 1px solid var(--accent);
+            padding: 5px 15px; border-radius: 10px; display: inline-block; transition: 0.3s;
+        }
+        .card-link:hover { background: rgba(187, 134, 252, 0.1); }
+        
+        .hidden { display: none; }
+        footer { margin-top: 50px; color: var(--muted); font-size: 0.9em; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🇨🇿 Navigátor Olim 🇸🇰</h1>
+        <div class="subtitle">Ověřené zdroje pro život v Izraeli 🇮🇱</div>
+    </header>
+
+    <nav id="main-nav">
+        <a href="?sekce=vše" class="nav-btn" id="btn-vše">Vše</a>
+        <a href="?sekce=urady" class="nav-btn" id="btn-urady">🏢 Úřady</a>
+        <a href="?sekce=pomoc" class="nav-btn" id="btn-pomoc">⚖️ Pomoc</a>
+        <a href="?sekce=domov" class="nav-btn" id="btn-domov">🍞 Domov</a>
+        <a href="?sekce=vylety" class="nav-btn" id="btn-vylety">📜 Historie</a>
+    </nav>
+
+    <div id="content-area">
+        </div>
+
+    <footer>
+        Vytvořeno Petrem Adamírou pro komunitu Češi a Slováci v Izraeli
+    </footer>
+
+    <script>
+        /**
+         * 1. DATABÁZE INFORMACÍ (Statický objekt místo JSONu) [cite: 2025-09-15]
+         */
+        const DATA = [
+            {
+                sekce: "urady",
+                title: "Ministerstvo absorpce (Misrad HaKlita)",
+                desc: "Hlavní brána pro nové přistěhovalce. Informace o koši absorpce, podpoře v nezaměstnanosti a ubytování.",
+                link: "https://www.gov.il/en/departments/ministry_of_aliyah_and_integration"
+            },
+            {
+                sekce: "urady",
+                title: "Portál Gov.il - Průvodce službami",
+                desc: "Oficiální vládní rozcestník. Zde vyřídíte biometrický pas, řidičák nebo registraci k volbám.",
+                link: "https://www.gov.il/en"
+            },
+            {
+                sekce: "pomoc",
+                title: "Asociace česky mluvících advokátů",
+                desc: "Potřebujete revizi nájemní smlouvy nebo pracovní právo? Najděte odborníka, který mluví vaším jazykem.",
+                link: "https://www.facebook.com/groups/cesiaslovaciizrael/"
+            },
+            {
+                sekce: "domov",
+                title: "Kde sehnat české potraviny",
+                desc: "Aktualizovaný seznam obchodů nabízejících české pivo, tvaroh a další suroviny pro tvůj emetblog.blogspot.com.",
+                link: "https://emetblog.blogspot.com/"
+            },
+            {
+                sekce: "domov",
+                title: "Česká a slovenská literatura",
+                desc: "Kde si v Izraeli půjčit nebo koupit knihy v češtině a slovenštině.",
+                link: "https://mzv.gov.cz/telaviv/cz/kultura_skolstvi_a_krajané/index.html"
+            },
+            {
+                sekce: "vylety",
+                title: "Masarykův les a kibuc Masaryk",
+                desc: "Významná historická místa spojená s československou stopou v Izraeli. Ideální pro víkendový výlet.",
+                link: "https://www.kfar-masaryk.co.il/"
+            }
+        ];
+
+        /**
+         * 2. LOGIKA FILTROVÁNÍ PODLE URL [cite: 2025-12-27]
+         */
+        function renderContent() {
+            const params = new URLSearchParams(window.location.search);
+            const sekce = params.get('sekce') || 'vše';
+            const area = document.getElementById('content-area');
+            
+            // Nastavení aktivního tlačítka
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('btn-' + sekce);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            area.innerHTML = ''; // Vyčištění
+
+            DATA.forEach(item => {
+                if (sekce === 'vše' || item.sekce === sekce) {
+                    const card = `
+                        <div class="info-card">
+                            <span class="card-title">${item.title}</span>
+                            <div class="card-desc">${item.desc}</div>
+                            <a href="${item.link}" class="card-link" target="_blank">${item.link}</a>
+                        </div>
+                    `;
+                    area.innerHTML += card;
+                }
+            });
+
+            if (area.innerHTML === '') {
+                area.innerHTML = '<p style="text-align:center">V této sekci zatím nejsou žádné záznamy.</p>';
+            }
+        }
+
+        window.onload = renderContent;
+    </script>
+</body>
+</html>

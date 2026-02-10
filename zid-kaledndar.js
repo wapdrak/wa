@@ -1,6 +1,6 @@
 /**
  * ŽIDOVSKÝ KALENDÁŘ - MULTI-CITY API (VĚČNÁ VERZE)
- * Tento skript generuje JSON se strukturou: {"Haifa": {...}, "Praha": {...}, ...}
+ * Vytváří JSON se strukturou: {"Haifa": {...}, "Praha": {...}, ...}
  * [cite: 2025-09-15]
  */
 
@@ -14,13 +14,13 @@ const LOKALITY = {
     "Bratislava": { lat: 48.14, lng: 17.10, tz: 60  }
 };
 
-// 2. DATA (Parašot a překlady) [cite: 2025-09-14, 2026-01-13]
+// 2. DATA (Parašot a měsíce v češtině) [cite: 2025-09-14, 2026-01-13]
 const vsechnyParashot = [
-    "Berešit (בְּרֵאשִׁית)", "Noach (נֹחַ)", "Lech Lecha (לֶךְ-לְךָ)", "Vajera (וַיֵּרָא)", "Chajej Sára (חַיֵּי שָׂרָה)", "Toledot (תּוֹלְדֹת)", "Vajece (וַיֵּצֵא)", "Vajišlach (וַיִּשְׁלַח)", "Vaješev (וַיֵּשֶׁב)", "Mikec (מִקֵּץ)", "Vajigaš (וַיִּגַּשׁ)", "Vajechi (וַיְחִי)",
-    "Šemot (שְׁמוֹת)", "Va'era (וָאֵרָא)", "Bo (בֹּא)", "Bešalach (בְּשַׁלַּח)", "Jitro (יִתְרוֹ)", "Mišpatim (מִשְׁפָּטִים)", "Teruma (תְּרוּמָה)", "Tecave (תְּצַוֶּה)", "Ki tisa (כִּi תִשָּׂא)", "Vajakhel (וַיַּקְהֵל)", "Pekudej (פְקוּדֵי)",
-    "Vajikra (וַיִּקְרָא)", "Caw (צַו)", "Šmini (שְּׁמִינִי)", "Tazria (תַזְרִיעַ)", "Mecora (מְּצֹרָע)", "Acharej Mot (אַחֲרֵי מוֹת)", "Kedošim (קְדֹשִׁים)", "Emor (אֱמֹר)", "Behar (בְּהַר)", "Bechukotaj (בְּחֻקֹּתַי)",
+    "Berešit (בְּרֵאשִׁית)", "Noach (נֹחַ)", "Lech Lecha (לֶךְ-לְךָ)", "Vajera (וַיֵּרָא)", "Chajej Sára (חַיֵּי שָׂרָה)", "Toledot (תּוֹלְדֹת)", "Vajece (וַיֵּצÉא)", "Vajišlach (וַיִּשְׁלַח)", "Vaješev (וַיֵּשֶׁב)", "Mikec (מִקֵּץ)", "Vajigaš (וַיִּגַּשׁ)", "Vajechi (וַיְחִי)",
+    "Šemot (שְׁמוֹת)", "Va'era (וָאֵרָא)", "Bo (בֹּא)", "Bešalach (בְּשัׁלַּח)", "Jitro (יִתְרוֹ)", "Mišpatim (מִשְׁפָּטִים)", "Teruma (תְּרוּמָה)", "Tecave (תְּצַוֶּה)", "Ki tisa (כִּי תִשָּׂא)", "Vajakhel (וַיַּקְהֵל)", "Pekudej (פְקוּדֵי)",
+    "Vajikra (וַיִּקְרָא)", "Caw (צַו)", "Šmini (שְּׁמִינִי)", "Tazria (תַזְרִיעַ)", "Mecora (מְּצֹרָע)", "Acharej Mot (אַחֲרÉי מוֹת)", "Kedošim (קְדֹשִׁים)", "Emor (אֱמֹר)", "Behar (בְּהַר)", "Bechukotaj (בְּחֻקֹּתัי)",
     "Bemidbar (בְּמִדְבַּר)", "Naso (נָשֹׂא)", "Beha'alotecha (בְּהַעֲלֹתְךָ)", "Šlach Lecha (שְׁלַח-לְךָ)", "Korach (קֹרַח)", "Chukat (חֻקַּת)", "Balak (בָּלָק)", "Pinchas (פִּינְחָס)", "Matot (מַטּוֹת)", "Masej (מַסְעֵי)",
-    "Devarim (דְּבָרִים)", "Va'etchanan (וָאֶתְחַנัּן)", "Ekev (עֵקֶב)", "Re'e (רְאֵה)", "Shoftim (שֹׁפְטִים)", "Ki tece (כִּi-תֵצֵא)", "Ki tavo (כִּi-תָבוֹא)", "Nicavim (נִצָּבִים)", "Vajelech (וַיֵּלֶךְ)", "Ha'azinu (הַאֲזִינוּ)", "Ve-zot ha-beracha (וְזֹאת הַבְּרָכָה)"
+    "Devarim (דְּבָרִים)", "Va'etchanan (וָאֶתְחַנัּן)", "Ekev (עֵקֶב)", "Re'e (רְאֵה)", "Shoftim (שֹׁפְטִים)", "Ki tece (כִּי-תֵצÉא)", "Ki tavo (כִּי-תָבוֹא)", "Nicavim (נִצָּבִים)", "Vajelech (וַיֵּלֶךְ)", "Ha'azinu (הַאֲזִינוּ)", "Ve-zot ha-beracha (וְזֹאת הַבְּרָכָה)"
 ];
 
 const dnyCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
@@ -58,7 +58,7 @@ function generate() {
             if (p.type === 'year') hRok = p.value;
         });
 
-        // Svátek
+        // Svátek - Logika pevných dat [cite: 2025-09-14]
         let svatek = "Dnes není žádný významný svátek.";
         if (hMesEn === "Tishri") {
             if (hDen === 1 || hDen === 2) svatek = "Roš ha-šana 🍎";
@@ -79,7 +79,7 @@ function generate() {
             "jom_tyden": dnyCz[d.getDay()],
             "datum_he": `${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`,
             "script_he": hScript,
-            "paraša": vsechnyParashot[indexPar],
+            "paraša": vsechnyParashot[indexPar], // Opravený klíč s "š"
             "svatek": svatek,
             "tzeit": Math.floor(tzeitMin / 60) + ":" + (Math.floor(tzeitMin % 60)).toString().padStart(2, '0')
         };

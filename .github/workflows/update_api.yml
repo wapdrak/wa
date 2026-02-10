@@ -1,20 +1,38 @@
-name: Aktualizace Kalendář API
+# GitHub Action pro automatickou aktualizaci Židovského kalendáře
+# [cite: 2025-09-15]
+
+name: Aktualizace Kalendar API
+
 on:
   schedule:
-    - cron: '0 0 * * *' # Každou půlnoc
-  workflow_dispatch: # Možnost spustit ručně
+    # Spustí se každou noc v 00:05 UTC (cca 02:05 v Haifě)
+    - cron: '5 0 * * *'
+  workflow_dispatch:
+    # Umožní ti spustit aktualizaci ručně kliknutím na tlačítko
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     permissions:
-      contents: write
+      contents: write  # Důležité: Povoluje zápis JSONu zpět do repozitáře
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Generování JSON
+      - name: Checkout repozitáře
+        uses: actions/checkout@v3
+
+      - name: Nastavení Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Generování JSONu
         run: node api-generator.js
-      - name: Uložení do GitHubu
+
+      - name: Uložení změn (Commit & Push)
         run: |
-          git config --global user.name 'API-Bot'
+          git config --global user.name 'GitHub-Actions-Bot'
+          git config --global user.name 'robot@github.com'
           git add zid-kalendar.json
-          git commit -m "Auto-update API" || exit 0
+          git commit -m "Automatická aktualizace API: $(date)" || echo "Žádné změny k uložení"
           git push

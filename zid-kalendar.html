@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Židovský kalendář - Local Edition</title>
     <style>
-        /* DESIGN: Tvůj fialový styl [cite: 2025-09-15] */
+        /* DESIGN: Fialový styl pro tvůj web [cite: 2025-09-15] */
         :root {
             --bg: #0f0a1a;
             --card: #2e1a47; 
@@ -35,7 +35,8 @@
             text-align: center;
         }
         .header { font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
-        .misto-label { font-size: 1.1em; color: var(--accent); margin-bottom: 15px; display: block; opacity: 0.8; }
+        .misto-label { font-size: 1.1em; color: var(--accent); margin-bottom: 5px; display: block; opacity: 0.8; }
+        .gregorian-date { font-size: 1.2em; color: var(--muted); margin-bottom: 15px; font-weight: 300; }
         .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; opacity: 0.9; }
         .hebrew-date { font-size: clamp(2.2em, 8vw, 3em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
@@ -51,6 +52,7 @@
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
         <div class="misto-label" id="misto-txt">Načítám lokalitu...</div>
+        <div class="gregorian-date" id="g-date-txt">--. --. ----</div>
         <div class="jom-tyden" id="jom-txt">Načítám...</div>
         
         <div class="hebrew-date" id="h-date-txt">--. -- ----</div>
@@ -63,7 +65,7 @@
         <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
         
         <div class="explanation" id="expl-txt">
-            Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě.
+            Datum se mění s východem první hvězdy v dané lokalitě.
         </div>
 
         <textarea id="custom-msg" rows="2">Posílám pozdravy! 🇮🇱</textarea>
@@ -71,7 +73,9 @@
     </div>
 
     <script>
-        /* 1. DATA: Doživotní seznamy [cite: 2025-09-14] */
+        /**
+         * 1. DATA A NASTAVENÍ [cite: 2025-09-14, 2026-01-13]
+         */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
             "Jeruzalem":  { lat: 31.76, lng: 35.21, tz: 120, label: "Jeruzalém, Izrael 🇮🇱" },
@@ -79,20 +83,25 @@
             "Bratislava": { lat: 48.14, lng: 17.10, tz: 60,  label: "Bratislava, Slovensko 🇸🇰" }
         };
 
+        // Fonetické názvy dnů [cite: 2026-01-13]
+        const dnyPhonetic = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota)"];
         const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
-        const dnyCz = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
-        /* 2. POMOCNÉ FUNKCE [cite: 2026-01-13] */
+        /**
+         * 2. VÝPOČET HVĚZD [cite: 2026-01-13]
+         */
         function getTzeitMinutes(date, conf) {
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
             const sunsetH = 12 + (Math.acos(-Math.tan(conf.lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
             const isDST = date.getMonth() > 2 && date.getMonth() < 9 ? 60 : 0;
-            return (sunsetH * 60) + conf.tz + isDST + 35;
+            return (sunsetH * 60) + conf.tz + isDST + 35; 
         }
 
-        /* 3. INICIALIZACE [cite: 2025-10-11, 2025-09-15] */
+        /**
+         * 3. HLAVNÍ LOGIKA [cite: 2025-10-11, 2025-09-15]
+         */
         function init() {
             const params = new URLSearchParams(window.location.search);
             const mistoParam = params.get('misto');
@@ -101,10 +110,20 @@
             document.getElementById('misto-txt').innerText = conf.label;
 
             let d = new Date();
-            if ((d.getHours() * 60 + d.getMinutes()) >= getTzeitMinutes(d, conf)) d.setDate(d.getDate() + 1);
+            const nyniMin = (d.getHours() * 60) + d.getMinutes();
+            const tzeitMin = getTzeitMinutes(d, conf);
 
-            document.getElementById('jom-txt').innerText = dnyCz[d.getDay()];
+            // Posun na židovský den po východu hvězd [cite: 2026-01-13]
+            if (nyniMin >= tzeitMin) d.setDate(d.getDate() + 1);
 
+            // Gregoriánské datum [cite: 2025-12-27]
+            const gOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('g-date-txt').innerText = d.toLocaleDateString('cs-CZ', gOptions);
+
+            // Fonetický den v týdnu [cite: 2026-01-13]
+            document.getElementById('jom-txt').innerText = dnyPhonetic[d.getDay()];
+
+            // Hebrejské datum [cite: 2025-12-27]
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
@@ -119,14 +138,13 @@
             document.getElementById('h-date-txt').innerText = `${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
             document.getElementById('h-script-txt').innerText = hScript;
 
-            // Logika Svátků [cite: 2025-09-14]
+            // Svátek
             let svatek = "Dnes není žádný významný svátek.";
             if (hMesEn === "Shevat" && hDen === 15) svatek = "Tu bi-švat 🌳";
-            else if ((hMesEn === "Adar" || hMesEn === "Adar II") && hDen === 14) svatek = "Purim 🎭";
-            else if (hMesEn === "Nisan" && hDen === 15) svatek = "Erev Pesach 🍷";
+            else if (hMesEn.includes("Adar") && hDen === 14) svatek = "Purim 🎭";
             document.getElementById('event-txt').innerText = svatek;
 
-            // Logika Paraši (Pevný cyklus) [cite: 2025-12-27]
+            // Paraša [cite: 2025-12-27]
             let sabat = new Date(d);
             while (sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
             const startRoku = new Date(d.getFullYear(), 0, 1);
@@ -135,7 +153,7 @@
         }
 
         function shareJewishDay() {
-            const text = `🇮🇱 ${document.getElementById('misto-txt').innerText}\n${document.getElementById('jom-txt').innerText}\n${document.getElementById('h-date-txt').innerText}\n📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n${document.getElementById('custom-msg').value}`;
+            const text = `🇮🇱 ${document.getElementById('misto-txt').innerText}\n📅 ${document.getElementById('g-date-txt').innerText}\n✨ ${document.getElementById('jom-txt').innerText}\n📜 ${document.getElementById('h-date-txt').innerText}\n📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n💬 ${document.getElementById('custom-msg').value}`;
             if (navigator.share) navigator.share({ text: text }); else alert(text);
         }
 

@@ -1,6 +1,6 @@
 /**
- * ŽIDOVSKÝ KALENDÁŘ - MULTI-LOKALITNÍ API (VĚČNÁ VERZE)
- * Generuje data pro Haifu, Jeruzalém, Prahu a Bratislavu.
+ * ŽIDOVSKÝ KALENDÁŘ - MULTI-CITY API (VĚČNÁ VERZE)
+ * Vytváří JSON se strukturou: {"Haifa": {...}, "Praha": {...}}
  * [cite: 2025-09-15]
  */
 
@@ -15,10 +15,10 @@ const LOKALITY = {
 
 const vsechnyParashot = [
     "Berešit (בְּרֵאשִׁית)", "Noach (נֹחַ)", "Lech Lecha (לֶךְ-לְךָ)", "Vajera (וַיֵּרָא)", "Chajej Sára (חַיֵּי שָׂרָה)", "Toledot (תּוֹלְדֹת)", "Vajece (וַיֵּצֵא)", "Vajišlach (וַיִּשְׁלַח)", "Vaješev (וַיֵּשֶׁב)", "Mikec (מִקֵּץ)", "Vajigaš (וַיִּגַּשׁ)", "Vajechi (וַיְחִי)",
-    "Šemot (שְׁמוֹת)", "Va'era (וָאֵרָא)", "Bo (בֹּא)", "Bešalach (בְּשַׁלַּח)", "Jitro (יִתְרוֹ)", "Mišpatim (מִשְׁפָּטִים)", "Teruma (תְּרוּMָה)", "Tecave (תְּצַוֶּה)", "Ki tisa (כִּי תִשָּׂא)", "Vajakhel (וַיַּקְהֵל)", "Pekudej (פְקוּדֵי)",
-    "Vajikra (וַיִּקְרָא)", "Caw (צַו)", "Šmini (שְּׁמִינִי)", "Tazria (תַזְרִיעַ)", "Mecora (מְּצֹرָע)", "Acharej Mot (אַחֲרֵי מוֹת)", "Kedošim (קְדֹشִׁים)", "Emor (אֱמֹר)", "Behar (בְּהַר)", "Bechukotaj (בְּחֻקֹּתַי)",
+    "Šemot (שְׁמוֹת)", "Va'era (וָאֵרָא)", "Bo (בֹּא)", "Bešalach (בְּשַׁלַּח)", "Jitro (יִתְרוֹ)", "Mišpatim (מִשְׁפָּטִים)", "Teruma (תְּרוּמָה)", "Tecave (תְּצַוֶּה)", "Ki tisa (כִּי tִשָּׂא)", "Vajakhel (וַיַּקְהֵל)", "Pekudej (פְקוּدֵי)",
+    "Vajikra (וַיִּקְרָא)", "Caw (צַו)", "Šmini (שְּׁמִינִי)", "Tazria (תַזְרִיעַ)", "Mecora (מְּצֹרָע)", "Acharej Mot (אַחֲרֵי מוֹת)", "Kedošim (קְדֹשִׁים)", "Emor (אֱמֹר)", "Behar (בְּהַר)", "Bechukotaj (בְּחֻקֹּתַי)",
     "Bemidbar (בְּמִדְבַּר)", "Naso (נָשֹׂא)", "Beha'alotecha (בְּהַעֲלֹתְךָ)", "Šlach Lecha (שְׁלַח-לְךָ)", "Korach (קֹרַח)", "Chukat (חֻקַּת)", "Balak (בָּלָק)", "Pinchas (פִּינְחָס)", "Matot (מַטּוֹת)", "Masej (מַסְעֵי)",
-    "Devarim (דְּבָרִים)", "Va'etchanan (וָאֶתחַנַּן)", "Ekev (עֵקֶב)", "Re'e (רְאֵה)", "Shoftim (שֹׁפְטִים)", "Ki tece (כִּי-תֵצֵא)", "Ki tavo (כִּי-תָבוֹא)", "Nicavim (נִצָּבִים)", "Vajelech (וַיֵּלֶךְ)", "Ha'azinu (הַאֲזִינוּ)", "Ve-zot ha-beracha (וְזֹאת הַבְּרָכָה)"
+    "Devarim (דְּבָרִים)", "Va'etchanan (וָאֶתְחַנַּן)", "Ekev (עֵקֶב)", "Re'e (רְאֵה)", "Shoftim (שֹׁפְטִים)", "Ki tece (כִּי-תֵצֵא)", "Ki tavo (כִּי-תָבוֹא)", "Nicavim (נִצָּבִים)", "Vajelech (וַיֵּלֶךְ)", "Ha'azinu (הַאֲזִינוּ)", "Ve-zot ha-beracha (וְזֹאת הַבְּרָכָה)"
 ];
 
 const dnyCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
@@ -37,8 +37,7 @@ function generate() {
 
     for (const [misto, conf] of Object.entries(LOKALITY)) {
         let d = new Date();
-        const nyniMin = (d.getHours() * 60) + d.getMinutes();
-        if (nyniMin >= getTzeitMinutes(d, conf.lat, conf.tz)) d.setDate(d.getDate() + 1);
+        if ((d.getHours() * 60 + d.getMinutes()) >= getTzeitMinutes(d, conf.lat, conf.tz)) d.setDate(d.getDate() + 1);
 
         const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
         const hParts = hFormat.formatToParts(d);

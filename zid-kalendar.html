@@ -37,13 +37,15 @@
             text-align: center;
         }
         .header { font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
-        .misto-label { font-size: 1.1em; color: var(--accent); margin-bottom: 5px; display: block; opacity: 0.8; }
-        .gregorian-date { font-size: 1.2em; color: var(--muted); margin-bottom: 15px; font-weight: 300; }
-        .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; opacity: 0.9; }
+        .misto-label { font-size: 1.1em; color: var(--accent); margin-bottom: 15px; display: block; opacity: 0.8; font-weight: bold; }
+        .g-label { font-size: 1em; color: var(--muted); margin-bottom: 2px; }
+        .gregorian-date { font-size: 1.3em; color: var(--text); margin-bottom: 15px; font-weight: 400; }
+        .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; color: var(--accent); }
         .hebrew-date { font-size: clamp(2.2em, 8vw, 3em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
+        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
         .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
         #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; margin-top: 10px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 1em; }
         .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
@@ -54,16 +56,20 @@
 
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
- 
         <div class="misto-label" id="misto-txt">Načítám...</div>
-  Dnes je      <div class="gregorian-date" id="g-date-txt">--. --. ----</div>
-        <div class="jom-tyden" id="jom-txt">-- (--)</div>
         
-        <div class="hebrew-date" id="h-date-txt">--. -- ----</div>
+        <div class="g-label">📅 Dnes je:</div>
+        <div class="gregorian-date" id="g-date-txt">--. --. ----</div>
+        
+        <div class="jom-tyden" id="jom-txt">✨ Načítám...</div>
+        
+        <div class="hebrew-date" id="h-date-txt">📜 --. -- ----</div>
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
-        <div class="detail-text" id="parasha-txt">Načítám...</div>
+        <div class="detail-text">
+            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
+        </div>
         
         <span class="section-label">✨ Svátek / Událost:</span>
         <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
@@ -78,7 +84,7 @@
 
     <script>
         /**
-         * 1. DATA A LOKALITY [cite: 2026-01-13]
+         * 1. KONFIGURACE A DATA [cite: 2025-09-14, 2026-01-13]
          */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
@@ -91,19 +97,22 @@
         const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
+        // Pomocná funkce pro velká písmena
+        const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
         /**
-         * 2. ASTRONOMICKÉ VÝPOČTY [cite: 2026-01-13]
+         * 2. VÝPOČET HVĚZD [cite: 2026-01-13]
          */
         function getTzeitMinutes(date, conf) {
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
             const sunsetH = 12 + (Math.acos(-Math.tan(conf.lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
             const isDST = date.getMonth() > 2 && date.getMonth() < 9 ? 60 : 0;
-            return (sunsetH * 60) + conf.tz + isDST + 35; // +35 min pro hvězdy
+            return (sunsetH * 60) + conf.tz + isDST + 35;
         }
 
         /**
-         * 3. INICIALIZACE A LOGIKA ODDĚLENÍ DAT [cite: 2025-12-27, 2026-01-13]
+         * 3. INICIALIZACE [cite: 2025-10-11, 2026-01-13]
          */
         function init() {
             const params = new URLSearchParams(window.location.search);
@@ -112,25 +121,22 @@
             
             document.getElementById('misto-txt').innerText = conf.label;
 
-            let d_civil = new Date(); // Reálný aktuální čas [cite: 2025-12-27]
-            let d_zid = new Date();   // Čas pro výpočet židovského data [cite: 2025-12-27]
+            let d_civil = new Date();
+            let d_zid = new Date();
 
             const nyniMin = (d_civil.getHours() * 60) + d_civil.getMinutes();
             const tzeitMin = getTzeitMinutes(d_civil, conf);
 
-            // POSUN: Pouze židovské datum se mění po východu hvězd [cite: 2026-01-13]
-            if (nyniMin >= tzeitMin) {
-                d_zid.setDate(d_zid.getDate() + 1);
-            }
+            if (nyniMin >= tzeitMin) d_zid.setDate(d_zid.getDate() + 1);
 
-            // GREGORIÁNSKÉ DATUM: Vždy reálný kalendářní den [cite: 2025-12-27]
-            const gOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('g-date-txt').innerText = d_civil.toLocaleDateString('cs-CZ', gOptions);
+            // Zobrazení Gregoriánského data [cite: 2025-12-27]
+            const gDateStr = capitalize(d_civil.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            document.getElementById('g-date-txt').innerText = gDateStr;
 
-            // FONETICKÝ DEN (z d_zid, aby po západu byla už "středa") [cite: 2026-01-13]
-            document.getElementById('jom-txt').innerText = dnyPhonetic[d_zid.getDay()];
+            // Zobrazení Fonetického dne [cite: 2026-01-13]
+            document.getElementById('jom-txt').innerText = "✨ " + dnyPhonetic[d_zid.getDay()];
 
-            // HEBREJSKÉ DATUM [cite: 2025-12-27]
+            // Hebrejské datum [cite: 2025-12-27]
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d_zid);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d_zid);
@@ -142,16 +148,10 @@
                 if (p.type === 'year') hRok = p.value;
             });
 
-            document.getElementById('h-date-txt').innerText = `${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
+            document.getElementById('h-date-txt').innerText = `📜 ${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
             document.getElementById('h-script-txt').innerText = hScript;
 
-            // SVÁTEK [cite: 2025-09-14]
-            let svatek = "Dnes není žádný významný svátek.";
-            if (hMesEn === "Shevat" && hDen === 15) svatek = "Tu bi-švat 🌳";
-            else if (hMesEn.includes("Adar") && hDen === 14) svatek = "Purim 🎭";
-            document.getElementById('event-txt').innerText = svatek;
-
-            // PARAŠA [cite: 2025-12-27]
+            // Paraša a Svátky [cite: 2025-12-27]
             let sabat = new Date(d_zid);
             while (sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
             const startRoku = new Date(d_zid.getFullYear(), 0, 1);
@@ -160,11 +160,31 @@
         }
 
         /**
-         * 4. SDÍLENÍ [cite: 2025-12-29]
+         * 4. FORMÁTOVANÉ SDÍLENÍ [cite: 2025-12-29]
          */
         function shareJewishDay() {
-            const text = `🇮🇱 ${document.getElementById('misto-txt').innerText}\n📅 Gregoriánsky: ${document.getElementById('g-date-txt').innerText}\n✨ Židovsky: ${document.getElementById('jom-txt').innerText}\n📜 ${document.getElementById('h-date-txt').innerText}\n📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n💬 ${document.getElementById('custom-msg').value}`;
-            if (navigator.share) navigator.share({ text: text }); else alert(text);
+            const params = new URLSearchParams(window.location.search);
+            const mistoParam = params.get('misto');
+            const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
+            const sefariaLink = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
+
+            const text = `Židovský kalendář\n\n` +
+                         `🇮🇱 ${conf.label} 🇮🇱\n\n` +
+                         `📅 Dnes je:\n\n` +
+                         `${document.getElementById('g-date-txt').innerText}\n` +
+                         `${document.getElementById('jom-txt').innerText}\n\n` +
+                         `${document.getElementById('h-date-txt').innerText}\n` +
+                         `${document.getElementById('h-script-txt').innerText}\n\n` +
+                         `📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n` +
+                         `${sefariaLink}\n\n` +
+                         `💬 ${document.getElementById('custom-msg').value}`;
+
+            if (navigator.share) {
+                navigator.share({ text: text });
+            } else {
+                alert("Sdílení není podporováno, text zkopírován do konzole.");
+                console.log(text);
+            }
         }
 
         window.onload = init;

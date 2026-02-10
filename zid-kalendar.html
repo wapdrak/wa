@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Židovský kalendář - Haifa Edition</title>
+    <title>Židovský kalendář - Local Edition</title>
     <style>
-        /* HLAVIČKA: Design (Fialová barva a styl) [cite: 2025-09-15] */
+        /* DESIGN: Tvůj fialový styl [cite: 2025-09-15] */
         :root {
             --bg: #0f0a1a;
             --card: #2e1a47; 
@@ -41,11 +41,9 @@
         .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
         .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
-        .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
         .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
         #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; margin-top: 5px; resize: none; box-sizing: border-box; font-family: inherit; }
         .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .share-btn:active { transform: scale(0.98); opacity: 0.8; }
     </style>
 </head>
 <body>
@@ -59,15 +57,13 @@
         <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
-        <div class="detail-text">
-            <a href="https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources" target="_blank" class="parasha-link" id="parasha-txt">Načítám parašu...</a>
-        </div>
+        <div class="detail-text" id="parasha-txt">Načítám...</div>
         
         <span class="section-label">✨ Svátek / Událost:</span>
-        <div class="detail-text" id="event-txt">Načítám...</div>
+        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
         
         <div class="explanation" id="expl-txt">
-            Datum se mění s východem první hvězdy v dané lokalitě, což znamená že nový den začíná již večer.
+            Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě.
         </div>
 
         <textarea id="custom-msg" rows="2">Posílám pozdravy! 🇮🇱</textarea>
@@ -75,10 +71,7 @@
     </div>
 
     <script>
-        /**
-         * 1. KONFIGURACE LOKALIT [cite: 2026-01-13]
-         * Obsahuje souřadnice a základní časový posun (v minutách).
-         */
+        /* 1. DATA: Doživotní seznamy [cite: 2025-09-14] */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
             "Jeruzalem":  { lat: 31.76, lng: 35.21, tz: 120, label: "Jeruzalém, Izrael 🇮🇱" },
@@ -86,88 +79,63 @@
             "Bratislava": { lat: 48.14, lng: 17.10, tz: 60,  label: "Bratislava, Slovensko 🇸🇰" }
         };
 
-        const dnyHeCz = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota / Šábes)"];
+        const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
+        const dnyCz = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
-        /**
-         * 2. POMOCNÉ FUNKCE
-         */
-
-        // Získání nastavení z URL (Implicitně Haifa) [cite: 2025-09-11]
-        function getActiveSettings() {
-            const params = new URLSearchParams(window.location.search);
-            const mistoParam = params.get('misto');
-            return LOKALITY[mistoParam] || LOKALITY["Haifa"];
-        }
-
-        // Astronomický výpočet východu hvězd pro zvolenou lokalitu [cite: 2026-01-13]
+        /* 2. POMOCNÉ FUNKCE [cite: 2026-01-13] */
         function getTzeitMinutes(date, conf) {
-            const lat = conf.lat;
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
-            const sunsetH = 12 + (Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
-            
-            // Detekce letního času (zjednodušená pro EU/IL region)
-            const isDST = date.getMonth() > 2 && date.getMonth() < 9 ? 60 : 0; 
-            
-            return (sunsetH * 60) + conf.tz + isDST + 35; // +35 min pro hvězdy [cite: 2026-01-13]
+            const sunsetH = 12 + (Math.acos(-Math.tan(conf.lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
+            const isDST = date.getMonth() > 2 && date.getMonth() < 9 ? 60 : 0;
+            return (sunsetH * 60) + conf.tz + isDST + 35;
         }
 
-        /**
-         * 3. HLAVNÍ INICIALIZACE [cite: 2025-10-11]
-         */
-        async function init() {
-            const conf = getActiveSettings();
+        /* 3. INICIALIZACE [cite: 2025-10-11, 2025-09-15] */
+        function init() {
+            const params = new URLSearchParams(window.location.search);
+            const mistoParam = params.get('misto');
+            const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
+            
             document.getElementById('misto-txt').innerText = conf.label;
 
             let d = new Date();
-            const nyniMin = (d.getHours() * 60) + d.getMinutes();
-            const tzeitMin = getTzeitMinutes(d, conf);
+            if ((d.getHours() * 60 + d.getMinutes()) >= getTzeitMinutes(d, conf)) d.setDate(d.getDate() + 1);
 
-            // Posun dne podle hvězd [cite: 2026-01-13]
-            if (nyniMin >= tzeitMin) d.setDate(d.getDate() + 1);
+            document.getElementById('jom-txt').innerText = dnyCz[d.getDay()];
 
-            document.getElementById('jom-txt').innerText = dnyHeCz[d.getDay()];
-
-            // Hebrejské datum přes Intl engine (Doživotní funkčnost) [cite: 2025-12-27]
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d);
             
-            let den, mesEn, rok;
+            let hDen, hMesEn, hRok;
             hParts.forEach(p => {
-                if (p.type === 'day') den = p.value;
-                if (p.type === 'month') mesEn = p.value;
-                if (p.type === 'year') rok = p.value;
+                if (p.type === 'day') hDen = parseInt(p.value);
+                if (p.type === 'month') hMesEn = p.value;
+                if (p.type === 'year') hRok = p.value;
             });
 
-            document.getElementById('h-date-txt').innerText = `${den}. ${mesHeCz[mesEn] || mesEn} ${rok}`;
+            document.getElementById('h-date-txt').innerText = `${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
             document.getElementById('h-script-txt').innerText = hScript;
 
-            // Načtení dat z tvého vlastního API (JSON) [cite: 2025-09-15]
-            try {
-                const res = await fetch('zid-kalendar.json?v=' + Date.now());
-                const api = await res.json();
-                document.getElementById('parasha-txt').innerText = api.dnes.paraša;
-                document.getElementById('event-txt').innerText = api.dnes.svatek;
-            } catch (e) {
-                document.getElementById('parasha-txt').innerText = "Data z API nedostupná";
-                document.getElementById('event-txt').innerText = "Dnes není žádný významný svátek.";
-            }
+            // Logika Svátků [cite: 2025-09-14]
+            let svatek = "Dnes není žádný významný svátek.";
+            if (hMesEn === "Shevat" && hDen === 15) svatek = "Tu bi-švat 🌳";
+            else if ((hMesEn === "Adar" || hMesEn === "Adar II") && hDen === 14) svatek = "Purim 🎭";
+            else if (hMesEn === "Nisan" && hDen === 15) svatek = "Erev Pesach 🍷";
+            document.getElementById('event-txt').innerText = svatek;
+
+            // Logika Paraši (Pevný cyklus) [cite: 2025-12-27]
+            let sabat = new Date(d);
+            while (sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
+            const startRoku = new Date(d.getFullYear(), 0, 1);
+            const tydenRoku = Math.ceil((((sabat - startRoku) / 86400000) + startRoku.getDay() + 1) / 7);
+            document.getElementById('parasha-txt').innerText = vsechnyParashot[(tydenRoku + 13) % vsechnyParashot.length];
         }
 
-        // FUNKCE: Bohaté sdílení [cite: 2025-12-29]
         function shareJewishDay() {
-            const conf = getActiveSettings();
-            const text = `🇮🇱 Židovský kalendář - ${conf.label}\n\n` +
-                         `Dnes je ${document.getElementById('jom-txt').innerText}\n` +
-                         `${document.getElementById('h-date-txt').innerText}\n` +
-                         `${document.getElementById('h-script-txt').innerText}\n\n` +
-                         `📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n` +
-                         `✨ Svátek: ${document.getElementById('event-txt').innerText}\n\n` +
-                         `📌 ${document.getElementById('expl-txt').innerText}\n\n` +
-                         `💬 ${document.getElementById('custom-msg').value}`;
-
+            const text = `🇮🇱 ${document.getElementById('misto-txt').innerText}\n${document.getElementById('jom-txt').innerText}\n${document.getElementById('h-date-txt').innerText}\n📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n${document.getElementById('custom-msg').value}`;
             if (navigator.share) navigator.share({ text: text }); else alert(text);
         }
 

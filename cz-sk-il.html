@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Navigátor: Češi a Slováci v Izraeli</title>
     <style>
-        /* GLOBÁLNÍ OPRAVA: Box-sizing zabrání osekání stran [cite: 2025-09-15] */
+        /* RESET & GLOBÁLNÍ NASTAVENÍ: Zabraňuje osekání stran [cite: 2025-09-15] */
         * { box-sizing: border-box; }
 
         :root {
@@ -17,26 +17,26 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px; /* Menší padding pro mobilní okraje */
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        header { text-align: center; margin: 20px 0; width: 100%; }
-        h1 { color: var(--accent); margin-bottom: 5px; font-size: 1.8em; }
-        .subtitle { color: var(--muted); font-style: italic; font-size: 0.9em; }
+        header { text-align: center; margin: 20px 0 30px 0; width: 100%; }
+        h1 { color: var(--accent); margin: 0 0 5px 0; font-size: 1.8em; }
+        .subtitle { color: var(--muted); font-style: italic; font-size: 0.95em; }
 
-        /* NAVIGACE: Přehledná a klikatelná [cite: 2025-09-15] */
+        /* NAVIGACE: Přizpůsobeno pro dotykové ovládání [cite: 2025-09-15] */
         nav { 
             display: flex; 
             flex-wrap: wrap; 
             justify-content: center; 
-            gap: 8px; 
+            gap: 10px; 
             margin-bottom: 25px;
             width: 100%;
             max-width: 600px;
@@ -45,66 +45,66 @@
             background: var(--card); 
             border: 1px solid var(--accent); 
             color: var(--accent); 
-            padding: 8px 15px; 
-            border-radius: 15px; 
+            padding: 10px 18px; 
+            border-radius: 25px; 
             cursor: pointer; 
             text-decoration: none; 
             font-weight: bold;
-            font-size: 0.85em;
-            transition: 0.2s;
+            font-size: 0.9em;
+            transition: 0.2s ease-in-out;
         }
         .nav-btn.active { background: var(--accent); color: var(--bg); }
 
-        /* KARTY: Opraveno pro Pixel 8 Pro [cite: 2025-10-11, 2025-09-15] */
+        /* KARTY: Optimalizováno pro Pixel 8 Pro */
         #content-area { width: 100%; max-width: 550px; }
         
         .info-card {
             background: var(--card); 
-            border-radius: 20px; 
-            padding: 20px; 
+            border-radius: 25px; 
+            padding: 25px; 
             width: 100%; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4); 
-            margin-bottom: 15px; 
-            border-left: 4px solid var(--accent);
-            word-wrap: break-word; /* Zabrání přetékání dlouhých URL */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            margin-bottom: 20px; 
+            border-left: 5px solid var(--accent);
+            word-wrap: break-word;
         }
         
         .card-title { 
-            font-size: 1.2em; 
+            font-size: 1.3em; 
             color: var(--accent); 
-            margin-bottom: 8px; 
+            margin-bottom: 10px; 
             display: block; 
-            font-weight: bold; 
+            font-weight: 800; 
         }
         
         .card-desc { 
             color: var(--muted); 
-            line-height: 1.5; 
-            margin-bottom: 15px; 
-            font-size: 0.95em; 
+            line-height: 1.6; 
+            margin-bottom: 20px; 
+            font-size: 1em; 
         }
         
         .card-link { 
             color: var(--accent); 
             text-decoration: none; 
             font-weight: bold; 
-            font-size: 0.85em;
+            font-size: 0.9em;
             display: inline-block;
-            border: 1px solid var(--accent);
-            padding: 6px 12px;
-            border-radius: 10px;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            border: 2px solid var(--accent);
+            padding: 10px 20px;
+            border-radius: 15px;
+            width: 100%;
+            text-align: center;
         }
+        .card-link:hover { background: rgba(187, 134, 252, 0.1); }
 
         footer { 
             margin: 40px 0; 
             color: var(--muted); 
-            font-size: 0.8em; 
+            font-size: 0.85em; 
             text-align: center; 
-            opacity: 0.7; 
+            opacity: 0.8; 
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -112,7 +112,7 @@
 
     <header>
         <h1>🇨🇿 Navigátor Olim 🇸🇰</h1>
-        <div class="subtitle">Ověřené zdroje pro život v Izraeli 🇮🇱</div>
+        <div class="subtitle">Průvodce životem v Izraeli 🇮🇱</div>
     </header>
 
     <nav id="main-nav">
@@ -120,6 +120,7 @@
         <a href="?sekce=urady" class="nav-btn" id="btn-urady">🏢 Úřady</a>
         <a href="?sekce=pomoc" class="nav-btn" id="btn-pomoc">⚖️ Pomoc</a>
         <a href="?sekce=domov" class="nav-btn" id="btn-domov">🍞 Domov</a>
+        <a href="?sekce=mapy" class="nav-btn" id="btn-mapy">📍 Mapy</a>
         <a href="?sekce=vylety" class="nav-btn" id="btn-vylety">📜 Historie</a>
     </nav>
 
@@ -132,38 +133,44 @@
 
     <script>
         /**
-         * 1. DATABÁZE INFORMACÍ [cite: 2025-09-15]
+         * 1. DATABÁZE INFORMACÍ
          */
         const DATA = [
             {
                 sekce: "urady",
                 title: "Ministerstvo absorpce (Misrad HaKlita)",
-                desc: "Informace o koši absorpce (Sal Klita), podpoře v nezaměstnanosti a ubytování pro nové Olim.",
+                desc: "Základní informace o finanční podpoře (Sal Klita), ubytování a kurzech hebrejštiny pro nové přistěhovalce.",
                 link: "https://www.gov.il/en/departments/ministry_of_aliyah_and_integration"
             },
             {
                 sekce: "urady",
-                title: "Průvodce vládními službami (Gov.il)",
-                desc: "Oficiální portál pro biometrické pasy, registraci vozidel a sociální zabezpečení.",
+                title: "Vládní portál Gov.il",
+                desc: "Oficiální online brána ke všem státním službám, úřadům a aktuálním vládním oznámením.",
                 link: "https://www.gov.il/en"
             },
             {
                 sekce: "pomoc",
-                title: "Asociace česky mluvících advokátů",
-                desc: "Pomoc s nájemními smlouvami, pracovním právem a notářským ověřením v češtině.",
-                link: "https://www.facebook.com/groups/cesiaslovaciizrael/"
+                title: "Konzulární oddělení Tel Aviv",
+                desc: "České velvyslanectví v Izraeli – pomoc v nouzi, doklady, notářské ověření a kontakt s úřady v ČR.",
+                link: "https://mzv.gov.cz/telaviv/cz/index.html"
             },
             {
                 sekce: "domov",
-                title: "Gastromapa: Kde sehnat české potraviny",
-                desc: "Tipy na obchody s českým pivem, poctivým tvarohem a surovinami pro vaření.",
+                title: "České chutě (Emet Blog)",
+                desc: "Tipy na vaření a nákup surovin v Izraeli. Kde sehnat to, co nám z domova chybí.",
                 link: "https://emetblog.blogspot.com/"
             },
             {
+                sekce: "mapy",
+                title: "Užitečné mapové podklady",
+                desc: "Interaktivní mapy a geodata užitečná pro navigaci v izraelském prostředí.",
+                link: "https://maps.app.goo.gl/FiHMyJz2yZNs8Rik8"
+            },
+            {
                 sekce: "vylety",
-                title: "Masarykův les a Kibuc Masaryk",
-                desc: "Významná historická místa připomínající československou stopu při vzniku Izraele.",
-                link: "https://www.kfar-masaryk.co.il/"
+                title: "Kibuc Kfar Masaryk",
+                desc: "Jedinečné historické místo nesoucí jméno prvního československého prezidenta.",
+                link: "https://www.kfar-masaryk.org.il/"
             }
         ];
 
@@ -188,7 +195,7 @@
                         <div class="info-card">
                             <span class="card-title">${item.title}</span>
                             <div class="card-desc">${item.desc}</div>
-                            <a href="${item.link}" class="card-link" target="_blank">Otevřít zdroj</a>
+                            <a href="${item.link}" class="card-link" target="_blank">Přejít na zdroj</a>
                         </div>
                     `;
                     area.innerHTML += card;
@@ -196,7 +203,7 @@
             });
 
             if (area.innerHTML === '') {
-                area.innerHTML = '<p style="text-align:center; opacity:0.6;">V této sekci zatím nic není.</p>';
+                area.innerHTML = '<p style="text-align:center; opacity:0.6;">Zatím zde nejsou žádné záznamy.</p>';
             }
         }
 

@@ -6,7 +6,7 @@
     <title>Židovský kalendář - Local Edition</title>
     <style>
         /**
-         * DESIGN: Fialový styl a scannabilita [cite: 2025-09-15]
+         * DESIGN: Fialový styl a scannabilita
          */
         :root {
             --bg: #0f0a1a;
@@ -86,8 +86,7 @@
 
     <script>
         /**
-         * 1. KONFIGURACE A DATA [cite: 2025-09-14, 2026-01-13]
-         * Doplněny lokality s významnými komunitami Čechů a Slováků
+         * 1. KONFIGURACE A DATA
          */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
@@ -111,7 +110,7 @@
         const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
         /**
-         * 2. ČAS A VÝPOČET HVĚZD [cite: 2026-01-13]
+         * 2. ČAS A VÝPOČET HVĚZD
          */
         function updateClock() {
             const nyni = new Date();
@@ -127,7 +126,7 @@
         }
 
         /**
-         * 3. INICIALIZACE [cite: 2025-10-11, 2026-01-13]
+         * 3. INICIALIZACE
          */
         function init() {
             updateClock();
@@ -174,13 +173,14 @@
         }
 
         /**
-         * 4. FORMÁTOVANÉ SDÍLENÍ [cite: 2025-12-29]
+         * 4. FORMÁTOVANÉ SDÍLENÍ
          */
         function shareJewishDay() {
             const params = new URLSearchParams(window.location.search);
             const mistoParam = params.get('misto');
             const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
             const sefariaLink = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
+            const explVeta = "Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.";
 
             const text = `Židovský kalendář\n\n` +
                          `📍 ${conf.label}\n\n` +
@@ -192,6 +192,7 @@
                          `${document.getElementById('h-script-txt').innerText}\n\n` +
                          `📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n` +
                          `${sefariaLink}\n\n` +
+                         `${explVeta}\n\n` +
                          `💬 ${document.getElementById('custom-msg').value}`;
 
             if (navigator.share) {

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Židovský kalendář - Local Edition</title>
+    <title>Židovský kalendář - Local Independent Edition</title>
     <style>
         /**
-         * DESIGN: Fialový styl a scannabilita
+         * DESIGN: Fialový styl a scannabilita [cite: 2025-09-15]
          */
         :root {
             --bg: #0f0a1a;
@@ -75,6 +75,9 @@
         
         <span class="section-label">✨ Svátek / Událost:</span>
         <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
+
+        <span class="section-label">🕯️ Zapalování svící:</span>
+        <div class="detail-text" id="candles-txt">--:--</div>
         
         <div class="explanation" id="expl-txt">
             Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.
@@ -86,7 +89,7 @@
 
     <script>
         /**
-         * 1. KONFIGURACE A DATA
+         * 1. KONFIGURACE LOKALIT [cite: 2026-01-13]
          */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
@@ -104,53 +107,90 @@
         };
 
         const dnyPhonetic = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota)"];
-        const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
         const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
         /**
-         * 2. ČAS A VÝPOČET HVĚZD
+         * 2. ČAS A VÝPOČET HVĚZD/SLUNCE
          */
         function updateClock() {
-            const nyni = new Date();
-            document.getElementById('time-txt').innerText = nyni.toLocaleTimeString('cs-CZ');
+            document.getElementById('time-txt').innerText = new Date().toLocaleTimeString('cs-CZ');
         }
 
-        function getTzeitMinutes(date, conf) {
+        function getSunset(date, conf) {
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
             const sunsetH = 12 + (Math.acos(-Math.tan(conf.lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
-            const isDST = date.getMonth() > 2 && date.getMonth() < 9 ? 60 : 0;
-            return (sunsetH * 60) + conf.tz + isDST + 35;
+            const isDST = date.getTimezoneOffset() < 0 ? 60 : 0; // Detekce DST
+            return (sunsetH * 60) + conf.tz + isDST;
         }
 
         /**
-         * 3. INICIALIZACE
+         * 3. NEZÁVISLÝ VÝPOČET SVÁTKŮ (Statická mapa a logika)
+         */
+        function getHoliday(hDay, hMonth, dayOfWeek) {
+            // hMonth je anglický název z Intl
+            const m = hMonth;
+            const d = hDay;
+
+            // Pevné svátky
+            if (m === "Tishri" && d === 1) return "Roš ha-šana (Nový rok)";
+            if (m === "Tishri" && d === 2) return "Roš ha-šana 2. den";
+            if (m === "Tishri" && d === 10) return "Jom kipur (Den smíření)";
+            if (m === "Tishri" && d >= 15 && d <= 21) return "Sukot (Svátek stánků)";
+            if (m === "Tishri" && d === 22) return "Šmini aceret / Simchat Tóra";
+            if (m === "Kislev" && d === 25) return "Chanuka (1. svíčka večer)";
+            if (m === "Tevet" && d <= 2) return "Chanuka";
+            if (m === "Shevat" && d === 15) return "Tu bi-švat (Nový rok stromů)";
+            if ((m === "Adar" || m === "Adar II") && d === 14) return "Purim";
+            if (m === "Nisan" && d >= 15 && d <= 22) return "Pesach (Svátek nekvašených chlebů)";
+            if (m === "Iyar" && d === 18) return "Lag ba-omer";
+            if (m === "Sivan" && d === 6) return "Šavuot (Svátek týdnů)";
+            if (m === "Av" && d === 9) return "Tiša be-av (Půst)";
+
+            // Sobota
+            if (dayOfWeek === 6) return "Šabat (Svatý odpočinek)";
+            
+            return "Dnes není žádný významný svátek.";
+        }
+
+        /**
+         * 4. INICIALIZACE A VÝPOČTY
          */
         function init() {
             updateClock();
             setInterval(updateClock, 1000);
 
             const params = new URLSearchParams(window.location.search);
-            const mistoParam = params.get('misto');
-            const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
-            
+            const conf = LOKALITY[params.get('misto')] || LOKALITY["Haifa"];
             document.getElementById('misto-txt').innerText = conf.label;
 
             let d_civil = new Date();
             let d_zid = new Date();
 
             const nyniMin = (d_civil.getHours() * 60) + d_civil.getMinutes();
-            const tzeitMin = getTzeitMinutes(d_civil, conf);
+            const sunsetMin = getSunset(d_civil, conf);
+            const tzeitMin = sunsetMin + 35; // Tzeit HaKochavim cca 35 min po západu
 
+            // Pokud je po východu hvězd, v židovském kalendáři je už zítřek
             if (nyniMin >= tzeitMin) d_zid.setDate(d_zid.getDate() + 1);
 
-            const gDateStr = capitalize(d_civil.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
-            document.getElementById('g-date-txt').innerText = gDateStr;
+            // Zapalování svící (18 minut před západem v pátek)
+            if (d_civil.getDay() === 5) {
+                const candleMin = sunsetMin - 18;
+                const h = Math.floor(candleMin / 60);
+                const m = Math.floor(candleMin % 60);
+                document.getElementById('candles-txt').innerText = `${h}:${m < 10 ? '0'+m : m}`;
+            } else {
+                document.getElementById('candles-txt').innerText = "Dnes se nesvítí.";
+            }
 
+            // Gregoriánské datum
+            document.getElementById('g-date-txt').innerText = capitalize(d_civil.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
             document.getElementById('jom-txt').innerText = "✨ " + dnyPhonetic[d_zid.getDay()];
 
+            // Hebrejské datum pomocí vestavěného Intl (nezávislé na externím API)
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d_zid);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d_zid);
@@ -165,6 +205,11 @@
             document.getElementById('h-date-txt').innerText = `📜 ${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
             document.getElementById('h-script-txt').innerText = hScript;
 
+            // Svátek
+            document.getElementById('event-txt').innerText = getHoliday(hDen, hMesEn, d_zid.getDay());
+
+            // Paraša (jednoduchý odhad týdne v roce)
+            const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
             let sabat = new Date(d_zid);
             while (sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
             const startRoku = new Date(d_zid.getFullYear(), 0, 1);
@@ -173,13 +218,11 @@
         }
 
         /**
-         * 4. FORMÁTOVANÉ SDÍLENÍ
+         * 5. SDÍLENÍ [cite: 2025-12-29]
          */
         function shareJewishDay() {
             const params = new URLSearchParams(window.location.search);
-            const mistoParam = params.get('misto');
-            const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
-            const sefariaLink = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
+            const conf = LOKALITY[params.get('misto')] || LOKALITY["Haifa"];
             const explVeta = "Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.";
 
             const text = `Židovský kalendář\n\n` +
@@ -191,14 +234,16 @@
                          `${document.getElementById('h-date-txt').innerText}\n` +
                          `${document.getElementById('h-script-txt').innerText}\n\n` +
                          `📖 Paraša: ${document.getElementById('parasha-txt').innerText}\n` +
-                         `${sefariaLink}\n\n` +
+                         `✨ Svátek: ${document.getElementById('event-txt').innerText}\n` +
+                         `🕯️ Svíce: ${document.getElementById('candles-txt').innerText}\n\n` +
+                         `https://www.sefaria.org.il/topics/torah-portions\n\n` +
                          `${explVeta}\n\n` +
                          `💬 ${document.getElementById('custom-msg').value}`;
 
             if (navigator.share) {
                 navigator.share({ text: text });
             } else {
-                alert("Sdílení není podporováno, text zkopírován do konzole.");
+                alert("Text zkopírován do konzole.");
                 console.log(text);
             }
         }

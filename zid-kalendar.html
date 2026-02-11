@@ -37,6 +37,7 @@
             text-align: center;
         }
         .header { font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
+        .time-display { font-size: 1.2em; font-weight: bold; color: var(--text); margin-bottom: 10px; }
         .misto-label { font-size: 1.1em; color: var(--accent); margin-bottom: 15px; display: block; opacity: 0.8; font-weight: bold; }
         .g-label { font-size: 1em; color: var(--muted); margin-bottom: 2px; }
         .gregorian-date { font-size: 1.3em; color: var(--text); margin-bottom: 15px; font-weight: 400; }
@@ -56,6 +57,7 @@
 
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
+        <div class="time-display" id="time-txt">00:00:00</div>
         <div class="misto-label" id="misto-txt">Načítám...</div>
         
         <div class="g-label">📅 Dnes je:</div>
@@ -85,24 +87,37 @@
     <script>
         /**
          * 1. KONFIGURACE A DATA [cite: 2025-09-14, 2026-01-13]
+         * Doplněny lokality s významnými komunitami Čechů a Slováků
          */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
             "Jeruzalem":  { lat: 31.76, lng: 35.21, tz: 120, label: "Jeruzalém, Izrael 🇮🇱" },
             "Praha":      { lat: 50.07, lng: 14.43, tz: 60,  label: "Praha, Česko 🇨🇿" },
-            "Bratislava": { lat: 48.14, lng: 17.10, tz: 60,  label: "Bratislava, Slovensko 🇸🇰" }
+            "Bratislava": { lat: 48.14, lng: 17.10, tz: 60,  label: "Bratislava, Slovensko 🇸🇰" },
+            "Chicago":    { lat: 41.87, lng: -87.62, tz: -360, label: "Chicago, USA 🇺🇸" },
+            "NewYork":    { lat: 40.71, lng: -74.00, tz: -300, label: "New York, USA 🇺🇸" },
+            "CedarRapids": { lat: 41.97, lng: -91.66, tz: -360, label: "Cedar Rapids, USA 🇺🇸" },
+            "London":     { lat: 51.50, lng: -0.12, tz: 0,   label: "Londýn, Británie 🇬🇧" },
+            "Munchen":    { lat: 48.13, lng: 11.58, tz: 60,  label: "Mnichov, Německo 🇩🇪" },
+            "Wien":       { lat: 48.20, lng: 16.37, tz: 60,  label: "Vídeň, Rakousko 🇦🇹" },
+            "Toronto":    { lat: 43.65, lng: -79.38, tz: -300, label: "Toronto, Kanada 🇨🇦" },
+            "Melbourne":  { lat: -37.81, lng: 144.96, tz: 660, label: "Melbourne, Austrálie 🇦🇺" }
         };
 
         const dnyPhonetic = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota)"];
         const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
 
-        // Pomocná funkce pro velká písmena
         const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
         /**
-         * 2. VÝPOČET HVĚZD [cite: 2026-01-13]
+         * 2. ČAS A VÝPOČET HVĚZD [cite: 2026-01-13]
          */
+        function updateClock() {
+            const nyni = new Date();
+            document.getElementById('time-txt').innerText = nyni.toLocaleTimeString('cs-CZ');
+        }
+
         function getTzeitMinutes(date, conf) {
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
@@ -115,6 +130,9 @@
          * 3. INICIALIZACE [cite: 2025-10-11, 2026-01-13]
          */
         function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+
             const params = new URLSearchParams(window.location.search);
             const mistoParam = params.get('misto');
             const conf = LOKALITY[mistoParam] || LOKALITY["Haifa"];
@@ -129,14 +147,11 @@
 
             if (nyniMin >= tzeitMin) d_zid.setDate(d_zid.getDate() + 1);
 
-            // Zobrazení Gregoriánského data [cite: 2025-12-27]
             const gDateStr = capitalize(d_civil.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
             document.getElementById('g-date-txt').innerText = gDateStr;
 
-            // Zobrazení Fonetického dne [cite: 2026-01-13]
             document.getElementById('jom-txt').innerText = "✨ " + dnyPhonetic[d_zid.getDay()];
 
-            // Hebrejské datum [cite: 2025-12-27]
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d_zid);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d_zid);
@@ -151,7 +166,6 @@
             document.getElementById('h-date-txt').innerText = `📜 ${hDen}. ${mesHeCz[hMesEn] || hMesEn} ${hRok}`;
             document.getElementById('h-script-txt').innerText = hScript;
 
-            // Paraša a Svátky [cite: 2025-12-27]
             let sabat = new Date(d_zid);
             while (sabat.getDay() !== 6) sabat.setDate(sabat.getDate() + 1);
             const startRoku = new Date(d_zid.getFullYear(), 0, 1);
@@ -169,7 +183,8 @@
             const sefariaLink = "https://www.sefaria.org.il/topics/torah-portions?sort=Relevance&tab=sources";
 
             const text = `Židovský kalendář\n\n` +
-                         `🇮🇱 ${conf.label} 🇮🇱\n\n` +
+                         `📍 ${conf.label}\n\n` +
+                         `🕒 Čas: ${document.getElementById('time-txt').innerText}\n` +
                          `📅 Dnes je:\n\n` +
                          `${document.getElementById('g-date-txt').innerText}\n` +
                          `${document.getElementById('jom-txt').innerText}\n\n` +

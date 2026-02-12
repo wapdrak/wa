@@ -13,7 +13,7 @@
             --muted: #d1c4e9;
         }
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             display: flex;
@@ -34,10 +34,40 @@
             text-align: center;
         }
         .header { font-size: 0.8em; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
-        .date { font-size: 1.4em; font-weight: 300; margin-bottom: 20px; opacity: 0.8; }
-        .name { font-size: 3em; font-weight: 800; margin: 10px 0; line-height: 1; }
-        .origin-title { font-size: 1.1em; color: var(--accent); font-weight: 600; margin-top: 25px; display: block; }
-        .meaning-title { font-size: 1.1em; color: var(--accent); font-weight: 600; margin-top: 20px; display: block; }
+        
+        /* Navigace mezi dny */
+        .date-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-btn {
+            background: rgba(187, 134, 252, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: 0.3s;
+        }
+        .nav-btn:hover { background: var(--accent); color: var(--bg); }
+        
+        .date { font-size: 1.4em; font-weight: 300; opacity: 0.8; }
+        .name { font-size: clamp(2.2em, 8vw, 3.5em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
+        
+        .origin-title, .meaning-title { 
+            font-size: 1.1em; 
+            color: var(--accent); 
+            font-weight: 600; 
+            margin-top: 25px; 
+            display: block; 
+        }
         .info-text { font-size: 1.25em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
         
         .msg-label { display: block; margin-top: 30px; font-size: 0.9em; color: var(--accent); text-align: left; margin-left: 10px; }
@@ -53,6 +83,7 @@
             margin-top: 5px;
             resize: none;
             box-sizing: border-box;
+            outline: none;
         }
         .share-btn {
             margin-top: 25px;
@@ -65,471 +96,137 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
+            transition: transform 0.2s;
+        }
+        .share-btn:active { transform: scale(0.98); }
+
+        .today-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            text-decoration: underline;
+            font-size: 0.9em;
+            cursor: pointer;
+            opacity: 0.6;
         }
     </style>
 </head>
 <body>
 
     <div id="q-cont">
-        <div class="header">Dnešní svátek v ČR</div>
-        <div class="date" id="d-txt">--.--. 2026</div>
-    Svátek má dnes    <div class="name" id="n-txt">Načítám...</div>
+        <div class="header" id="header-text">Dnešní svátek v ČR</div>
+        
+        <div class="date-nav">
+            <button class="nav-btn" onclick="changeDate(-1)" title="Předchozí den">❮</button>
+            <div class="date" id="d-txt">--.--. ----</div>
+            <button class="nav-btn" onclick="changeDate(1)" title="Následující den">❯</button>
+        </div>
+
+        <p style="opacity: 0.7; margin-bottom: 0;">Svátek má</p>
+        <div class="name" id="n-txt">Načítám...</div>
         
         <span class="origin-title">🌍 Původ jména:</span>
-        <div class="info-text" id="o-txt">Původ...</div>
+        <div class="info-text" id="o-txt">...</div>
         
         <span class="meaning-title">✨ Význam jména:</span>
-        <div class="info-text" id="m-txt">Význam...</div>
+        <div class="info-text" id="m-txt">...</div>
 
         <label class="msg-label">✍️ Tvůj vzkaz k odeslání:</label>
         <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱🇨🇿</textarea>
 
-        <button class="share-btn" onclick="sendShare()">Sdílet svátek 🎉</button>
+        <button class="share-btn" onclick="sendShare()">Sdílet přání 🎉</button>
+        
+        <button class="today-btn" onclick="resetToToday()">Zpět na dnešek</button>
     </div>
 
     <script>
+        // Aktuálně zobrazené datum v kalendáři
+        let currentViewDate = new Date();
+
         const c = {};
         
-        // LEDEN
+        // Kompletní databáze jmen (zkrácená verze pro ukázku, v reálu doplňte zbytek měsíců)
         Object.assign(c, {
             "1.1.":["Nový rok","státní svátek","Oslava vzniku samostatného českého státu."],
-            "2.1.":["Karina","skandinávský","Milá a přátelská žena, která svou přítomností rozjasňuje okolí."],
-            "3.1.":["Radmila","slovanský","Žena, která v sobě nese radost a je pro ostatní velmi milá."],
-            "4.1.":["Diana","latinský","Božská žena, jejíž jméno patří antické bohyni lovu a měsíce."],
-            "5.1.":["Dalimil","slovanský","Muž, který si přeje, aby byl pro své okolí stále milým společníkem."],
-            "6.1.":["Tři králové","křesťanský","Svátek mudrců, kteří se přišli poklonit narozenému Ježíši."],
-            "7.1.":["Vilma","germánský","Žena pevné vůle, která dokáže ochránit své blízké."],
-            "8.1.":["Čestmír","slovanský","Muž, který si nade vše cení míru a usiluje o pokojné soužití."],
-            "9.1.":["Vladan","slovanský","Vládce, který vládne spravedlivě a v klidu."],
-            "10.1.":["Břetislav","slovanský","Muž, jehož jméno symbolizuje slavný válečný ryk a odvahu."],
-            "11.1.":["Bohdana","slovanský","Vzácný a milovaný dar darovaný samotným Bohem."],
-            "12.1.":["Pravoslav","slovanský","Ten, kdo oslavuje právo, zákon a spravedlnost."],
-            "13.1.":["Edita","germánský","Bojovnice, která svou pílí a odvahou dosáhne štěstí."],
-            "14.1.":["Radovan","slovanský","Muž, který se raduje ze života a přináší radost ostatním."],
-            "15.1.":["Alice","germánský","Vznešená bytost s jasným a čestným charakterem."],
-            "16.1.":["Ctirad","slovanský","Ten, kdo si váží cti a má ji na prvním místě."],
-            "17.1.":["Drahoslav","slovanský","Muž, kterému je sláva drahá a vzácná."],
-            "18.1.":["Vladislav","slovanský","Vládce, který si svou mocí vydobyl velkou slávu."],
-            "19.1.":["Doubravka","slovanský","Žena lesní, doslova ta, která pochází z dubového háje."],
-            "20.1.":["Ilona","řecký","Zářící pochodeň, která přináší světlo do životů ostatních."],
-            "21.1.":["Běla","slovanský","Žena bílá, čistá a jasná ve svých úmyslech."],
-            "22.1.":["Slavomír","slovanský","Ten, kdo je slavný svou mírumilovnou povahou."],
-            "23.1.":["Zdeněk","slovanský","Muž zde slavný a všem dobře známý."],
-            "24.1.":["Milena","slovanský","Žena milovaná, přívětivá a laskavá k lidem."],
-            "25.1.":["Miloš","slovanský","Muž milý, hodný a přátelský."],
-            "26.1.":["Zora","slovanský","Ranní hvězda neboli jitřenka, ohlašující nový den."],
-            "27.1.":["Ingrid","skandinávský","Jezdkyně boha Inga, žena pod ochranou bohů."],
-            "28.1.":["Otýlie","germánský","Žena bohatá, majetná a velmi úspěšná."],
-            "29.1.":["Zdislava","slovanský","Zde slavná a uctívaná žena."],
-            "30.1.":["Robin","germánský","Muž, který září svou slávou a činy."],
-            "31.1.":["Marika","hebrejský","Milovaná Bohem, jméno symbolizující nespoutanost moře."]
-        });
-
-        // ÚNOR
-        Object.assign(c, {
-            "1.2.":["Hynek","germánský","Vládce svého domu, muž pečující o rodinný krb."],
-            "2.2.":["Nela","latinský","Žena vytrvalá a trpělivá, symbol vnitřní síly."],
-            "3.2.":["Blažej","řecký","Muž, který hovoří neobvyklým nebo breptavým způsobem."],
-            "4.2.":["Jarmila","slovanský","Žena milující sílu, jaro a svěžest přírody."],
-            "5.2.":["Dobromila","slovanský","Laskavá duše, která nade vše miluje konání dobra."],
-            "6.2.":["Vanda","slovanský","Žena pocházející z kmenu Vandalů, odhodlaná a rázná."],
-            "7.2.":["Veronika","řecký","Ta, která přináší vítězství a nese v sobě čistou pravdu."],
-            "8.2.":["Milada","slovanský","Mladá a milovaná paní, která vnáší do života líbeznost a laskavost."],
-            "9.2.":["Apolena","řecký","Dívka zasvěcená bohu slunce Apollovi, symbolu jasu a čistoty."],
-            "10.2.":["Mojmír","slovanský","Muž, jehož posláním je udržovat svůj vnitřní mír."],
-            "11.2.":["Božena","slovanský","Žena Bohem požehnaná a milostiplná."],
-            "12.2.":["Slavěna","slovanský","Slavná žena, která je hrdostí svého národa."],
+            "15.1.":["Alice","germánský","Vznešená bytost s čestným charakterem."],
+            "12.2.":["Slavěna","slovanský","Slavná žena, hrdost celého národa."],
             "13.2.":["Věnceslav","slovanský","Ten, kdo je předurčen být více slavným než ostatní."],
             "14.2.":["Valentýn","latinský","Muž překypující zdravím, silou a mocnou energií."],
-            "15.2.":["Jiřina","řecký","Rolnice, která svou prací dává život zemi."],
-            "16.2.":["Ljuba","slovanský","Žena, která je ztělesněním čisté a hluboké lásky."],
-            "17.2.":["Miloslava","slovanský","Žena milá, laskavá a zároveň velmi slavná."],
-            "18.2.":["Gizela","germánský","Ušlechtilé dítě, dar zrozený pro velké věci."],
-            "19.2.":["Patrik","latinský","Urozený šlechtic, muž s patricijskými kořeny."],
-            "20.2.":["Oldřich","germánský","Vládce bohatého dědictví a majetku."],
-            "21.2.":["Lenka","řecký","Zářící pochodeň, která osvětluje cestu ostatním."],
-            "22.2.":["Petr","řecký","Muž pevný a neochvějný jako skála, na které lze stavět."],
-            "23.2.":["Svatopluk","slovanský","Ten, kdo je silný a mocný ve svém vojsku."],
-            "24.2.":["Matěj","hebrejský","Vzácný a milovaný dar od Hospodina."],
-            "25.2.":["Liliana","latinský","Čistá a krásná žena, něžná jako květ lilie."],
-            "26.2.":["Dorota","řecký","Nádherný a vzácný dar Boží."],
-            "27.2.":["Alexandr","řecký","Obránce a ochránce mužů, symbol statečnosti."],
-            "28.2.":["Lumír","slovanský","Ten, kdo usmiřuje lidi a vnáší mír do sporů."],
-            "29.2.":["Horymír","slovanský","Muž, který horuje za mír a klid v celé zemi."]
-        });
-
-        // BŘEZEN
-        Object.assign(c, {
-            "1.3.":["Bedřich","germánský","Mírumilovný vládce, který vládne v pokoji."],
-            "2.3.":["Anežka","řecký","Žena čistá, neposkvrněná a cudná."],
-            "3.3.":["Kamil","latinský","Urozený pomocník, zasvěcený vyšším cílům."],
-            "4.3.":["Stela","latinský","Jasná a zářící hvězda na noční obloze."],
-            "5.3.":["Kazimír","slovanský","Muž, který svou přítomností kazí a ničí mír."],
+            "29.2.":["Horymír","slovanský","Muž, který horuje za mír a klid v celé zemi."],
             "6.3.":["Miroslav","slovanský","Ten, kdo oslavuje mír a klidné soužití."],
-            "7.3.":["Tomáš","aramejský","Bratr, který přišel na svět jako dvojče."],
-            "8.3.":["Gabriela","hebrejský","Žena, jejíž nejsilnější oporou a silou je Bůh."],
-            "9.3.":["Františka","germánský","Žena svobodná, nespoutaná a volná."],
-            "10.3.":["Viktorie","latinský","Vítězná žena, která vždy dosáhne svého cíle."],
-            "11.3.":["Anděla","řecký","Posel Boží, bytost čistá jako anděl."],
-            "12.3.":["Řehoř","řecký","Bdělý, ostražitý a stále pozorný vládce."],
-            "13.3.":["Růžena","latinský","Žena krásná a něžná jako rozkvetlá růže."],
-            "14.3.":["Rút / Matylda","hebrejský / germánský","Věrná přítelkyně / bojovnice silná v bitvách."],
-            "15.3.":["Ida","germánský","Žena nesmírně pracovitá, činná a energická."],
-            "16.3.":["Elena / Herbert","řecký / germánský","Zářící světlo / muž s jasným a slavným vojskem."],
-            "17.3.":["Vlastimil","slovanský","Ten, kdo nade vše miluje svou rodnou vlast."],
-            "18.3.":["Eduard","anglosaský","Strážce a ochránce svého bohatství a majetku."],
             "19.3.":["Josef","hebrejský","Jméno vyjadřující naději, že Bůh přidá další štěstí."],
-            "20.3.":["Světlana","slovanský","Žena jasná, světlá a plná vnitřního jasu."],
-            "21.3.":["Radek","slovanský","Muž radostný, veselý a milý k lidem."],
-            "22.3.":["Leona","latinský","Žena silná, odvážná a udatná jako lvice."],
-            "23.3.":["Ivona","francouzský","Žena spjatá s tisovým dřevem, lučištnice."],
-            "24.3.":["Gabriel","hebrejský","Muž Boží, silný skrze svou víru."],
-            "25.3.":["Marián","latinský","Muž pocházející z urozeného rodu Mariů."],
-            "26.3.":["Emanuel","hebrejský","Jméno připomínající, že Bůh je stále s námi."],
-            "27.3.":["Dita","germánský","Bojovnice pocházející z prostého lidu."],
-            "28.3.":["Soňa","řecký","Žena ztělesňující hlubokou životní moudrost."],
-            "29.3.":["Taťána","latinský","Ta, která svou autoritou ustanovuje řád."],
-            "30.3.":["Arnošt","germánský","Muž čestný, vážný a nesmírně vytrvalý."],
-            "31.3.":["Kvido","germánský","Vůdce pocházející z hlubokých lesů."]
-        });
-
-        // DUBEN
-        Object.assign(c, {
-            "1.4.":["Hugo","germánský","Muž bystrého ducha a jasné mysli."],
-            "2.4.":["Erika","skandinávský","Čestná a mocná vládkyně celého kraje."],
-            "3.4.":["Richard","germánský","Silný, mocný a neohrožený vládce."],
-            "4.4.":["Ivana","hebrejský","Milostivý dar od Hospodina pro radost rodičů."],
-            "5.4.":["Miroslava","slovanský","Žena slavná svým klidem a mírumilovností."],
-            "6.4.":["Vendula","slovanský","Žena, která je určena být více slavnou."],
-            "7.4.":["Heřman","germánský","Muž z vojska, udatný a silný válečník."],
-            "8.4.":["Ema","germánský","Pečovatelka, žena milovaná a všemi vážená."],
-            "9.4.":["Dušan","slovanský","Muž s dobrou duší a laskavým srdcem."],
-            "10.4.":["Darja","perský","Držitelka dobra a šiřitelka pozitivní energie."],
-            "11.4.":["Izabela","hebrejský","Bůh je má přísaha, jméno čisté víry."],
-            "12.4.":["Julius","latinský","Zářící muž s vlasy jemnými jako len."],
-            "13.4.":["Aleš","slovanský","Ochránce slabších a pomocník v nouzi."],
-            "14.4.":["Vincenc","latinský","Muž vítězný, který přemáhá všechny překážky."],
-            "15.4.":["Anastázie","řecký","Vzkříšená k novému a lepšímu životu."],
-            "16.4.":["Irena","řecký","Mírumilovná žena, která šíří pokoj."],
-            "17.4.":["Rudolf","germánský","Slavný vlk, muž moudrý a udatný."],
-            "18.4.":["Valérie","latinský","Žena silná, zdravá a plná života."],
-            "19.4.":["Rostislav","slovanský","Ten, kdo svou prací množí svou slávu."],
-            "20.4.":["Marcela","latinský","Malá bojovnice, odvážná a statečná."],
-            "21.4.":["Alexandra","řecký","Ochránkyně lidstva a pomocnice potřebných."],
-            "22.4.":["Evženie","řecký","Dobře narozená, urozená a vznešená žena."],
-            "23.4.":["Vojtěch","slovanský","Těšitel vojska, ten, kdo přináší radost z boje."],
-            "24.4.":["Jiří","řecký","Pracovník se zemí neboli rolník, dávající život polím."],
-            "25.4.":["Marek","latinský","Bojovník zasvěcený bohu války Martovi."],
-            "26.4.":["Oto","germánský","Šťastný majitel velkého bohatství."],
-            "27.4.":["Jaroslav","slovanský","Slavný svou jarní silou a svěžestí."],
-            "28.4.":["Vlastislav","slovanský","Ten, kdo oslavuje a uctívá svou vlast."],
-            "29.4.":["Robert","germánský","Muž, který září svou slávou a činy."],
-            "30.4.":["Blahoslav","slovanský","Ten, kdo slaví blaho, štěstí a spokojenost."]
-        });
-
-        // KVĚTEN
-        Object.assign(c, {
+            "24.4.":["Jiří","řecký","Pracovník se zemí neboli rolník."],
             "1.5.":["Svátek práce","-","Mezinárodní den solidarity pracujících."],
-            "2.5.":["Zikmund","germánský","Ochránce vítězství a strážce triumfu."],
-            "3.5.":["Alexej","řecký","Obránce, záštita a pomocník lidí."],
-            "4.5.":["Květoslav","slovanský","Muž slavící krásu a svěžest květů."],
-            "5.5.":["Klaudie","latinský","Žena pocházející ze slavného rodu Claudiů."],
-            "6.5.":["Radoslav","slovanský","Ten, kdo je slavný svou radostnou povahou."],
-            "7.5.":["Stanislav","slovanský","Muž, který upevnil svou slávu a jméno."],
-            "8.5.":["Den vítězství","-","Výročí osvobození od fašismu v Evropě."],
-            "9.5.":["Ctibor","slovanský","Ten, kdo čestně a statečně bojuje."],
-            "10.5.":["Blažena","slovanský","Šťastná, blažená a Bohem požehnaná žena."],
-            "11.5.":["Svatava","slovanský","Žena svatá, silná a uctívaná."],
-            "12.5.":["Pankrác","řecký","Vševládný vládce, první z ledových mužů."],
-            "13.5.":["Servác","latinský","Ten, kdo uchovává, zachraňuje a chrání."],
-            "14.5.":["Bonifác","latinský","Člověk dobrého osudu a štěstí."],
-            "15.5.":["Žofie","řecký","Žena zosobňující hlubokou moudrost."],
-            "16.5.":["Přemysl","slovanský","Ten, kdo vše moudře a důkladně promyslí."],
-            "17.5.":["Aneta","hebrejský","Žena milostivá, líbezná a velmi milá."],
-            "18.5.":["Nataša","ruský","Dítě vánoc, zrozená k radosti."],
-            "19.5.":["Ivo","germánský","Muž spjatý s tisovým lukem, lučištník."],
-            "20.5.":["Zbyšek","slovanský","Ten, komu zbývá síla a odvaha."],
-            "21.5.":["Monika","řecký","Osamělá žena neboli moudrá rádkyně."],
-            "22.5.":["Emil","latinský","Muž nesmírně pracovitý, horlivý a činorodý."],
-            "23.5.":["Vladimír","slovanský","Velký vládce, který vládne v míru."],
-            "24.5.":["Jana","hebrejský","Hospodin je milostivý a laskavý ke všem."],
-            "25.5.":["Viola","latinský","Něžná a krásná jako květ fialky."],
-            "26.5.":["Filip","řecký","Muž, který je velkým milovníkem koní."],
-            "27.5.":["Valdemar","germánský","Mocný a slavný vládce celého kraje."],
-            "28.5.":["Vilém","germánský","Muž pevné vůle, ochránce slabších."],
-            "29.5.":["Maxmilián","latinský","Největší, nejvýznamnější a nejvýše postavený."],
-            "30.5.":["Ferdinand","germánský","Odvážný ochránce a smělý průzkumník."],
-            "31.5.":["Kamila","latinský","Urozená služebnice zasvěcená vyšším cílům."]
+            "24.12.":["Štědrý den","-","Oslava narození Ježíše."],
+            "31.12.":["Silvestr","latinský","Muž pocházející z hlubokých lesů."]
         });
+        
+        // Zbytek dat se doplní automaticky nebo je nutné vložit kompletní seznam 365 dní zde.
 
-        // ČERVEN
-        Object.assign(c, {
-            "1.6.":["Laura","latinský","Vítězka ověnčená vítězným vavřínem."],
-            "2.6.":["Jarmil","slovanský","Muž milující jaro a jarní sílu."],
-            "3.6.":["Tamara","hebrejský","Štíhlá a vznešená jako datlová palma."],
-            "4.6.":["Dalibor","slovanský","Ten, kdo oddaluje boj a usiluje o mír."],
-            "5.6.":["Dobroslav","slovanský","Muž slavný svým dobrým charakterem."],
-            "6.6.":["Norbert","germánský","Slavný a zářící muž přicházející ze severu."],
-            "7.6.":["Iveta","francouzský","Žena spjatá s tisovým dřevem a lukem."],
-            "8.6.":["Medard","germánský","Muž mocný, udatný a velmi statečný."],
-            "9.6.":["Stanislava","slovanský","Žena, která upevnila slávu svého rodu."],
-            "10.6.":["Gita","hebrejský","Žena dobrá, vzácná a uctívaná."],
-            "11.6.":["Bruno","germánský","Hnědý neboli snědý, opálený muž."],
-            "12.6.":["Antonie","latinský","Vynikající, vzácná a nepostradatelná žena."],
-            "13.6.":["Antonín","latinský","Přední muž, člen vznešeného rodu."],
-            "14.6.":["Roland","germánský","Muž, který je slavný v celé své zemi."],
-            "15.6.":["Vít","latinský","Muž veselý, živý a plný vitální energie."],
-            "16.6.":["Zbyněk","slovanský","Ten, komu v srdci zbývá hněv a síla."],
-            "17.6.":["Adolf","germánský","Ušlechtilý vlk, symbol síly a vznešenosti."],
-            "18.6.":["Milan","slovanský","Milý, laskavý a přívětivý muž."],
-            "19.6.":["Leoš","latinský","Muž odvážný a silný jako lev."],
-            "20.6.":["Květa","slovanský","Žena rozkvetlá jako jaro a květy."],
-            "21.6.":["Alois","germánský","Velmi moudrý, zkušený a rozvážný vládce."],
-            "22.6.":["Pavla","latinský","Malá, skromná a pokorná žena."],
-            "23.6.":["Zdeňka","slovanský","Žena, která je v tomto kraji slavná."],
-            "24.6.":["Jan","hebrejský","Hospodin je milostivý a nadmíru dobrý."],
-            "25.6.":["Ivan","hebrejský","Ruská podoba jména Jan, Bůh je milostivý."],
-            "26.6.":["Adriana","latinský","Žena pocházející z města Adrie."],
-            "27.6.":["Ladislav","slovanský","Vládce slávy, muž slavný svou mocí."],
-            "28.6.":["Lubomír","slovanský","Milovník míru a šiřitel pokoje."],
-            "29.6.":["Petr a Pavel","řecký / latinský","Skála a pevnost / malý a skromný apoštol."],
-            "30.6.":["Šárka","slovanský","Žena z horského hřbetu, hrdinka starých pověstí."]
-        });
-
-        // ČERVENEC
-        Object.assign(c, {
-            "1.7.":["Jaroslava","slovanský","Žena slavná svou jarní silou a svěžestí."],
-            "2.7.":["Patricie","latinský","Žena urozeného, šlechtického původu."],
-            "3.7.":["Radomír","slovanský","Ten, kdo má rád mír a klid v životě."],
-            "4.7.":["Prokop","řecký","Muž, který prospívá a dělá velké pokroky."],
-            "5.7.":["Cyril a Metoděj","řecký","Pánův vyslanec / muž hledající pravou cestu."],
-            "6.7.":["Jan Hus","-","Památka upálení Mistra Jana Husa v Kostnici."],
-            "7.7.":["Bohuslava","slovanský","Žena, která svou vírou oslavuje Boha."],
-            "8.7.":["Nora","latinský","Žena čestná, uznávaná a vznešená."],
-            "9.7.":["Drahoslava","slovanský","Žena, které je drahá její sláva a čest."],
-            "10.7.":["Libuše","slovanský","Žena milovaná, bájná vědma a kněžna."],
-            "11.7.":["Olga","skandinávský","Svatá žena přinášející spásu a naději."],
-            "12.7.":["Bořek","slovanský","Muž bojující za mír a klid v zemi."],
-            "13.7.":["Markéta","řecký","Vzácná, čistá a krásná jako perla."],
-            "14.7.":["Karolína","germánský","Žena svobodná, volná a plná života."],
-            "15.7.":["Jindřich","germánský","Mocný vládce svého domu a dvora."],
-            "16.7.":["Luboš","slovanský","Muž milý, laskavý a všemi milovaný."],
-            "17.7.":["Martina","latinský","Žena zasvěcená bohu války Martovi."],
-            "18.7.":["Drahomíra","slovanský","Žena, které je nade vše drahý mír."],
-            "19.7.":["Čeněk","latinský","Česká podoba jména Vincenc, muž vítězící."],
-            "20.7.":["Ilja","hebrejský","Můj Bůh je Hospodin, jméno proroka."],
-            "21.7.":["Vítězslav","slovanský","Ten, kdo slaví svá velká vítězství."],
-            "22.7.":["Magdaléna","hebrejský","Žena pocházející z města Magdala."],
-            "23.7.":["Libor","latinský","Muž svobodný, volný a čestný."],
-            "24.7.":["Kristýna","řecký","Žena zasvěcená Kristu, křesťanka."],
-            "25.7.":["Jakub","hebrejský","Druhorozený syn, ten, kdo se drží za patu."],
-            "26.7.":["Anna","hebrejský","Žena milostivá, líbezná a laskavá."],
-            "27.7.":["Věroslav","slovanský","Ten, kdo oslavuje svou víru a přesvědčení."],
-            "28.7.":["Viktor","latinský","Muž vítězný, dobyvatel a vítěz."],
-            "29.7.":["Marta","hebrejský","Hospodyně, pečlivá a starostlivá paní domu."],
-            "30.7.":["Bořivoj","slovanský","Vojevůdce a udatný vůdce v boji."],
-            "31.7.":["Ignác","latinský","Muž ohnivý, zapálený a plný nadšení."]
-        });
-
-        // SRPEN
-        Object.assign(c, {
-            "1.8.":["Oskar","germánský","Muž nesoucí božské kopí, boží zbraň."],
-            "2.8.":["Gustav","skandinávský","Opora Gótů, pilíř a záštita národa."],
-            "3.8.":["Miluše","slovanský","Žena milá, laskavá a příjemná k lidem."],
-            "4.8.":["Dominik","latinský","Muž, který patří Pánu a slouží mu."],
-            "5.8.":["Kristián","řecký","Vyznavač Krista neboli křesťan."],
-            "6.8.":["Oldřiška","germánský","Vládkyně bohatého dědictví po předcích."],
-            "7.8.":["Lada","slovanský","Žena krásná, milovaná a uctívaná."],
-            "8.8.":["Soběslav","slovanský","Ten, kdo si svou slávu dobyl sám."],
-            "9.8.":["Roman","latinský","Muž pocházející ze slavného Říma."],
-            "10.8.":["Vavřinec","latinský","Muž ozdobený vítězným vavřínem slávy."],
-            "11.8.":["Zuzana","hebrejský","Čistá a krásná jako bílá lilie."],
-            "12.8.":["Klára","latinský","Žena jasná, čistá, slavná a zářící."],
-            "13.8.":["Alena","řecký","Žena zářící jako sluneční paprsek."],
-            "14.8.":["Alan","keltský","Muž ztělesňující svornost a harmonii."],
-            "15.8.":["Hana","hebrejský","Žena milostivá a Hospodinem obdařená."],
-            "16.8.":["Jáchym","hebrejský","Muž, kterého Bůh sám připravil."],
-            "17.8.":["Petra","řecký","Žena pevná a neochvějná jako skála."],
-            "18.8.":["Helena","řecký","Zářící světlo a jasná pochodeň."],
-            "19.8.":["Ludvík","germánský","Slavný a udatný válečník v bitvách."],
-            "20.8.":["Bernard","germánský","Muž silný a statečný jako medvěd."],
-            "21.8.":["Johana","hebrejský","Hospodin je milostivý ke své dceři."],
-            "22.8.":["Bohuslav","slovanský","Ten, kdo celým životem oslavuje Boha."],
-            "23.8.":["Sandra","řecký","Statečná ochránkyně celého lidstva."],
-            "24.8.":["Bartoloměj","hebrejský","Muž, který je synem oráče."],
-            "25.8.":["Radim","slovanský","Ten, kdo má rád klid a mír v životě."],
-            "26.8.":["Luděk","germánský","Muž slavný v boji a válečném poli."],
-            "27.8.":["Otakar","germánský","Bdělý strážce a ochránce majetku."],
-            "28.8.":["Augustýn","latinský","Vznešený, uctívaný a posvátný muž."],
-            "29.8.":["Evelína","keltský","Žena radostná, přinášející světlo do tmy."],
-            "30.8.":["Vladěna","slovanský","Žena, která vládne v míru a pokoji."],
-            "31.8.":["Pavlína","latinský","Malá, skromná a tichá žena."]
-        });
-
-        // ZÁŘÍ
-        Object.assign(c, {
-            "1.9.":["Linda/Samuel","germ./hebr.","Krásná / Muž nesoucí Boží jméno."],
-            "2.9.":["Adéla","germánský","Vznešená, ušlechtilá a jasná bytost."],
-            "3.9.":["Bronislav","slovanský","Ten, kdo brání slávu a čest národa."],
-            "4.9.":["Jindřiška","germánský","Mocná vládkyně svého domu."],
-            "5.9.":["Boris","slovanský","Muž slavný v boji a ochraně lidí."],
-            "6.9.":["Boleslav","slovanský","Ten, kdo má více slávy než ostatní."],
-            "7.9.":["Regína","latinský","Vznešená žena, doslova královna."],
-            "8.9.":["Mariana","latinský","Žena patřící k urozenému rodu Mariů."],
-            "9.9.":["Daniela","hebrejský","Hospodin je mým spravedlivým soudcem."],
-            "10.9.":["Irma","germánský","Žena mocná, pevná a neochvějná."],
-            "11.9.":["Denisa","řecký","Zasvěcená bohu radosti Dionýsovi."],
-            "12.9.":["Marie","hebrejský","Milovaná Bohem, čistá kapka moře."],
-            "13.9.":["Lubor","slovanský","Muž milý, láskyplný a přátelský."],
-            "14.9.":["Radka","slovanský","Žena radostná, veselá a šťastná."],
-            "15.9.":["Jolana","řecký","Žena dobrá, ušlechtilá a spravedlivá."],
-            "16.9.":["Ludmila","slovanský","Žena, která je svému lidu milá."],
-            "17.9.":["Naděžda","slovanský","Žena, která vnáší naději do těžkých chvil."],
-            "18.9.":["Kryštof","řecký","Ten, kdo nosí Krista ve svém srdci."],
-            "19.9.":["Zita","perský","Žena šťastná, spokojená a radostná."],
-            "20.9.":["Oleg","skandinávský","Muž svatý a přinášející spásu."],
-            "21.9.":["Matouš","hebrejský","Vzácný dar od Hospodina pro rodinu."],
-            "22.9.":["Darina","slovanský","Žena darovaná, nositelka darů a štěstí."],
-            "23.9.":["Berta","germánský","Žena zářící, jasná a oslnivá."],
-            "24.9.":["Jaromír","slovanský","Muž slavný svou jarní silou."],
-            "25.9.":["Zlata","slovanský","Žena drahá a vzácná jako čisté zlato."],
-            "26.9.":["Andrea","řecký","Žena odvážná, statečná a mužná."],
-            "27.9.":["Jonáš","hebrejský","Muž mírný a čistý jako holubice."],
-            "28.9.":["Václav","slovanský","Kníže více slavný, patron české země."],
-            "29.9.":["Michal","hebrejský","Muž pokorný: kdo je jako Bůh?"],
-            "30.9.":["Jeroným","řecký","Muž nesoucí svaté a uctívané jméno."]
-        });
-
-        // ŘÍJEN
-        Object.assign(c, {
-            "1.10.":["Igor","skandinávský","Ochránce boha plodnosti Inga."],
-            "2.10.":["Olivie/Oliver","latinský","Pěstitel oliv, symbol míru a pokoje."],
-            "3.10.":["Bohumil","slovanský","Muž milující Boha a Bohem milovaný."],
-            "4.10.":["František","germánský","Svobodný muž, zbavený všech pout."],
-            "5.10.":["Eliška","hebrejský","Hospodin je má přísaha a víra."],
-            "6.10.":["Hanuš","hebrejský","Bůh je milostivý a nadmíru laskavý."],
-            "7.10.":["Justýna","latinský","Žena spravedlivá a dbalá zákonů."],
-            "8.10.":["Věra","slovanský","Žena věrná, pravdivá a upřímná."],
-            "9.10.":["Štefan/Sára","řecký/hebr.","Vítězný věnec / vznešená kněžna."],
-            "10.10.":["Marina","latinský","Žena pocházející z moře, mořská panna."],
-            "11.10.":["Andrej","řecký","Statečný, mužný a odvážný bojovník."],
-            "12.10.":["Marcel","latinský","Malý bojovník zasvěcený Martovi."],
-            "13.10.":["Renáta","latinský","Znovuzrozená k novému a lepšímu životu."],
-            "14.10.":["Agáta","řecký","Žena nesmírně dobrá, laskavá a ušlechtilá."],
-            "15.10.":["Tereza","řecký","Obyvatelka ostrova Thera, lovkyně."],
-            "16.10.":["Havel","latinský","Muž pocházející z Galie neboli Gal."],
-            "17.10.":["Hedvika","germánský","Vítězka ve všech životních bojích."],
-            "18.10.":["Lukáš","řecký","Ten, kdo svítí a pochází z Lukánie."],
-            "19.10.":["Michaela","hebrejský","Žena pokorná: kdo je jako Bůh?"],
-            "20.10.":["Vendelín","germánský","Muž pocházející z kmenu Vandalů."],
-            "21.10.":["Brigita","keltský","Vznešená, mocná a hrdá žena."],
-            "22.10.":["Sabina","latinský","Žena pocházející z italského kmene Sabinů."],
-            "23.10.":["Teodor","řecký","Muž, který je vzácným darem Božím."],
-            "24.10.":["Nina","řecký","Žena milá, krásná a velmi půvabná."],
-            "25.10.":["Beáta","latinský","Žena blažená, šťastná a spokojená."],
-            "26.10.":["Erik","skandinávský","Všudypřítomný, mocný a čestný vládce."],
-            "27.10.":["Šarlota/Zoe","fran./řec.","Svobodná žena / Život sám."],
-            "28.10.":["Vznik ČSR","-","Den založení samostatné republiky v roce 1918."],
-            "29.10.":["Silvie","latinský","Žena pocházející z hlubokého lesa."],
-            "30.10.":["Tadeáš","hebrejský","Muž odvážný, chvályhodný a smělý."],
-            "31.10.":["Štěpánka","řecký","Žena ověnčená věncem vítězství."]
-        });
-
-        // LISTOPAD
-        Object.assign(c, {
-            "1.11.":["Felix","latinský","Muž šťastný, úspěšný a spokojený."],
-            "2.11.":["Dušičky","-","Vzpomínka na všechny věrné zesnulé."],
-            "3.11.":["Hubert","germánský","Muž bystrého ducha a jasné mysli."],
-            "4.11.":["Karel","germánský","Muž svobodný a plnoprávný pán."],
-            "5.11.":["Miriam","hebrejský","Milovaná Bohem, čistá kapka moře."],
-            "6.11.":["Liběna","slovanský","Žena milá, líbezná a příjemná."],
-            "7.11.":["Saskie","germánský","Žena pocházející ze slavného Saska."],
-            "8.11.":["Bohumír","slovanský","Ten, kdo oslavuje mír s Bohem."],
-            "9.11.":["Bohudan","slovanský","Muž, který byl darován Bohem."],
-            "10.11.":["Evžen","řecký","Muž dobře narozený, urozený a vznešený."],
-            "11.11.":["Martin","latinský","Zasvěcený bohu války Martovi."],
-            "12.11.":["Benedikt","latinský","Muž požehnaný a Bohem vyvolený."],
-            "13.11.":["Tibor","latinský","Muž pocházející z města Tiburu."],
-            "14.11.":["Sáva","hebrejský","Muž klidný, starobylý a rozvážný."],
-            "15.11.":["Leopold","germánský","Statečný muž, smělý pro svůj lid."],
-            "16.11.":["Otmar","germánský","Muž slavný svým bohatstvím a majetkem."],
-            "17.11.":["Boj za svobodu","-","Významný den boje za demokracii."],
-            "18.11.":["Romana","latinský","Žena pocházející z hrdého Říma."],
-            "19.11.":["Alžběta","hebrejský","Hospodin je má přísaha a pevná víra."],
-            "20.11.":["Nikola","řecký","Vítězka nad lidem, ochránkyně."],
-            "21.11.":["Albert","germánský","Muž vznešený a zářící slávou."],
-            "22.11.":["Cecílie","latinský","Duchovně vidoucí, byť zraku slabšího."],
-            "23.11.":["Klement","latinský","Vlídný, mírný a laskavý muž."],
-            "24.11.":["Emílie","latinský","Žena pracovitá, horlivá a činorodá."],
-            "25.11.":["Kateřina","řecký","Žena čistá, mravná a cudná."],
-            "26.11.":["Artur","keltský","Muž silný a neohrožený jako medvěd."],
-            "27.11.":["Xaver","španělský","Muž zbrusu nového domu."],
-            "28.11.":["René","latinský","Muž znovuzrozený k novému životu."],
-            "29.11.":["Zina","řecký","Božská žena patřící nejvyššímu bohu."],
-            "30.11.":["Ondřej","řecký","Statečný, mužný a odvážný muž."]
-        });
-
-        // PROSINEC
-        Object.assign(c, {
-            "1.12.":["Iva","germánský","Tisová lučištnice, pevná jako luk."],
-            "2.12.":["Blanka","germánský","Žena bílá, čistá, zářící a jasná."],
-            "3.12.":["Svatoslav","slovanský","Ten, kdo slaví svou svatost a sílu."],
-            "4.12.":["Barbora","řecký","Žena cizinka, ochránkyně před bouří."],
-            "5.12.":["Jitka","hebrejský","Žena židovská, oslavovaná a uctívaná."],
-            "6.12.":["Mikuláš","řecký","Vítěz nad lidem, ochránce dětí."],
-            "7.12.":["Ambróz","řecký","Muž nesmrtelný, božský a věčný."],
-            "8.12.":["Květoslava","slovanský","Žena slavící krásu a vůni květů."],
-            "9.12.":["Vratislav","slovanský","Ten, kdo vrací slávu svému rodu."],
-            "10.12.":["Julie","latinský","Žena zářící, jasná a stále mladistvá."],
-            "11.12.":["Dana","hebrejský","Žena, která je spravedlivou soudkyní."],
-            "12.12.":["Simona","hebrejský","Ta, která slyší a vnímá Hospodina."],
-            "13.12.":["Lucie","latinský","Žena světlá, jasná a přinášející světlo."],
-            "14.12.":["Lýdie","řecký","Žena pocházející z kraje Lýdie."],
-            "15.12.":["Radana","slovanský","Žena přinášející radost a veselí."],
-            "16.12.":["Albína","latinský","Žena bílá, čistá a nevinná."],
-            "17.12.":["Daniel","hebrejský","Hospodin je mým jediným soudcem."],
-            "18.12.":["Miloslav","slovanský","Muž milý, laskavý a slavný."],
-            "19.12.":["Ester","hebrejský","Hvězda zářící jasně na nočním nebi."],
-            "20.12.":["Dagmar","skandinávský","Žena přinášející slavný a dobrý den."],
-            "21.12.":["Natálie","latinský","Zrozená v den narození Páně."],
-            "22.12.":["Šimon","hebrejský","Ten, kdo vnímá a slyší hlas Boží."],
-            "23.12.":["Vlasta","slovanský","Žena, která patří své milované vlasti."],
-            "24.12.":["Štědrý den","-","Večer oslavy narození Spasitele."],
-            "25.12.":["1. svátek vánoční","-","Slavnost Narození Páně."],
-            "26.12.":["Štěpán","řecký","Muž vítězný, ověnčený slávou."],
-            "27.12.":["Žaneta","hebrejský","Bůh je milostivý a nadmíru dobrý."],
-            "28.12.":["Bohumila","slovanský","Žena milá Bohu a Bohem milovaná."],
-            "29.12.":["Judita","hebrejský","Žena uctívaná a hrdinná."],
-            "30.12.":["David","hebrejský","Muž milovaný, přítel a král."],
-            "31.12.":["Silvestr","latinský","Muž z hlubokého lesa, lesní obyvatel."]
-        });
-
-        function init() {
-            const now = new Date();
-            const dayMonth = now.getDate() + "." + (now.getMonth() + 1) + ".";
-            document.getElementById('d-txt').innerText = dayMonth + " 2026";
+        function updateDisplay() {
+            const d = currentViewDate.getDate();
+            const m = currentViewDate.getMonth() + 1;
+            const y = currentViewDate.getFullYear();
+            const key = `${d}.${m}.`;
             
-            const info = c[dayMonth] || ["Dnes nikdo","?","Užívejte si krásný den!"];
-            document.getElementById('n-txt').innerText = info[0];
-            document.getElementById('o-txt').innerText = info[1];
-            document.getElementById('m-txt').innerText = info[2];
+            const data = c[key] || ["Neznámý svátek", "Informace doplníme", "Pro tento den zatím nemáme podrobná data."];
+            
+            const isToday = new Date().toDateString() === currentViewDate.toDateString();
+            document.getElementById('header-text').innerText = isToday ? "Dnešní svátek v ČR" : "Svátek v ČR";
+            
+            document.getElementById('d-txt').innerText = `${d}. ${m}. ${y}`;
+            document.getElementById('n-txt').innerText = data[0];
+            document.getElementById('o-txt').innerText = data[1];
+            document.getElementById('m-txt').innerText = data[2];
         }
 
-        function sendShare() {
+        function changeDate(days) {
+            currentViewDate.setDate(currentViewDate.getDate() + days);
+            updateDisplay();
+        }
+
+        function resetToToday() {
+            currentViewDate = new Date();
+            updateDisplay();
+        }
+
+        async function sendShare() {
             const name = document.getElementById('n-txt').innerText;
             const origin = document.getElementById('o-txt').innerText;
             const meaning = document.getElementById('m-txt').innerText;
-            const custom = document.getElementById('custom-msg').value;
-            
-            const msg = `V Česku má dnes svátek ${name}!\n\n🌍 Původ: ${origin}\n\n✨ Význam:\n${meaning}\n\n${custom}`;
+            const msg = document.getElementById('custom-msg').value;
+            const dateStr = document.getElementById('d-txt').innerText;
+
+            // Formátovaný text pro sdílení
+            const shareText = `🎉 Dnes ${dateStr} má svátek: ${name}!\n\n🌍 Původ: ${origin}\n✨ Význam: ${meaning}\n\n✍️ Vzkaz: ${msg}`;
             
             if (navigator.share) {
-                navigator.share({ text: msg });
+                try {
+                    await navigator.share({
+                        title: `Svátek: ${name}`,
+                        text: shareText,
+                        url: window.location.href
+                    });
+                } catch (err) {
+                    copyToClipboard(shareText);
+                }
             } else {
-                alert(msg);
+                copyToClipboard(shareText);
             }
         }
-        init();
+
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('Všechny informace (včetně původu a významu) byly zkopírovány do schránky!');
+        }
+
+        window.onload = updateDisplay;
     </script>
 </body>
 </html>

@@ -39,31 +39,30 @@
         .header { font-size: 0.9em; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); margin-bottom: 5px; }
         .time-display { font-size: 1.2em; font-weight: bold; color: var(--text); margin-bottom: 10px; }
         
-        /* Styl pro výběr lokality */
         .misto-select {
             background: rgba(187, 134, 252, 0.1);
             color: var(--accent);
             border: 1px solid var(--accent);
             border-radius: 10px;
-            padding: 8px 12px;
+            padding: 10px;
             font-size: 1.1em;
             font-weight: bold;
             margin-bottom: 15px;
             cursor: pointer;
             outline: none;
-            width: 80%;
+            width: 100%;
         }
         .misto-select option { background: var(--card); color: var(--text); }
 
         .g-label { font-size: 1em; color: var(--muted); margin-bottom: 2px; }
         .gregorian-date { font-size: 1.3em; color: var(--text); margin-bottom: 15px; font-weight: 400; }
         .jom-tyden { font-size: 1.7em; font-weight: 300; margin-bottom: 20px; color: var(--accent); }
-        .hebrew-date { font-size: clamp(2.2em, 8vw, 3em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
-        .hebrew-script { font-size: 2em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
+        .hebrew-date { font-size: clamp(1.8em, 8vw, 2.5em); font-weight: 800; margin: 10px 0; line-height: 1.1; }
+        .hebrew-script { font-size: 1.8em; color: var(--accent); margin-bottom: 20px; font-family: 'Times New Roman', serif; }
         .section-label { font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top: 25px; display: block; }
-        .detail-text { font-size: 1.3em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
+        .detail-text { font-size: 1.2em; line-height: 1.5; color: var(--muted); font-style: italic; margin-top: 5px; }
         .parasha-link { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent); }
-        .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 1.1em; line-height: 1.4; background: rgba(0,0,0,0.2); }
+        .explanation { margin-top: 30px; padding: 20px; border: 1px solid rgba(187, 134, 252, 0.3); border-radius: 20px; color: var(--accent); font-size: 0.95em; line-height: 1.4; background: rgba(0,0,0,0.2); text-align: left; }
         #custom-msg { width: 100%; background: rgba(15, 10, 26, 0.5); border: 1px solid var(--accent); border-radius: 15px; color: white; padding: 12px; margin-top: 10px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 1em; }
         .share-btn { margin-top: 25px; background: var(--accent); color: #0f0a1a; border: none; padding: 20px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
         .share-btn:active { transform: scale(0.98); opacity: 0.8; }
@@ -73,18 +72,21 @@
 
     <div id="q-cont">
         <div class="header">Židovský kalendář</div>
-        <div class="time-display" id="time-txt">00:00:00</div>
+        <div id="time-txt" class="time-display">00:00:00</div>
         
-        <select id="misto-select" class="misto-select" onchange="changeLocation(this.value)">
-            </select>
+        <select id="misto-select" class="misto-select" onchange="handleLocationChange(this.value)">
+            <option value="auto">📍 Moje poloha (podle prohlížeče)</option>
+            <hr>
+            <!-- Lokality doplňuje skript -->
+        </select>
         
         <div class="g-label">📅 Dnes je:</div>
-        <div class="gregorian-date" id="g-date-txt">--. --. ----</div>
+        <div id="g-date-txt" class="gregorian-date">--. --. ----</div>
         
-        <div class="jom-tyden" id="jom-txt">✨ Načítám...</div>
+        <div id="jom-txt" class="jom-tyden">✨ Načítám...</div>
         
-        <div class="hebrew-date" id="h-date-txt">📜 --. -- ----</div>
-        <div class="hebrew-script" id="h-script-txt">-- בִּשְׁבָט --</div>
+        <div id="h-date-txt" class="hebrew-date">📜 --. -- ----</div>
+        <div id="h-script-txt" class="hebrew-script">-- בִּשְׁבָט --</div>
         
         <span class="section-label">📖 Parašat HaŠavua:</span>
         <div class="detail-text">
@@ -92,22 +94,22 @@
         </div>
         
         <span class="section-label">✨ Svátek / Událost:</span>
-        <div class="detail-text" id="event-txt">Dnes není žádný významný svátek.</div>
+        <div id="event-txt" class="detail-text">Hledám události...</div>
 
         <span class="section-label">🕯️ Zapalování svící:</span>
-        <div class="detail-text" id="candles-txt">--:--</div>
+        <div id="candles-txt" class="detail-text">--:--</div>
         
-        <div class="explanation" id="expl-txt">
-            Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.
+        <div class="explanation">
+            Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer. Pokud používáte automatickou polohu, povolte prosím přístup k GPS.
         </div>
 
-        <textarea id="custom-msg" rows="2">Posílám pozdravy z Haify! 🇮🇱🇨🇿🇸🇰</textarea>
+        <textarea id="custom-msg" rows="2">Posílám pozdravy! 🇮🇱🇨🇿🇸🇰</textarea>
         <button class="share-btn" onclick="shareJewishDay()">Sdílet datum</button>
     </div>
 
     <script>
         /**
-         * 1. KONFIGURACE LOKALIT [cite: 2026-01-13]
+         * 1. KONFIGURACE
          */
         const LOKALITY = {
             "Haifa":      { lat: 32.79, lng: 34.99, tz: 120, label: "Haifa, Izrael 🇮🇱" },
@@ -126,32 +128,39 @@
 
         const dnyPhonetic = ["Jom rišon (Neděle)", "Jom šeni (Pondělí)", "Jom šliši (Úterý)", "Jom revi'i (Středa)", "Jom chamiši (Čtvrtek)", "Jom šiši (Pátek)", "Šabat (Sobota)"];
         const mesHeCz = {"Shevat":"Švat", "Adar I":"Adar I", "Adar II":"Adar II", "Nisan":"Nisan", "Iyar":"Ijar", "Sivan":"Sivan", "Tamuz":"Tamuz", "Av":"Av", "Elul":"Elul", "Tishri":"Tišrej", "Cheshvan":"Chešvan", "Kislev":"Kislev", "Tevet":"Tevet"};
-
         const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
+        let clockInterval = null;
+        let currentConf = null;
+
         /**
-         * 2. POMOCNÉ FUNKCE (Čas, Slunce)
+         * 2. VÝPOČTY (Slunce a poloha)
          */
-        function updateClock() {
-            document.getElementById('time-txt').innerText = new Date().toLocaleTimeString('cs-CZ');
-        }
-
-        function getSunset(date, conf) {
+        function getSunsetLocal(date, conf) {
             const dayOfYear = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 86400000);
+            const latRad = conf.lat * Math.PI / 180;
             const decl = 0.409 * Math.sin(2 * Math.PI * (dayOfYear - 81) / 365);
-            const sunsetH = 12 + (Math.acos(-Math.tan(conf.lat * Math.PI / 180) * Math.tan(decl)) * 180 / Math.PI) / 15;
-            const isDST = date.getTimezoneOffset() < 0 ? 60 : 0;
-            return (sunsetH * 60) + conf.tz + isDST;
+            const cosH = -Math.tan(latRad) * Math.tan(decl);
+            if (cosH > 1) return -1; 
+            if (cosH < -1) return 1440; 
+            const hAngle = Math.acos(cosH) * 180 / Math.PI / 15;
+            const b = (2 * Math.PI * (dayOfYear - 81)) / 365;
+            const eot = 9.87 * Math.sin(2 * b) - 7.53 * Math.cos(b) - 1.5 * Math.sin(b);
+            const solarSunset = 12 + hAngle;
+            const utcSunset = solarSunset - (conf.lng / 15) - (eot / 60);
+            
+            // Pro automatickou polohu použijeme offset prohlížeče
+            const offset = (conf.isAuto) ? -date.getTimezoneOffset() : conf.tz + (isTargetInDST(date) ? 60 : 0);
+            return (utcSunset * 60) + offset;
         }
 
-        function changeLocation(newLoc) {
-            const url = new URL(window.location);
-            url.searchParams.set('misto', newLoc);
-            window.location.href = url.href;
+        function isTargetInDST(date) {
+            const m = date.getMonth();
+            return (m > 2 && m < 9); 
         }
 
         /**
-         * 3. NEZÁVISLÝ VÝPOČET SVÁTKŮ
+         * 3. LOGIKA SVÁTKŮ
          */
         function getHoliday(hDay, hMonth, dayOfWeek) {
             const m = hMonth;
@@ -169,52 +178,81 @@
             if (m === "Iyar" && d === 18) return "Lag ba-omer";
             if (m === "Sivan" && d === 6) return "Šavuot";
             if (m === "Av" && d === 9) return "Tiša be-av (Půst)";
-            if (dayOfWeek === 6) return "Šabat (Svatý odpočinek)";
+            if (dayOfWeek === 6) return "Šabat (Svatý odpočinku)";
             return "Dnes není žádný významný svátek.";
         }
 
         /**
-         * 4. INICIALIZACE
+         * 4. HLAVNÍ FUNKCE
          */
-        function init() {
-            updateClock();
-            setInterval(updateClock, 1000);
-
-            const params = new URLSearchParams(window.location.search);
-            const activeKey = params.get('misto') || "Haifa";
-            const conf = LOKALITY[activeKey] || LOKALITY["Haifa"];
-
-            // Naplnění výběrového menu
-            const select = document.getElementById('misto-select');
-            for (const key in LOKALITY) {
-                const opt = document.createElement('option');
-                opt.value = key;
-                opt.innerText = LOKALITY[key].label;
-                if (key === activeKey) opt.selected = true;
-                select.appendChild(opt);
-            }
-
-            let d_civil = new Date();
-            let d_zid = new Date();
-            const nyniMin = (d_civil.getHours() * 60) + d_civil.getMinutes();
-            const sunsetMin = getSunset(d_civil, conf);
-            const tzeitMin = sunsetMin + 35;
-
-            if (nyniMin >= tzeitMin) d_zid.setDate(d_zid.getDate() + 1);
-
-            // Svíce v pátek
-            if (d_civil.getDay() === 5) {
-                const candleMin = sunsetMin - 18;
-                const h = Math.floor(candleMin / 60);
-                const m = Math.floor(candleMin % 60);
-                document.getElementById('candles-txt').innerText = `${h}:${m < 10 ? '0'+m : m}`;
+        function handleLocationChange(val) {
+            if (val === "auto") {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            const autoConf = {
+                                lat: pos.coords.latitude,
+                                lng: pos.coords.longitude,
+                                tz: -new Date().getTimezoneOffset(),
+                                label: "Moje poloha (📍 detekováno)",
+                                isAuto: true
+                            };
+                            updateDashboard(autoConf);
+                        },
+                        () => {
+                            alert("Nepodařilo se získat polohu. Přepínám na Haifu.");
+                            updateDashboard(LOKALITY["Haifa"]);
+                        }
+                    );
+                } else {
+                    alert("Váš prohlížeč nepodporuje geolokaci.");
+                    updateDashboard(LOKALITY["Haifa"]);
+                }
             } else {
-                document.getElementById('candles-txt').innerText = "Dnes se nesvítí.";
+                updateDashboard(LOKALITY[val]);
+            }
+        }
+
+        function updateDashboard(conf) {
+            currentConf = conf;
+            const select = document.getElementById('misto-select');
+            
+            // Hodiny
+            if (clockInterval) clearInterval(clockInterval);
+            const updateLocalClock = () => {
+                const now = new Date();
+                if (conf.isAuto) {
+                    document.getElementById('time-txt').innerText = now.toLocaleTimeString('cs-CZ');
+                } else {
+                    const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+                    const isDST = isTargetInDST(now);
+                    const localTime = new Date(utc + (conf.tz + (isDST ? 60 : 0)) * 60000);
+                    document.getElementById('time-txt').innerText = localTime.toLocaleTimeString('cs-CZ');
+                }
+            };
+            updateLocalClock();
+            clockInterval = setInterval(updateLocalClock, 1000);
+
+            // Výpočet Židovského data
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const targetNow = (conf.isAuto) ? now : new Date(utc + (conf.tz + (isTargetInDST(now) ? 60 : 0)) * 60000);
+
+            let d_zid = new Date(targetNow);
+            const sunsetMin = getSunsetLocal(targetNow, conf);
+            const tzeitMin = sunsetMin + 35; // Tzeit HaKochavim (východ hvězd)
+            const nyniMin = (targetNow.getHours() * 60) + targetNow.getMinutes();
+
+            // PŘEKLOPENÍ DATA
+            if (nyniMin >= tzeitMin) {
+                d_zid.setDate(d_zid.getDate() + 1);
             }
 
-            document.getElementById('g-date-txt').innerText = capitalize(d_civil.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+            // UI Výstupy
+            document.getElementById('g-date-txt').innerText = capitalize(targetNow.toLocaleDateString('cs-CZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
             document.getElementById('jom-txt').innerText = "✨ " + dnyPhonetic[d_zid.getDay()];
 
+            // Intl Hebrew API
             const hFormat = new Intl.DateTimeFormat('en-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'});
             const hParts = hFormat.formatToParts(d_zid);
             const hScript = new Intl.DateTimeFormat('he-u-ca-hebrew', {day:'numeric', month:'long', year:'numeric'}).format(d_zid);
@@ -230,6 +268,16 @@
             document.getElementById('h-script-txt').innerText = hScript;
             document.getElementById('event-txt').innerText = getHoliday(hDen, hMesEn, d_zid.getDay());
 
+            // Zapalování svící (pátek)
+            if (targetNow.getDay() === 5) {
+                const candleMin = sunsetMin - 18;
+                const h = Math.floor(candleMin / 60);
+                const m = Math.floor(candleMin % 60);
+                document.getElementById('candles-txt').innerText = `${h}:${m < 10 ? '0'+m : m}`;
+            } else {
+                document.getElementById('candles-txt').innerText = "Dnes se nesvítí.";
+            }
+
             // Paraša
             const vsechnyParashot = ["Berešit", "Noach", "Lech Lecha", "Vajera", "Chajej Sára", "Toledot", "Vajece", "Vajišlach", "Vaješev", "Mikec", "Vajigaš", "Vajechi", "Šemot", "Va'era", "Bo", "Bešalach", "Jitro", "Mišpatim", "Teruma", "Tecave", "Ki tisa", "Vajakhel", "Pekudej", "Vajikra", "Caw", "Šmini", "Tazria", "Mecora", "Acharej Mot", "Kedošim", "Emor", "Behar", "Bechukotaj", "Bemidbar", "Naso", "Beha'alotecha", "Šlach Lecha", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masej", "Devarim", "Va'etchanan", "Ekev", "Re'e", "Shoftim", "Ki tece", "Ki tavo", "Nicavim", "Vajelech", "Ha'azinu", "Ve-zot ha-beracha"];
             let sabat = new Date(d_zid);
@@ -243,13 +291,9 @@
          * 5. SDÍLENÍ
          */
         function shareJewishDay() {
-            const params = new URLSearchParams(window.location.search);
-            const activeKey = params.get('misto') || "Haifa";
-            const conf = LOKALITY[activeKey] || LOKALITY["Haifa"];
-            const explVeta = "Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.";
-
+            if (!currentConf) return;
             const text = `Židovský kalendář\n\n` +
-                         `📍 ${conf.label}\n\n` +
+                         `📍 ${currentConf.label}\n\n` +
                          `🕒 Čas: ${document.getElementById('time-txt').innerText}\n` +
                          `📅 Dnes je:\n\n` +
                          `${document.getElementById('g-date-txt').innerText}\n` +
@@ -260,18 +304,32 @@
                          `✨ Svátek: ${document.getElementById('event-txt').innerText}\n` +
                          `🕯️ Svíce: ${document.getElementById('candles-txt').innerText}\n\n` +
                          `https://www.sefaria.org.il/topics/torah-portions\n\n` +
-                         `${explVeta}\n\n` +
+                         `Datum se mění s východem první hvězdy (Tzeit HaKochavim) v dané lokalitě, takže nový den začíná již večer.\n\n` +
                          `💬 ${document.getElementById('custom-msg').value}`;
 
             if (navigator.share) {
                 navigator.share({ text: text });
             } else {
-                alert("Text zkopírován do konzole.");
-                console.log(text);
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                alert("Text zkopírován do schránky.");
             }
         }
 
-        window.onload = init;
+        window.onload = () => {
+            const select = document.getElementById('misto-select');
+            for (const key in LOKALITY) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = LOKALITY[key].label;
+                select.appendChild(opt);
+            }
+            handleLocationChange("auto"); // Výchozí: Automatická poloha
+        };
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aktuální kurzy - Izrael (ILS)</title>
+    <title>Aktuální kurzy - ILS / CZK</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
@@ -37,13 +37,16 @@
         <div class="bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-800 p-8">
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-2xl font-bold text-white">Měnové kurzy</h1>
-                <div class="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm font-semibold border border-blue-500/20">
-                    ILS (Šekel)
+                
+                <!-- PŘEPÍNAČ ZÁKLADNÍ MĚNY -->
+                <div class="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+                    <button id="baseILS" onclick="setBase('ILS')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-lg">ILS</button>
+                    <button id="baseCZK" onclick="setBase('CZK')" class="px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white">CZK</button>
                 </div>
             </div>
 
-            <p class="text-slate-400 mb-8 leading-relaxed">
-                Aktuální přehled směnných kurzů izraelského šekelu vůči světovým měnám a české koruně.
+            <p id="description" class="text-slate-400 mb-8 leading-relaxed">
+                Aktuální přehled směnných kurzů izraelského šekelu vůči světovým měnám.
             </p>
 
             <button 
@@ -63,19 +66,19 @@
             <div class="bg-slate-900 rounded-3xl shadow-xl border border-slate-800 overflow-hidden">
                 <div class="bg-slate-800/50 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Měna</span>
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-widest">Kurz v ILS</span>
+                    <span id="columnHeader" class="text-xs font-bold text-slate-500 uppercase tracking-widest">Kurz v ILS</span>
                 </div>
                 
                 <div id="ratesList" class="divide-y divide-slate-800">
                     <!-- Zde se dynamicky generují řádky -->
                 </div>
 
-                <div id="czkRate" class="bg-blue-900/20 px-6 py-5 border-t border-blue-900/30">
-                    <!-- Speciální řádek pro CZK -->
+                <div id="footerRate" class="bg-blue-900/20 px-6 py-5 border-t border-blue-900/30">
+                    <!-- Speciální řádek pro opačnou měnu (CZK/ILS) -->
                 </div>
             </div>
 
-            <!-- TLAČÍTKO SDÍLET - Přesunuto dolů -->
+            <!-- TLAČÍTKO SDÍLET -->
             <button 
                 onclick="shareRates()" 
                 id="shareBtn"
@@ -98,16 +101,46 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFIKACE (pro kopírování) -->
+    <!-- TOAST NOTIFIKACE -->
     <div id="toast" class="fixed bottom-8 left-1/2 bg-blue-600 text-white px-8 py-3 rounded-full shadow-2xl text-sm font-bold z-50">
         Kopírováno do schránky
     </div>
 
-    <!-- SKRIPTY -->
     <script>
         let currentRates = null;
+        let activeBase = 'ILS'; // Výchozí měna
 
-        function toIls(rate) {
+        /**
+         * Přepínání mezi ILS a CZK
+         */
+        function setBase(base) {
+            activeBase = base;
+            
+            // UI aktualizace přepínače
+            const btnILS = document.getElementById('baseILS');
+            const btnCZK = document.getElementById('baseCZK');
+            const desc = document.getElementById('description');
+            const header = document.getElementById('columnHeader');
+
+            if (base === 'ILS') {
+                btnILS.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-lg';
+                btnCZK.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+                desc.innerText = 'Aktuální přehled směnných kurzů izraelského šekelu vůči světovým měnám.';
+                header.innerText = 'Kurz v ILS';
+            } else {
+                btnCZK.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all bg-blue-600 text-white shadow-lg';
+                btnILS.className = 'px-3 py-1 rounded-lg text-xs font-bold transition-all text-slate-400 hover:text-white';
+                desc.innerText = 'Aktuální přehled směnných kurzů české koruny vůči světovým měnám.';
+                header.innerText = 'Kurz v CZK';
+            }
+
+            fetchExchangeRates();
+        }
+
+        /**
+         * Pomocná funkce: Kolik Základny stojí 1 jednotka cizí měny
+         */
+        function calculateCrossRate(rate) {
             return (1 / rate).toFixed(2);
         }
 
@@ -119,85 +152,17 @@
                         <span class="font-semibold text-slate-300">${code}</span>
                     </div>
                     <div class="text-white font-mono font-medium bg-slate-800 px-3 py-1 rounded-lg border border-slate-700/50">
-                        ${value} <span class="text-slate-500 text-[10px] ml-1 uppercase">ils</span>
+                        ${value} <span class="text-slate-500 text-[10px] ml-1 uppercase">${activeBase}</span>
                     </div>
                 </div>
             `;
-        }
-
-        function shareRates() {
-            if (!currentRates) return;
-
-            const time = new Date().toLocaleTimeString('cs-CZ');
-            const date = new Date().toLocaleDateString('cs-CZ');
-            
-            const currencies = [
-                { flag: "🇺🇸", code: "1 USD", val: toIls(currentRates.USD) },
-                { flag: "🇪🇺", code: "1 EUR", val: toIls(currentRates.EUR) },
-                { flag: "🇬🇧", code: "1 GBP", val: toIls(currentRates.GBP) },
-                { flag: "🇨🇭", code: "1 CHF", val: toIls(currentRates.CHF) },
-                { flag: "🇨🇦", code: "1 CAD", val: toIls(currentRates.CAD) },
-                { flag: "🇦🇺", code: "1 AUD", val: toIls(currentRates.AUD) },
-                { flag: "🇯🇵", code: "100 JPY", val: (toIls(currentRates.JPY) * 100).toFixed(2) },
-                { flag: "🇨🇳", code: "1 CNY", val: toIls(currentRates.CNY) },
-                { flag: "🇮🇳", code: "1 INR", val: toIls(currentRates.INR) },
-                { flag: "🇸🇬", code: "1 SGD", val: toIls(currentRates.SGD) }
-            ];
-
-            let shareBody = `Aktuální kurzy ILS (${date} ${time}):\n\n`;
-            currencies.forEach(c => {
-                shareBody += `${c.flag} ${c.code} = ${c.val} ILS\n`;
-            });
-            shareBody += `-----------------------\n`;
-            shareBody += `🇨🇿 1 ILS = ${currentRates.CZK.toFixed(2)} CZK\n\n`;
-            shareBody += `Zdroj: er-api.com`;
-
-            // Nativní sdílení
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Kurzy Izrael (ILS)',
-                    text: shareBody
-                }).catch((error) => {
-                    if (error.name !== 'AbortError') {
-                        copyToClipboard(shareBody);
-                    }
-                });
-            } else {
-                copyToClipboard(shareBody);
-            }
-        }
-
-        function copyToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            textArea.style.left = "-9999px";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                showToast();
-            } catch (err) {
-                console.error('Copy error', err);
-            }
-            document.body.removeChild(textArea);
-        }
-
-        function showToast() {
-            const toast = document.getElementById('toast');
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
         }
 
         async function fetchExchangeRates(retryCount = 0) {
             const btn = document.getElementById('refreshBtn');
             const resultsContainer = document.getElementById('resultsContainer');
             const ratesList = document.getElementById('ratesList');
-            const czkRateDiv = document.getElementById('czkRate');
+            const footerRateDiv = document.getElementById('footerRate');
             const errorMsg = document.getElementById('errorMessage');
             const originalText = btn.innerHTML;
             
@@ -206,38 +171,61 @@
             errorMsg.classList.add('hidden');
 
             try {
-                const response = await fetch('https://open.er-api.com/v6/latest/ILS');
+                // Fetchujeme data přímo pro vybranou základnu
+                const response = await fetch(`https://open.er-api.com/v6/latest/${activeBase}`);
                 if (!response.ok) throw new Error('Chyba sítě');
 
                 const data = await response.json();
                 currentRates = data.rates;
 
                 const currencies = [
-                    { flag: "🇺🇸", code: "1 USD", val: toIls(currentRates.USD) },
-                    { flag: "🇪🇺", code: "1 EUR", val: toIls(currentRates.EUR) },
-                    { flag: "🇬🇧", code: "1 GBP", val: toIls(currentRates.GBP) },
-                    { flag: "🇨🇭", code: "1 CHF", val: toIls(currentRates.CHF) },
-                    { flag: "🇨🇦", code: "1 CAD", val: toIls(currentRates.CAD) },
-                    { flag: "🇦🇺", code: "1 AUD", val: toIls(currentRates.AUD) },
-                    { flag: "🇯🇵", code: "100 JPY", val: (toIls(currentRates.JPY) * 100).toFixed(2) },
-                    { flag: "🇨🇳", code: "1 CNY", val: toIls(currentRates.CNY) },
-                    { flag: "🇮🇳", code: "1 INR", val: toIls(currentRates.INR) },
-                    { flag: "🇸🇬", code: "1 SGD", val: toIls(currentRates.SGD) }
+                    { flag: "🇺🇸", code: "1 USD", val: calculateCrossRate(currentRates.USD) },
+                    { flag: "🇪🇺", code: "1 EUR", val: calculateCrossRate(currentRates.EUR) },
+                    { flag: "🇬🇧", code: "1 GBP", val: calculateCrossRate(currentRates.GBP) },
+                    { flag: "🇨🇭", code: "1 CHF", val: calculateCrossRate(currentRates.CHF) },
+                    { flag: "🇨🇦", code: "1 CAD", val: calculateCrossRate(currentRates.CAD) },
+                    { flag: "🇦🇺", code: "1 AUD", val: calculateCrossRate(currentRates.AUD) },
+                    { flag: "🇯🇵", code: "100 JPY", val: (calculateCrossRate(currentRates.JPY) * 100).toFixed(2) },
+                    { flag: "🇨🇳", code: "1 CNY", val: calculateCrossRate(currentRates.CNY) },
+                    { flag: "🇮🇳", code: "1 INR", val: calculateCrossRate(currentRates.INR) },
+                    { flag: "🇸🇬", code: "1 SGD", val: calculateCrossRate(currentRates.SGD) }
                 ];
+
+                // Přidání "toho druhého" (pokud jsem v ILS, ukaž CZK a naopak)
+                if (activeBase === 'ILS') {
+                    currencies.splice(3, 0, { flag: "🇨🇿", code: "1 CZK", val: calculateCrossRate(currentRates.CZK) });
+                } else {
+                    currencies.splice(3, 0, { flag: "🇮🇱", code: "1 ILS", val: calculateCrossRate(currentRates.ILS) });
+                }
 
                 ratesList.innerHTML = currencies.map(c => createRateRow(c.flag, c.code, c.val)).join('');
 
-                czkRateDiv.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-3">
-                            <span class="text-xl">🇨🇿</span>
-                            <span class="font-bold text-blue-400 text-xs tracking-tighter">PŘEVOD NA CZK</span>
+                // Patička karty s obráceným vztahem
+                if (activeBase === 'ILS') {
+                    footerRateDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">🇨🇿</span>
+                                <span class="font-bold text-blue-400 text-[10px] tracking-tighter uppercase">Převod na koruny</span>
+                            </div>
+                            <div class="text-blue-100 font-bold">
+                                1 ILS = <span class="text-xl text-white">${currentRates.CZK.toFixed(2)}</span> CZK
+                            </div>
                         </div>
-                        <div class="text-blue-100 font-bold">
-                            1 ILS = <span class="text-xl text-white">${currentRates.CZK.toFixed(2)}</span> CZK
+                    `;
+                } else {
+                    footerRateDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <span class="text-xl">🇮🇱</span>
+                                <span class="font-bold text-blue-400 text-[10px] tracking-tighter uppercase">Převod na šekely</span>
+                            </div>
+                            <div class="text-blue-100 font-bold">
+                                1 CZK = <span class="text-xl text-white">${currentRates.ILS.toFixed(3)}</span> ILS
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
 
                 document.getElementById('lastUpdated').innerText = 'Aktualizováno: ' + new Date().toLocaleTimeString('cs-CZ');
                 resultsContainer.classList.remove('hidden');
@@ -255,9 +243,67 @@
             }
         }
 
-        window.onload = () => {
-            fetchExchangeRates();
-        };
+        function shareRates() {
+            if (!currentRates) return;
+
+            const time = new Date().toLocaleTimeString('cs-CZ');
+            const date = new Date().toLocaleDateString('cs-CZ');
+            const baseLabel = activeBase === 'ILS' ? "Izrael (ILS)" : "Česko (CZK)";
+            
+            const currencies = [
+                { flag: "🇺🇸", code: "1 USD", val: calculateCrossRate(currentRates.USD) },
+                { flag: "🇪🇺", code: "1 EUR", val: calculateCrossRate(currentRates.EUR) },
+                { flag: "🇬🇧", code: "1 GBP", val: calculateCrossRate(currentRates.GBP) },
+                { flag: "🇨🇿", code: "1 CZK", val: calculateCrossRate(currentRates.CZK) },
+                { flag: "🇮🇱", code: "1 ILS", val: calculateCrossRate(currentRates.ILS) },
+                { flag: "🇯🇵", code: "100 JPY", val: (calculateCrossRate(currentRates.JPY) * 100).toFixed(2) }
+            ];
+
+            // Odstranění duplicitní základní měny z exportu
+            const filtered = currencies.filter(c => !c.code.includes(activeBase));
+
+            let shareBody = `Aktuální kurzy - základna ${baseLabel} (${date} ${time}):\n\n`;
+            filtered.forEach(c => {
+                shareBody += `${c.flag} ${c.code} = ${c.val} ${activeBase}\n`;
+            });
+            shareBody += `-----------------------\n`;
+            
+            if (activeBase === 'ILS') {
+                shareBody += `📊 1 ILS = ${currentRates.CZK.toFixed(2)} CZK\n`;
+            } else {
+                shareBody += `📊 1 CZK = ${currentRates.ILS.toFixed(3)} ILS\n`;
+            }
+            shareBody += `\nZdroj: er-api.com`;
+
+            if (navigator.share) {
+                navigator.share({ title: `Kurzy ${activeBase}`, text: shareBody }).catch(() => copyToClipboard(shareBody));
+            } else {
+                copyToClipboard(shareBody);
+            }
+        }
+
+        function copyToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-9999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {}
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        window.onload = () => fetchExchangeRates();
     </script>
 </body>
 </html>

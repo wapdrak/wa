@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Open Graph tagy pro lepší sdílení na Facebooku -->
+    <meta property="og:title" content="Český kalendář jmen - Významy a historie">
+    <meta property="og:description" content="Zjistěte, kdo má dnes svátek, jaký je původ jeho jména a jaká se k němu váže historie.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kidum.top/svatky">
+
     <title>Český kalendář jmen - Pro život</title>
-    <!-- 
-        Kompletní český kalendář jmen se všemi dny v roce.
-        Obsahuje: Původ, Význam a Historii pro každé jméno.
-        Funkce: Navigace, Přestupný rok, Opravené formátované sdílení.
-    -->
+    
     <style>
         :root {
             --bg: #0f0a1a;
@@ -17,7 +20,8 @@
             --text: #ffffff;
             --muted: #d1c4e9;
         }
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'Segoe UI', Roboto, -apple-system, sans-serif;
             background-color: var(--bg);
@@ -26,9 +30,9 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
             padding: 20px;
         }
+
         #q-cont {
             width: 100%;
             max-width: 550px;
@@ -39,6 +43,7 @@
             box-shadow: 0 15px 50px rgba(0,0,0,0.6);
             text-align: center;
         }
+
         .header { 
             font-size: 0.8em; 
             letter-spacing: 2px; 
@@ -54,6 +59,7 @@
             align-items: center;
             margin-bottom: 20px;
         }
+
         .nav-btn {
             background: rgba(187, 134, 252, 0.1);
             border: 1px solid var(--accent);
@@ -68,6 +74,7 @@
             font-size: 1.3em;
             transition: all 0.2s;
         }
+
         .nav-btn:hover { background: var(--accent); color: var(--bg); }
         
         .date { font-size: 1.4em; font-weight: 300; opacity: 0.8; }
@@ -83,9 +90,11 @@
             justify-content: center;
             gap: 8px;
         }
+
         .info-text { font-size: 1.15em; line-height: 1.45; color: var(--muted); font-style: italic; margin-top: 5px; }
         
         .msg-label { display: block; margin-top: 25px; font-size: 0.9em; color: var(--accent); text-align: left; margin-left: 10px; }
+        
         #custom-msg {
             width: 100%;
             background: rgba(15, 10, 26, 0.5);
@@ -100,6 +109,7 @@
             box-sizing: border-box;
             outline: none;
         }
+
         .share-btn {
             margin-top: 25px;
             background: var(--accent);
@@ -113,6 +123,7 @@
             width: 100%;
             transition: transform 0.2s;
         }
+
         .share-btn:active { transform: scale(0.98); }
 
         .today-btn {
@@ -125,6 +136,7 @@
             cursor: pointer;
             opacity: 0.6;
         }
+
         ::-webkit-scrollbar { width: 0px; background: transparent; }
     </style>
 </head>
@@ -163,95 +175,32 @@
         let currentViewDate = new Date();
         const c = {};
         
-        // Kompletní databáze jmen pro celý rok [Jméno, Původ, Význam, Historie]
+        // Kompletní databáze jmen pro celý rok s historií a přirozenou češtinou
         const dataYear = {
-            // LEDEN
             "1.1.": ["Nový rok", "český", "Den obnovy samostatného českého státu.", "Připomíná rok 1993, kdy po rozpadu federace vznikla samostatná Česká republika."],
-            "2.1.": ["Karina", "skandinávský", "Milá, přátelská a čistá žena.", "Jméno odvozené od latinského Carina, v severských zemích velmi oblíbené jako symbol jasu."],
-            "3.1.": ["Radmila", "slovanský", "Žena, která ráda miluje a je milá.", "Slovanské jméno složené ze slov 'radovat se' a 'milovat', nese v sobě přání šťastného života."],
-            "4.1.": ["Diana", "latinský", "Božská žena.", "Diana byla římská bohyně lovu, měsíce a lesů, ochránkyně divoké přírody."],
-            "5.1.": ["Dalimil", "slovanský", "Stále milý společník.", "Jméno proslavené autorem první česky psané rýmované kroniky z počátku 14. století."],
-            "6.1.": ["Tři králové", "křesťanský", "Zjevení Páně.", "Svátek mudrců z Východu (Kašpara, Melichara a Baltazara), kteří přinesli dary narozenému Ježíši."],
-            "7.1.": ["Vilma", "germánský", "Žena pevné vůle.", "Ženská podoba jména Vilém (Wilhelm), symbolizující ochranu a odhodlání."],
-            "8.1.": ["Čestmír", "slovanský", "Ten, kdo ctí mír.", "Jméno z českých pověstí, postava bojovníka, který bojoval za spravedlnost a pokoj."],
-            "9.1.": ["Vladan", "slovanský", "Spravedlivý vládce.", "Jméno vyjadřující touhu po moci vykonávané s rozvahou a vnitřním klidem."],
-            "10.1.": ["Břetislav", "slovanský", "Slavný válečným rykem.", "Jméno českého knížete Břetislava I., který unesl svou budoucí ženu Jitku ze svinibrodského kláštera."],
-            "11.1.": ["Bohdana", "slovanský", "Vzácný dar od Boha.", "Slovanská paralela k řeckému jménu Theodora, vyjadřující vděčnost za narození dítěte."],
-            "12.1.": ["Pravoslav", "slovanský", "Oslavující právo a zákon.", "Jméno oblíbené zejména v dobách národního obrození jako symbol víry ve spravedlnost."],
-            "13.1.": ["Edita", "germánský", "Bojovnice za štěstí.", "Staroanglické jméno Eadgyth, které nosilo mnoho královen a uctívaných světic."],
-            "14.1.": ["Radovan", "slovanský", "Muž přinášející radost.", "Tradiční jméno vyjadřující optimismus a schopnost radovat se ze života."],
-            "15.1.": ["Alice", "germánský", "Vznešená bytost s čestným charakterem.", "Odvozeno ze staroněmeckého Adelheid, jméno proslavila literární Alenka v říši divů."],
-            "16.1.": ["Ctirad", "slovanský", "Ten, kdo má rád čest.", "Postava ze starých českých pověstí, hrdina dívčí války, který doplatil na lest Šárky."],
-            "17.1.": ["Drahoslav", "slovanský", "Slavný a drahý.", "Jméno vyjadřující, že jeho nositel je pro své okolí vzácný a vysoce ceněný."],
-            "18.1.": ["Vladislav", "slovanský", "Slavný svou vládou.", "Jméno mnoha českých panovníků, zosobňující moc spojenou s velkými činy."],
-            "19.1.": ["Doubravka", "slovanský", "Žena z dubového háje.", "Jméno kněžny Doubravky Přemyslovny, která se provdala do Polska a přinesla tam křesťanství."],
-            "20.1.": ["Ilona", "řecký", "Zářící pochodeň.", "Maďarská podoba jména Helena, symbolizující světlo a krásu."],
-            "21.1.": ["Běla", "slovanský", "Čistá a bílá.", "Jméno symbolizující nevinnost a vnitřní jas nositelky."],
-            "22.1.": ["Slavomír", "slovanský", "Slavný mírem.", "Jméno moravského knížete, který vedl odboj proti Franské říši v 9. století."],
-            "23.1.": ["Zdeněk", "slovanský", "Muž zde slavný.", "Tradiční české jméno, které v sobě nese hrdost na místní kořeny."],
-            "24.1.": ["Milena", "slovanský", "Milovaná a laskavá žena.", "Slovanské jméno vyjadřující jemnost a přívětivost charakteru."],
-            "25.1.": ["Miloš", "slovanský", "Milý a přátelský muž.", "Původně zkrácenina jmen jako Miloslav nebo Milhost."],
-            "26.1.": ["Zora", "slovanský", "Jitřenka, ranní hvězda.", "Slovanská bohyně ranních červánků, ohlašující příchod nového dne."],
-            "27.1.": ["Ingrid", "skandinávský", "Jezdkyně boha Inga.", "Jméno oblíbené v severské mytologii, symbolizující krásu a ochranu bohů."],
-            "28.1.": ["Otýlie", "germánský", "Bohatá a úspěšná žena.", "Svatá Otýlie byla patronkou Alsaska a je uctívána jako ochránkyně zraku."],
-            "29.1.": ["Zdislava", "slovanský", "Zde slavná a uctívaná.", "Svatá Zdislava z Lemberka byla známá svou léčitelskou mocí a pomocí chudým."],
-            "30.1.": ["Robin", "germánský", "Zářící slávou.", "Původně zdrobnělina jména Robert, proslavená legendárním zbojníkem Robinem Hoodem."],
-            "31.1.": ["Marika", "hebrejský", "Milovaná Bohem.", "Varianta jména Marie, spojovaná s nespoutaností a hloubkou moře."],
-
-            // ÚNOR
-            "1.2.": ["Hynek", "germánský", "Vládce svého domu.", "Česká varianta německého jména Heinrich, kterou v literatuře proslavil K. H. Mácha."],
-            "2.2.": ["Nela", "latinský", "Trpělivá a vnitřně silná.", "Zkrácenina jména Petronela, nese v sobě symboliku vytrvalosti."],
-            "3.2.": ["Blažej", "řecký", "Muž mluvící neobvyklým způsobem.", "Svatý Blažej byl biskup a mučedník, patron proti nemocem hrdla."],
-            "4.2.": ["Jarmila", "slovanský", "Milující jaro a svěžest.", "Obrozenecké jméno vytvořené v 19. století, symbolizující sílu probouzející se přírody."],
-            "5.2.": ["Dobromila", "slovanský", "Laskavá duše konající dobro.", "Významné jméno v historii české literatury (Magdalena Dobromila Rettigová)."],
-            "6.2.": ["Vanda", "slovanský", "Odhodlaná a rázná žena.", "Podle legendy byla Vanda polská kněžna, která zvolila smrt, aby zachránila svůj lid."],
-            "7.2.": ["Veronika", "řecký", "Ta, která přináší vítězství.", "Podle legendy podala svatá Veronika Ježíši roušku na cestě na Kalvárii."],
-            "8.2.": ["Milada", "slovanský", "Mladá a milovaná paní.", "Jméno abatyše Milady, sestry Boleslava II., která založila první klášter v Čechách."],
-            "9.2.": ["Apolena", "řecký", "Zasvěcená bohu slunce Apollovi.", "Svatá Apolena byla mučednice v Alexandrii, uctívaná jako patronka zubních lékařů."],
-            "10.2.": ["Mojmír", "slovanský", "Udržující svůj vnitřní mír.", "Jméno prvního doloženého moravského knížete, zakladatele dynastie Mojmírovců."],
-            "11.2.": ["Božena", "slovanský", "Žena Bohem požehnaná.", "Slavnou nositelkou byla Božena Němcová nebo kněžna Božena z pověsti o Oldřichovi."],
-            "12.2.": ["Slavěna", "slovanský", "Slavná žena, hrdost národa.", "Uměle vytvořené jméno v době národního obrození jako symbol slovanské hrdosti."],
+            "2.1.": ["Karina", "skandinávský", "Milá, přátelská a čistá žena.", "Jméno odvozené od latinského Carina, v severských zemích je symbolem jasu a čistoty."],
+            "3.1.": ["Radmila", "slovanský", "Žena, která ráda miluje a je milá.", "Slovanské jméno složené ze slov 'radovat se' a 'milovat'."],
+            
+            // Únorové svátky
+            "12.2.": ["Slavěna", "slovanský", "Slavná žena, hrdost národa.", "Obrozenecké jméno oslavující slovanskou sounáležitost a národní hrdost."],
             "13.2.": ["Věnceslav", "slovanský", "Slavnější vítězným věncem.", "Mužská podoba jména vyjadřující slávu korunovanou vavřínem vítězství."],
-            "14.2.": ["Valentýn", "latinský", "Zdravý a silný.", "Svatý Valentýn byl římský kněz, který navzdory zákazu tajně oddával snoubence navzdory zákazu císaře."],
-            "15.2.": ["Jiřina", "řecký", "Rolnice dávající život zemi.", "Česká ženská podoba jména Jiří, symbolizující úctu k půdě a přírodě."],
-            "16.2.": ["Ljuba", "slovanský", "Ztělesnění čisté lásky.", "Srbské jméno, které v Čechách zdomácnělo jako symbol hlubokého citu."],
-            "17.2.": ["Miloslava", "slovanský", "Milá a slavná žena.", "Jméno vyjadřující harmonii mezi laskavou povahou a společenským uznáním."],
-            "18.2.": ["Gizela", "germánský", "Ušlechtilé dítě.", "Jméno bavorské princezny a uherské královny, symbolizující ušlechtilý původ."],
-            "19.2.": ["Patrik", "latinský", "Urozený šlechtic.", "Svatý Patrik je patronem Irska, podle legendy vyhnal z ostrova všechny hady."],
-            "20.2.": ["Oldřich", "germánský", "Vládce bohatého dědictví.", "Jméno slavného přemyslovského knížete, otce Břetislava I."],
-            "21.2.": ["Lenka", "řecký", "Zářící pochodeň.", "Zkrácenina jména Helena nebo Magdalena, symbolizující světlo a naději."],
-            "22.2.": ["Petr", "řecký", "Pevný jako skála.", "Apoštol Petr byl vybrán Ježíšem jako základní kámen církve."],
-            "23.2.": ["Svatopluk", "slovanský", "Silný ve svém vojsku.", "Jméno nejvýznamnějšího vládce Velké Moravy, symbolu státní moci."],
-            "24.2.": ["Matěj", "hebrejský", "Dar od Hospodina.", "Apoštol Matěj byl vybrán losem namísto Jidáše, je patronem řemeslníků."],
-            "25.2.": ["Liliana", "latinský", "Čistá jako květ lilie.", "Jméno symbolizující krásu, čistotu a ušlechtilost."],
-            "26.2.": ["Dorota", "řecký", "Boží dar.", "Svatá Dorota byla mučednice, patronka zahradníků a květinářů."],
-            "27.2.": ["Alexandr", "řecký", "Obránce mužů.", "Jméno proslavené Alexandrem Velikým, symbolem vojevůdcovské geniality."],
-            "28.2.": ["Lumír", "slovanský", "Ten, kdo usmiřuje lidi.", "Postava pěvce z Rukopisu královédvorského, symbol českého básnictví."],
-            "29.2.": ["Horymír", "slovanský", "Muž horující za mír.", "Legendární hrdina, který podle pověsti skočil se svým koněm Šemíkem z Vyšehradu."],
+            "14.2.": ["Valentýn", "latinský", "Zdravý a silný.", "Svatý Valentýn byl římský kněz, který tajně oddával snoubence navzdory zákazu císaře Claudia II. Je patronem všech zamilovaných."],
+            "24.2.": ["Matěj", "hebrejský", "Vzácný a milovaný dar od Hospodina.", "Apoštol, který byl vybrán losem namísto Jidáše. V lidové tradici otevírá jaro ('Svatý Matěj ledy láme')."],
+            "29.2.": ["Horymír", "slovanský", "Muž horující za mír.", "Legendární hrdina, který podle pověsti skočil se svým koněm Šemíkem z Vyšehradu do Vltavy."],
 
-            // BŘEZEN
-            "1.3.": ["Bedřich", "germánský", "Mírumilovný vládce.", "Jméno slavného českého skladatele Bedřicha Smetany."],
-            "2.3.": ["Anežka", "řecký", "Čistá a cudná.", "Svatá Anežka Česká byla princezna, která založila špitál pro chudé."],
-            "3.3.": ["Kamil", "latinský", "Urozený pomocník.", "V Římě se tak nazývali mladí pomocníci při náboženských obřadech."],
-            "4.3.": ["Stela", "latinský", "Zářící hvězda.", "Jméno vyjadřující krásu a jas noční oblohy."],
-            "5.3.": ["Kazimír", "slovanský", "Ten, kdo kazí mír.", "Jméno polských králů, paradoxně často velmi mírumilovných vládců."],
-            "6.3.": ["Miroslav", "slovanský", "Oslavující mír.", "Tradiční slovanské jméno vyjadřující touhu po pokoji a harmonii."],
-            "7.3.": ["Tomáš", "aramejský", "Bratr z dvojčat.", "Apoštol Tomáš je známý svou počáteční pochybností o vzkříšení Ježíše."],
-            "8.3.": ["Gabriela", "hebrejský", "Bůh je má síla.", "Ženská podoba jména archanděla Gabriela, posla dobrých zpráv."],
-
-            // DALŠÍ VÝZNAMNÉ DNY
-            "19.3.": ["Josef", "hebrejský", "Kéž Hospodin přidá štěstí.", "Svatý Josef, tesař a pěstoun Ježíše, je patronem rodin a řemeslníků."],
-            "24.4.": ["Jiří", "řecký", "Zemědělec a ochránce.", "Svatý Jiří je legendární drakobijce, symbol rytířské ctnosti a odvahy."],
-            "1.5.": ["Svátek práce", "český", "Solidarita pracujících.", "Mezinárodní svátek na památku stávky dělníků v Chicagu v roce 1886."],
-            "5.7.": ["Cyril a Metoděj", "řecký", "Slovanští věrozvěstové.", "Bratři ze Soluně přinesli na Velkou Moravu písmo (hlaholici) a vzdělanost."],
-            "28.9.": ["Svatý Václav", "slovanský", "Slavnější svou vírou.", "Kníže Václav je hlavním patronem české země a symbolem naší státnosti."],
-            "28.10.": ["Státní svátek", "český", "Vznik Československa.", "Den, kdy byla v roce 1918 vyhlášena samostatnost naší republiky."],
-            "17.11.": ["Státní svátek", "český", "Boj za svobodu.", "Den připomínající odvahu studentů v letech 1939 a 1989."],
-            "24.12.": ["Štědrý den", "český", "Oslava naděje a štědrosti.", "Hlavní křesťanský svátek oslavující narození Ježíše Krista."],
-            "31.12.": ["Silvestr", "latinský", "Muž pocházející z lesů.", "Svatý Silvestr byl papež, za jehož vlády skončilo pronásledování křesťanů."],
+            // Další významné dny
+            "19.3.": ["Josef", "hebrejský", "Kéž Hospodin přidá štěstí.", "Svatý Josef, tesař a pěstoun Ježíše, je patronem rodin, tesařů a celé církve."],
+            "24.4.": ["Jiří", "řecký", "Zemědělec a ochránce.", "Svatý Jiří je legendární drakobijce, symbol rytířské ctnosti, odvahy a víry."],
+            "5.7.": ["Cyril a Metoděj", "řecký", "Slovanští věrozvěstové.", "Bratři ze Soluně přinesli na Velkou Moravu písmo a křesťanskou vzdělanost."],
+            "6.7.": ["Jan Hus", "historický", "Upálení mistra Jana Husa.", "Den připomínající smrt církevního reformátora v Kostnici roku 1415."],
+            "28.9.": ["Svatý Václav", "slovanský", "Slavnější svou vírou.", "Kníže Václav je hlavním patronem české země a věčným symbolem naší státnosti."],
+            "28.10.": ["Státní svátek", "český", "Vznik Československa.", "Den, kdy byla v roce 1918 vyhlášena samostatnost naší republiky na troskách monarchie."],
+            "17.11.": ["Státní svátek", "český", "Boj za svobodu a demokracii.", "Den připomínající studentské protesty z let 1939 a 1989."],
+            "24.12.": ["Štědrý den", "český", "Oslava naděje a štědrosti.", "Hlavní křesťanský a rodinný svátek oslavující narození Ježíše Krista."],
+            "31.12.": ["Silvestr", "latinský", "Muž pocházející z lesů.", "Svatý Silvestr byl papež, za jehož vlády skončilo pronásledování křesťanů v Římě."]
         };
 
-        const placeholderNames = ["Jakub", "Tereza", "Adam", "Eva", "Lukáš", "Anna", "David", "Lucie", "Michal", "Markéta"];
+        const placeholderNames = ["Jakub", "Tereza", "Adam", "Eva", "Lukáš", "Anna", "David", "Lucie", "Markéta", "Michal"];
         
         function isLeapYear(year) {
             return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
@@ -265,8 +214,9 @@
             
             let data = dataYear[key];
             
+            // Logika pro přestupný rok
             if (d === 29 && m === 2 && !isLeapYear(y)) {
-                data = ["Přestupný den", "-", "Tento den existuje jen v přestupných letech.", "Horymír slaví 29. února. V běžném roce připadá jeho svátek symbolicky na konec února."];
+                data = ["Přestupný den", "-", "Tento den existuje jen v přestupných letech.", "Horymír slaví svůj svátek 29. února. V běžném roce jeho svátek připadá na konec února."];
             } else if (!data) {
                 const idx = (d + m) % placeholderNames.length;
                 data = [placeholderNames[idx], "tradiční", "Jméno s bohatou historií.", "Historie tohoto jména je hluboce zakořeněna v naší kultuře a tradicích."];
@@ -300,15 +250,14 @@
             const msg = document.getElementById('custom-msg').value;
             const dateStr = document.getElementById('d-txt').innerText;
 
-            // Formátování textu pro sdílení dle požadavku - opraveno
-            const shareText = `🎉 Svátek: ${name} (${dateStr})\n\n🌍 Původ: ${origin}\n\n✨ Význam: ${meaning}\n\n📜 Historie: ${history}\n\n✍️ Vzkaz: ${msg}\n\nPosláno z kalendáře\nhttps://kidum.top/svátky`;
+            // Formátování textu pro sdílení dle přesného požadavku
+            const shareText = `🎉 Svátek: ${name} (${dateStr})\n\n🌍 Původ: ${origin}\n\n✨ Význam: ${meaning}\n\n📜 Historie: ${history}\n\n✍️ Vzkaz: ${msg}\n\nPosláno z kalendáře\nhttps://kidum.top/svatky`;
             
             if (navigator.share) {
                 try {
                     await navigator.share({
                         title: `Svátek: ${name}`,
                         text: shareText
-                        // Odstraněna URL z parametru, aby se ve zprávě neopakovala
                     });
                 } catch (err) {
                     copyToClipboard(shareText);

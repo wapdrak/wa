@@ -7,7 +7,7 @@
     <!-- 
         Kompletní český kalendář jmen se všemi dny v roce.
         Obsahuje: Původ, Význam a Historii pro každé jméno.
-        Funkce: Navigace, Přestupný rok, Formátované sdílení.
+        Funkce: Navigace, Přestupný rok, Opravené formátované sdílení.
     -->
     <style>
         :root {
@@ -170,7 +170,7 @@
             "2.1.": ["Karina", "skandinávský", "Milá, přátelská a čistá žena.", "Jméno odvozené od latinského Carina, v severských zemích velmi oblíbené jako symbol jasu."],
             "3.1.": ["Radmila", "slovanský", "Žena, která ráda miluje a je milá.", "Slovanské jméno složené ze slov 'radovat se' a 'milovat', nese v sobě přání šťastného života."],
             "4.1.": ["Diana", "latinský", "Božská žena.", "Diana byla římská bohyně lovu, měsíce a lesů, ochránkyně divoké přírody."],
-            "5.1.": ["Dalimil", "slovanský", "Stále milý společník.", "Jméno proslavil autor první česky psané rýmované kroniky z počátku 14. století."],
+            "5.1.": ["Dalimil", "slovanský", "Stále milý společník.", "Jméno proslavené autorem první česky psané rýmované kroniky z počátku 14. století."],
             "6.1.": ["Tři králové", "křesťanský", "Zjevení Páně.", "Svátek mudrců z Východu (Kašpara, Melichara a Baltazara), kteří přinesli dary narozenému Ježíši."],
             "7.1.": ["Vilma", "germánský", "Žena pevné vůle.", "Ženská podoba jména Vilém (Wilhelm), symbolizující ochranu a odhodlání."],
             "8.1.": ["Čestmír", "slovanský", "Ten, kdo ctí mír.", "Jméno z českých pověstí, postava bojovníka, který bojoval za spravedlnost a pokoj."],
@@ -212,7 +212,7 @@
             "11.2.": ["Božena", "slovanský", "Žena Bohem požehnaná.", "Slavnou nositelkou byla Božena Němcová nebo kněžna Božena z pověsti o Oldřichovi."],
             "12.2.": ["Slavěna", "slovanský", "Slavná žena, hrdost národa.", "Uměle vytvořené jméno v době národního obrození jako symbol slovanské hrdosti."],
             "13.2.": ["Věnceslav", "slovanský", "Slavnější vítězným věncem.", "Mužská podoba jména vyjadřující slávu korunovanou vavřínem vítězství."],
-            "14.2.": ["Valentýn", "latinský", "Zdravý a silný.", "Svatý Valentýn byl římský kněz, který tajně oddával snoubence navzdory zákazu císaře."],
+            "14.2.": ["Valentýn", "latinský", "Zdravý a silný.", "Svatý Valentýn byl římský kněz, který navzdory zákazu tajně oddával snoubence navzdory zákazu císaře."],
             "15.2.": ["Jiřina", "řecký", "Rolnice dávající život zemi.", "Česká ženská podoba jména Jiří, symbolizující úctu k půdě a přírodě."],
             "16.2.": ["Ljuba", "slovanský", "Ztělesnění čisté lásky.", "Srbské jméno, které v Čechách zdomácnělo jako symbol hlubokého citu."],
             "17.2.": ["Miloslava", "slovanský", "Milá a slavná žena.", "Jméno vyjadřující harmonii mezi laskavou povahou a společenským uznáním."],
@@ -265,7 +265,6 @@
             
             let data = dataYear[key];
             
-            // Logika pro přestupný rok
             if (d === 29 && m === 2 && !isLeapYear(y)) {
                 data = ["Přestupný den", "-", "Tento den existuje jen v přestupných letech.", "Horymír slaví 29. února. V běžném roce připadá jeho svátek symbolicky na konec února."];
             } else if (!data) {
@@ -301,15 +300,15 @@
             const msg = document.getElementById('custom-msg').value;
             const dateStr = document.getElementById('d-txt').innerText;
 
-            // Formátování textu pro sdílení dle požadavku
-            const shareText = `🎉 Svátek: ${name} (${dateStr})\n\n🌍 Původ: ${origin}\n\n✨ Význam: ${meaning}\n\n📜 Historie: ${history}\n\n✍️ Vzkaz: ${msg}\n\nPosláno z kalendáře\nhttps://kidum.top/zid-kalendar.html`;
+            // Formátování textu pro sdílení dle požadavku - opraveno
+            const shareText = `🎉 Svátek: ${name} (${dateStr})\n\n🌍 Původ: ${origin}\n\n✨ Význam: ${meaning}\n\n📜 Historie: ${history}\n\n✍️ Vzkaz: ${msg}\n\nPosláno z kalendáře\nhttps://kidum.top/svátky`;
             
             if (navigator.share) {
                 try {
                     await navigator.share({
                         title: `Svátek: ${name}`,
-                        text: shareText,
-                        url: "https://kidum.top/zid-kalendar.html"
+                        text: shareText
+                        // Odstraněna URL z parametru, aby se ve zprávě neopakovala
                     });
                 } catch (err) {
                     copyToClipboard(shareText);

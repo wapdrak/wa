@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Wheel Picker</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #ffffff;
+            --accent-color: #007bff;
+            --item-height: 50px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .picker-container {
+            position: relative;
+            height: calc(var(--item-height) * 5); /* Zobrazíme 5 položek najednou */
+            width: 280px;
+            overflow: hidden;
+        }
+
+        /* Středový zvýrazňovač (Android styl) */
+        .selection-overlay {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: var(--item-height);
+            transform: translateY(-50%);
+            border-top: 2px solid var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            pointer-events: none;
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .wheel {
+            height: 100%;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none; /* Skryje scrollbar ve Firefoxu */
+            -ms-overflow-style: none; /* Skryje scrollbar v IE/Edge */
+        }
+
+        .wheel::-webkit-scrollbar {
+            display: none; /* Skryje scrollbar v Chrome/Safari */
+        }
+
+        .wheel-content {
+            padding: calc(var(--item-height) * 2) 0; /* Padding pro zarovnání první/poslední položky na střed */
+        }
+
+        .language-item {
+            height: var(--item-height);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            scroll-snap-align: center;
+            transition: color 0.3s, transform 0.3s;
+            opacity: 0.5;
+        }
+
+        /* Zvýraznění aktivní položky (řešeno přes JS) */
+        .language-item.active {
+            color: var(--accent-color);
+            font-weight: bold;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .result {
+            margin-top: 30px;
+            font-size: 1.1rem;
+            color: #aaa;
+        }
+
+        span#selected-code {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="picker-container">
+        <div class="selection-overlay"></div>
+        <div class="wheel" id="languageWheel">
+            <div class="wheel-content" id="wheelContent">
+                </div>
+        </div>
+    </div>
+
+    <div class="result">
+        Vybraný jazyk: <span id="selected-label">---</span> (<span id="selected-code">--</span>)
+    </div>
+
+    <script>
+        // Seznam jazyků podle tvého zadání + další běžné
+        const languages = [
+            { code: 'ar', name: 'Arabština' },
+            { code: 'cs', name: 'Čeština' },
+            { code: 'en', name: 'Angličtina' },
+            { code: 'es', name: 'Španělština' },
+            { code: 'fr', name: 'Francouzština' },
+            { code: 'he', name: 'Hebrejština' },
+            { code: 'ru', name: 'Ruština' },
+            { code: 'tr', name: 'Turečtina' },
+            { code: 'de', name: 'Němčina' },
+            { code: 'it', name: 'Italština' },
+            { code: 'pl', name: 'Polština' }
+        ];
+
+        const wheelContent = document.getElementById('wheelContent');
+        const wheel = document.getElementById('languageWheel');
+        const selectedLabel = document.getElementById('selected-label');
+        const selectedCode = document.getElementById('selected-code');
+
+        // 1. Vygenerování položek do karoselu
+        languages.forEach((lang, index) => {
+            const div = document.createElement('div');
+            div.className = 'language-item';
+            div.textContent = `${lang.name} [${lang.code}]`;
+            div.setAttribute('data-code', lang.code);
+            div.setAttribute('data-name', lang.name);
+            wheelContent.appendChild(div);
+        });
+
+        // 2. Logika pro detekci vybrané položky při skrollování
+        wheel.addEventListener('scroll', () => {
+            const itemHeight = 50; // Musí odpovídat --item-height v CSS
+            const scrollPosition = wheel.scrollTop;
+            const selectedIndex = Math.round(scrollPosition / itemHeight);
+            
+            const items = document.querySelectorAll('.language-item');
+            
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('active');
+                    // Aktualizace textu pod výběrem
+                    selectedLabel.textContent = item.getAttribute('data-name');
+                    selectedCode.textContent = item.getAttribute('data-code');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        });
+
+        // Inicializace prvního vybraného prvku
+        window.onload = () => {
+            wheel.scrollTop = 0;
+            const firstItem = document.querySelector('.language-item');
+            if (firstItem) {
+                firstItem.classList.add('active');
+                selectedLabel.textContent = languages[0].name;
+                selectedCode.textContent = languages[0].code;
+            }
+        };
+    </script>
+
+</body>
+</html>
